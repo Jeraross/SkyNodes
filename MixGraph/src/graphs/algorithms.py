@@ -320,11 +320,17 @@ def bellman_ford(grafo: Grafo, origem: str, destino: Optional[str] = None) -> di
     distancias[origem] = 0.0
     pais: dict[str, Optional[str]] = {origem: None}
 
-    # Expande arestas únicas nas duas direções para cobrir o grafo não-direcionado
-    todas_arestas: list[tuple[str, str, float]] = []
-    for u, v, peso, _, _ in grafo.arestas():
-        todas_arestas.append((u, v, peso))
-        todas_arestas.append((v, u, peso))
+    # Percorre as listas de adjacência diretamente.
+    # Para grafos não-direcionados construídos com adicionar_aresta(), cada aresta
+    # já aparece nos dois sentidos em _adjacencia, portanto ambas as direções
+    # são relaxadas naturalmente. Para grafos com arestas direcionadas inseridas
+    # manualmente (ex: testes unitários), apenas a direção presente é relaxada,
+    # evitando a criação de falsos ciclos negativos por arestas reversas.
+    todas_arestas: list[tuple[str, str, float]] = [
+        (u, aresta.destino, aresta.peso)
+        for u in grafo.nos()
+        for aresta in grafo.vizinhos(u)
+    ]
 
     # Fase de relaxamento: repete |V| - 1 vezes
     for _ in range(n - 1):
