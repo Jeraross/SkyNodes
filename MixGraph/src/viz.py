@@ -356,7 +356,268 @@ def plotar_arvore_percurso(
 # Bloco de execução direto
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# SEÇÃO 9 — Grafo interativo completo
+# ---------------------------------------------------------------------------
+
+# Cores dos nós por região
+_COR_REGIAO: dict[str, str] = {
+    "Norte":        "#5b9bd5",
+    "Nordeste":     "#ed7d31",
+    "Sudeste":      "#70ad47",
+    "Sul":          "#ffc000",
+    "Centro-Oeste": "#7030a0",
+}
+
+# Cores das arestas por tipo de conexão
+_COR_TIPO_CONEXAO: dict[str, str] = {
+    "regional":       "#aec7e8",
+    "hub":            "#ffbb78",
+    "inter_regional": "#98df8a",
+}
+
+# Limites de tamanho dos nós (escalonado pelo grau)
+_TAMANHO_MIN = 15
+_TAMANHO_MAX = 45
+
+
+def _escalar_tamanho(grau: int, grau_min: int, grau_max: int) -> int:
+    """
+    Escala linear do grau para o intervalo [_TAMANHO_MIN, _TAMANHO_MAX].
+    Retorna _TAMANHO_MIN se todos os graus forem iguais.
+    """
+    if grau_max == grau_min:
+        return (_TAMANHO_MIN + _TAMANHO_MAX) // 2
+    fator = (grau - grau_min) / (grau_max - grau_min)
+    return int(_TAMANHO_MIN + fator * (_TAMANHO_MAX - _TAMANHO_MIN))
+
+
+def _escalar_espessura(peso: float, peso_min: float, peso_max: float) -> float:
+    """
+    Espessura da aresta inversamente proporcional ao peso:
+    peso menor → aresta mais espessa (range 1.0 a 6.0).
+    """
+    if peso_max == peso_min:
+        return 3.0
+    fator = 1.0 - (peso - peso_min) / (peso_max - peso_min)
+    return round(1.0 + fator * 5.0, 2)
+
+
+def _injetar_legenda(caminho_html: str, caminhos_destaque: list[dict]) -> None:
+    """
+    Injeta uma caixa de legenda HTML diretamente no arquivo gerado pelo pyvis,
+    logo após a tag <body>. Explica as cores dos dois caminhos obrigatórios
+    e as cores das regiões/tipos de conexão.
+    """
+    label_c1 = caminhos_destaque[0]["label"]
+    label_c2 = caminhos_destaque[1]["label"]
+
+    legenda_html = f"""
+<div id="legenda" style="
+    position: fixed; top: 16px; left: 16px; z-index: 9999;
+    background: rgba(10,10,30,0.92); color: white;
+    border: 1px solid #444; border-radius: 8px;
+    padding: 12px 16px; font-family: sans-serif; font-size: 13px;
+    min-width: 220px; line-height: 1.7;
+">
+  <b style="font-size:14px;">Legenda</b><br>
+  <hr style="border-color:#555; margin:6px 0;">
+  <b>Caminhos obrigatorios</b><br>
+  <span style="color:#cc0000;">&#9632;</span> {label_c1}<br>
+  <span style="color:#006600;">&#9632;</span> {label_c2}<br>
+  <hr style="border-color:#555; margin:6px 0;">
+  <b>Regioes (nos)</b><br>
+  {"".join(
+      f'<span style="color:{cor};">&#9679;</span> {reg}<br>'
+      for reg, cor in _COR_REGIAO.items()
+  )}
+  <hr style="border-color:#555; margin:6px 0;">
+  <b>Tipo de conexao (arestas)</b><br>
+  {"".join(
+      f'<span style="color:{cor};">&#9644;</span> {tipo}<br>'
+      for tipo, cor in _COR_TIPO_CONEXAO.items()
+  )}
+</div>
+"""
+
+    with open(caminho_html, "r", encoding="utf-8") as f:
+        conteudo = f.read()
+
+    # Insere logo após a abertura do <body>
+    conteudo = conteudo.replace("<body>", "<body>\n" + legenda_html, 1)
+
+    with open(caminho_html, "w", encoding="utf-8") as f:
+        f.write(conteudo)
+
+
+def gerar_grafo_interativo(
+    grafo: Grafo,
+    ego_metricas: list[dict],
+    caminhos_destaque: list[dict],
+    diretorio_saida: str,
+) -> None:
+    """
+    Gera out/grafo_interativo.html com pyvis.Network.
+
+    Requisitos:
+      1. Tooltip por nó: IATA | Cidade | Regiao | Grau | Densidade Ego
+      2. Caixa de busca via show_buttons(filter_=['nodes'])
+      3. Nós/arestas dos caminhos obrigatorios realçados em vermelho e verde
+      4. Cor dos nós por região, tamanho proporcional ao grau
+      5. Espessura da aresta inversamente proporcional ao peso
+      6. Cor da aresta por tipo_conexao
+      7. Legenda HTML embutida no arquivo
+
+    Parâmetros:
+      grafo              : instância de Grafo já carregada
+      ego_metricas       : lista retornada por calcular_ego_redes()
+      caminhos_destaque  : lista com 2 dicts {label, nos, arestas, custo}
+      diretorio_saida    : caminho para o diretório de saída
+    """
+    os.makedirs(diretorio_saida, exist_ok=True)
+
+    # --- Índices auxiliares ---
+    # Mapa IATA -> densidade_ego
+    ego_por_iata: dict[str, float] = {
+        m["aeroporto"]: m["densidade_ego"] for m in ego_metricas
+    }
+
+    # Graus para escalonamento do tamanho dos nós
+    graus: dict[str, int] = {iata: grafo.grau(iata) for iata in grafo.nos()}
+    grau_min = min(graus.values())
+    grau_max = max(graus.values())
+
+    # Pesos para escalonamento da espessura das arestas
+    todas_arestas = grafo.arestas()
+    pesos = [peso for _, _, peso, _, _ in todas_arestas]
+    peso_min = min(pesos)
+    peso_max = max(pesos)
+
+    # Nós e arestas dos caminhos de destaque
+    nos_c1: set[str] = set(caminhos_destaque[0]["nos"])
+    nos_c2: set[str] = set(caminhos_destaque[1]["nos"])
+    arestas_c1: set[frozenset] = {frozenset(p) for p in caminhos_destaque[0]["arestas"]}
+    arestas_c2: set[frozenset] = {frozenset(p) for p in caminhos_destaque[1]["arestas"]}
+
+    # --- Rede pyvis ---
+    rede = Network(
+        height="750px",
+        width="100%",
+        bgcolor="#1a1a2e",
+        font_color="white",
+    )
+    rede.toggle_physics(True)
+
+    # Caixa de busca (filtro de nós)
+    rede.show_buttons(filter_=["nodes"])
+
+    # --- Nós ---
+    for iata in grafo.nos():
+        info = grafo.info_no(iata)
+        cidade = info.get("cidade", "")
+        regiao = info.get("regiao", "")
+        grau = graus[iata]
+        densidade_ego = ego_por_iata.get(iata, 0.0)
+        tamanho = _escalar_tamanho(grau, grau_min, grau_max)
+
+        tooltip = (
+            f"{iata} | {cidade} | {regiao} | "
+            f"Grau: {grau} | Densidade Ego: {densidade_ego:.2f}"
+        )
+
+        # Cor de destaque sobrepõe a cor de região nos caminhos obrigatórios
+        nos_ambos = nos_c1 & nos_c2
+        if iata in nos_ambos:
+            # Nó compartilhado: usa vermelho (caminho 1 tem prioridade visual)
+            cor_fundo = "#cc0000"
+            cor_borda = "#ffffff"
+        elif iata in nos_c1:
+            cor_fundo = "#cc0000"
+            cor_borda = "#ff6666"
+        elif iata in nos_c2:
+            cor_fundo = "#006600"
+            cor_borda = "#00cc00"
+        else:
+            cor_fundo = _COR_REGIAO.get(regiao, "#888888")
+            cor_borda = "#ffffff"
+
+        rede.add_node(
+            iata,
+            label=iata,
+            title=tooltip,
+            color={"background": cor_fundo, "border": cor_borda},
+            size=tamanho,
+            font={"size": 14, "color": "white", "bold": True},
+            borderWidth=2,
+        )
+
+    # --- Arestas ---
+    pares_inseridos: set[frozenset] = set()
+
+    for origem, destino, peso, tipo_conexao, _ in todas_arestas:
+        par = frozenset([origem, destino])
+        if par in pares_inseridos:
+            continue
+        pares_inseridos.add(par)
+
+        espessura = _escalar_espessura(peso, peso_min, peso_max)
+
+        # Cor e espessura de destaque sobrepõem o tipo de conexão
+        em_c1 = par in arestas_c1
+        em_c2 = par in arestas_c2
+
+        if em_c1:
+            cor_aresta = "#cc0000"
+            espessura = max(espessura, 4.0)
+        elif em_c2:
+            cor_aresta = "#006600"
+            espessura = max(espessura, 4.0)
+        else:
+            cor_aresta = _COR_TIPO_CONEXAO.get(tipo_conexao, "#888888")
+
+        rede.add_edge(
+            origem,
+            destino,
+            color=cor_aresta,
+            width=espessura,
+            title=f"Peso: {peso:.2f} | Tipo: {tipo_conexao}",
+        )
+
+    # Configurações de física (Barnes-Hut)
+    rede.set_options("""
+    {
+      "physics": {
+        "enabled": true,
+        "barnesHut": {
+          "gravitationalConstant": -9000,
+          "centralGravity": 0.25,
+          "springLength": 140,
+          "springConstant": 0.05,
+          "damping": 0.1
+        }
+      },
+      "edges": {
+        "smooth": { "type": "continuous" }
+      }
+    }
+    """)
+
+    caminho_html = Path(diretorio_saida) / "grafo_interativo.html"
+    rede.save_graph(str(caminho_html))
+
+    # Injeta legenda HTML diretamente no arquivo gerado
+    _injetar_legenda(str(caminho_html), caminhos_destaque)
+
+    print(f"HTML interativo salvo em: {caminho_html}")
+
+
+# ---------------------------------------------------------------------------
+# Ponto de entrada direto
+# ---------------------------------------------------------------------------
+
 if __name__ == "__main__":
+    from src.solve import calcular_ego_redes
+
     _BASE = Path(__file__).parent.parent
     _CSV_AEROPORTOS = str(_BASE / "data" / "aeroportos_data.csv")
     _CSV_ADJACENCIAS = str(_BASE / "data" / "adjacencias_aeroportos.csv")
@@ -396,13 +657,21 @@ if __name__ == "__main__":
     print(f"  REC -> POA : {' -> '.join(caminho_rec_poa)}  (custo {res_rec_poa['custo']:.1f})")
     print(f"  MAO -> GRU : {' -> '.join(caminho_mao_gru)}  (custo {res_mao_gru['custo']:.1f})")
 
-    # 4. Gera visualizações
+    # 4. Calcula ego-redes (necessário para o grafo interativo)
+    print("\nCalculando ego-redes...")
+    ego = calcular_ego_redes(grafo, _DIR_SAIDA)
+
+    # 5. Gera visualizações
     print("\nGerando visualizacoes...")
     plotar_arvore_percurso(grafo, caminhos, _DIR_SAIDA)
+    gerar_grafo_interativo(grafo, ego, caminhos, _DIR_SAIDA)
 
-    # 5. Confirma arquivos gerados
-    png = Path(_DIR_SAIDA) / "arvore_percurso.png"
-    html = Path(_DIR_SAIDA) / "arvore_percurso.html"
-    print(f"\nArquivos gerados:")
-    print(f"  {'OK' if png.exists() else 'ERRO'} {png}")
-    print(f"  {'OK' if html.exists() else 'ERRO'} {html}")
+    # 6. Confirma arquivos gerados
+    arquivos = [
+        Path(_DIR_SAIDA) / "arvore_percurso.png",
+        Path(_DIR_SAIDA) / "arvore_percurso.html",
+        Path(_DIR_SAIDA) / "grafo_interativo.html",
+    ]
+    print("\nArquivos gerados:")
+    for arq in arquivos:
+        print(f"  {'OK  ' if arq.exists() else 'ERRO'} {arq}")
