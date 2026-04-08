@@ -1,1 +1,51 @@
-source,neighbors
+origem,destino,tipo_conexao,justificativa,peso
+REC,SSA,regional,conexão intra-regional: Nordeste,1.5
+REC,FOR,regional,conexão intra-regional: Nordeste,1.5
+REC,NAT,regional,conexão intra-regional: Nordeste,1.5
+REC,JPA,regional,conexão intra-regional: Nordeste,1.5
+REC,THE,regional,conexão intra-regional: Nordeste,1.5
+SSA,FOR,regional,conexão intra-regional: Nordeste,1.5
+SSA,NAT,regional,conexão intra-regional: Nordeste,1.5
+SSA,JPA,regional,conexão intra-regional: Nordeste,1.5
+SSA,THE,regional,conexão intra-regional: Nordeste,1.5
+FOR,NAT,regional,conexão intra-regional: Nordeste,1.5
+FOR,JPA,regional,conexão intra-regional: Nordeste,1.5
+FOR,THE,regional,conexão intra-regional: Nordeste,1.5
+NAT,JPA,regional,conexão intra-regional: Nordeste,1.5
+NAT,THE,regional,conexão intra-regional: Nordeste,1.5
+JPA,THE,regional,conexão intra-regional: Nordeste,1.5
+GRU,CGH,regional,conexão intra-regional: Sudeste,1.0
+GRU,GIG,regional,conexão intra-regional: Sudeste,1.0
+GRU,CNF,regional,conexão intra-regional: Sudeste,1.0
+GRU,VIX,regional,conexão intra-regional: Sudeste,1.0
+CGH,GIG,regional,conexão intra-regional: Sudeste,1.0
+CGH,CNF,regional,conexão intra-regional: Sudeste,1.5
+CGH,VIX,regional,conexão intra-regional: Sudeste,1.5
+GIG,CNF,regional,conexão intra-regional: Sudeste,1.0
+GIG,VIX,regional,conexão intra-regional: Sudeste,1.0
+CNF,VIX,regional,conexão intra-regional: Sudeste,1.5
+BSB,GYN,regional,conexão intra-regional: Centro-Oeste,1.0
+CWB,FLN,regional,conexão intra-regional: Sul,1.5
+CWB,POA,regional,conexão intra-regional: Sul,1.5
+FLN,POA,regional,conexão intra-regional: Sul,1.5
+MAO,BEL,regional,conexão intra-regional: Norte,1.5
+MAO,PVH,regional,conexão intra-regional: Norte,1.5
+MAO,RBR,regional,conexão intra-regional: Norte,1.5
+BEL,PVH,regional,conexão intra-regional: Norte,1.5
+BEL,RBR,regional,conexão intra-regional: Norte,1.5
+PVH,RBR,regional,conexão intra-regional: Norte,1.5
+MAO,GRU,hub,conexão via hub nacional GRU,3.0
+MAO,BSB,hub,conexão via hub nacional BSB,3.0
+REC,GRU,hub,conexão via hub nacional GRU,3.0
+SSA,GRU,hub,conexão via hub nacional GRU,3.0
+FOR,GRU,hub,conexão via hub nacional GRU,3.0
+NAT,BSB,hub,conexão via hub nacional BSB,3.0
+JPA,BSB,hub,conexão via hub nacional BSB,3.0
+THE,BSB,hub,conexão via hub nacional BSB,3.0
+POA,GRU,hub,conexão via hub nacional GRU,3.0
+CWB,GRU,hub,conexão via hub nacional GRU,3.0
+FLN,GRU,hub,conexão via hub nacional GRU,3.0
+BSB,BEL,inter_regional,ponte inter-regional estratégica,3.5
+BSB,REC,inter_regional,ponte inter-regional estratégica,3.5
+BSB,POA,inter_regional,ponte inter-regional estratégica,3.5
+GIG,SSA,inter_regional,ponte inter-regional estratégica,3.5
