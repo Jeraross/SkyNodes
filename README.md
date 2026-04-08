@@ -1,4 +1,4 @@
-# Projeto Final — Teoria dos Grafos: Rede de Aeroportos do Brasil
+# Teoria dos Grafos
 
 ## Descrição
 
