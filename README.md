@@ -65,7 +65,7 @@ MixGraph/
 
 ```bash
 # 1. Clone o repositório
-git clone <url-do-repositorio>
+git clone https://github.com/Jeraross/MixGraph.git
 cd MixGraph
 
 # 2. Crie e ative o ambiente virtual
