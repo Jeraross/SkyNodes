@@ -1,1 +1,4 @@
+pandas>=2.0.0
+matplotlib>=3.7.0
+pyvis>=0.3.2
 pytest>=8.0.0
