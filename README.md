@@ -192,9 +192,3 @@ Isso penaliza conexões inter-regionais sem hub intermediário e beneficia rotas
 | `viz4_ego_grau_densidade.png` | Scatter grau × densidade da ego-rede por região (exploratória) |
 | `viz5_camadas_bfs.png` | Camadas BFS a partir de REC em layout por colunas (explanatória) |
 | `viz6_heatmap_distancias.png` | Heatmap 20×20 das distâncias mínimas Dijkstra entre todos os pares (explanatória) |
-
----
-
-## Autores
-
-- **Jerin** — Universidade Federal de Pernambuco (UFPE)
