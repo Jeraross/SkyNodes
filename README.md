@@ -33,7 +33,6 @@ MixGraph/
     │   ├── graus.csv                 # Ranking de graus
     │   ├── distancias_rotas.csv      # Rotas Dijkstra com custos e caminhos
     │   ├── arvore_percurso.png       # Mapa estático dos caminhos obrigatórios
-    │   ├── arvore_percurso.html      # Visualização interativa dos caminhos
     │   ├── grafo_interativo.html     # Grafo completo interativo (pyvis)
     │   ├── viz1_distribuicao_graus.png
     │   ├── viz2_ranking_conectados.png
@@ -83,36 +82,103 @@ pip install -r requirements.txt
 
 ---
 
-## Como Executar — Parte 1
+## Como Executar
 
-Todos os comandos devem ser executados a partir do diretório `MixGraph/MixGraph/`.
+> Todos os comandos abaixo devem ser rodados a partir do diretório `MixGraph\MixGraph\`
+> (o subdiretório com `src/`, `data/` e `tests/`).
 
-### Gerar as adjacências (primeira execução)
-
-```bash
-python src/build_data.py
+```
+cd MixGraph\MixGraph
 ```
 
-Gera `data/adjacencias_aeroportos.csv` com base nas 3 regras de modelagem e verifica se o grafo é conectado.
+---
 
-### Executar via CLI
+### Pipeline completo — Parte 1
+
+Executa tudo de uma vez: métricas, rotas, visualizações estáticas e grafo interativo.
+
+```bash
+python -m src.cli --dataset ./data/aeroportos_data.csv --alg ALL --out ./out/
+```
+
+Arquivos gerados em `out/`: métricas JSON, CSVs, PNG analíticos, mapa estático e `grafo_interativo.html`.
+
+---
+
+### Gerar apenas as visualizações
+
+```bash
+python -m src.viz
+```
+
+Gera `out/arvore_percurso.png`, `out/grafo_interativo.html` e todos os PNGs analíticos sem re-executar o pipeline de métricas.
+
+---
+
+### Visualização interativa (grafo_interativo.html)
+
+Após gerar o arquivo, abra-o diretamente no navegador:
+
+**Windows Explorer** — navegue até `MixGraph\out\` e dê duplo clique em `grafo_interativo.html`.
+
+**PowerShell**:
+```powershell
+Invoke-Item .\out\grafo_interativo.html
+```
+
+**Prompt de Comando (cmd)**:
+```cmd
+start out\grafo_interativo.html
+```
+
+O HTML é completamente autocontido (sem dependências externas) — funciona offline em qualquer navegador moderno.
+
+#### Controles da interface
+
+| Botão | Ação |
+|---|---|
+| `⊕` | Centralizar / reajustar zoom |
+| `⚡` | Ligar / desligar simulação física |
+| `⬤` | Modo compacto (oculta rótulos, reduz nós) |
+
+- **Hover** sobre nó: exibe IATA, cidade, região, grau e densidade da ego-rede
+- **Hover** sobre aresta: exibe tipo de conexão, peso e justificativa
+- **Clique** em nó: fixa painel de detalhes no rodapé
+- **Player de caminhos**: reproduz passo a passo os caminhos mínimos REC→POA e MAO→GRU
+
+> Hover de nós e arestas fica desativado enquanto a física estiver ligada.
+
+---
+
+### Algoritmos individuais via CLI
 
 ```bash
 # BFS a partir de Recife
 python -m src.cli --dataset ./data/aeroportos_data.csv --alg BFS --source REC --out ./out/
 
-# Dijkstra: menor caminho de Recife a Porto Alegre
-python -m src.cli --dataset ./data/aeroportos_data.csv --alg DIJKSTRA --source REC --target POA --out ./out/
-
 # DFS a partir de São Paulo (GRU)
 python -m src.cli --dataset ./data/aeroportos_data.csv --alg DFS --source GRU --out ./out/
 
+# Dijkstra: menor caminho de Recife a Porto Alegre
+python -m src.cli --dataset ./data/aeroportos_data.csv --alg DIJKSTRA --source REC --target POA --out ./out/
+
 # Bellman-Ford: Manaus a São Paulo
 python -m src.cli --dataset ./data/aeroportos_data.csv --alg BELLMAN_FORD --source MAO --target GRU --out ./out/
-
-# Executar toda a Parte 1 (métricas + visualizações)
-python -m src.cli --dataset ./data/aeroportos_data.csv --alg ALL --out ./out/
 ```
+
+Cada algoritmo salva um JSON em `out/` com os resultados completos (pais, distâncias, caminhos).
+
+---
+
+### Gerar apenas as adjacências
+
+Necessário apenas na primeira execução se o arquivo `data/adjacencias_aeroportos.csv` não existir (o pipeline `ALL` já faz isso automaticamente):
+
+```bash
+python src/build_data.py
+```
+
+---
 
 ### Rodar testes
 
@@ -184,8 +250,7 @@ Isso penaliza conexões inter-regionais sem hub intermediário e beneficia rotas
 | `graus.csv` | Ranking de todos os aeroportos por grau (decrescente) |
 | `distancias_rotas.csv` | Custo e caminho mínimo (Dijkstra) para os 7 pares de `data/rotas.csv` |
 | `arvore_percurso.png` | Mapa estático (matplotlib) com os caminhos REC→POA e MAO→GRU destacados |
-| `arvore_percurso.html` | Versão interativa (pyvis) do mapa de percurso |
-| `grafo_interativo.html` | Grafo completo interativo com tooltips, busca e legenda por região |
+| `grafo_interativo.html` | Grafo completo interativo com tooltips, player de caminhos e legenda |
 | `viz1_distribuicao_graus.png` | Histograma da distribuição de graus (exploratória) |
 | `viz2_ranking_conectados.png` | Barras horizontais com ranking de conectividade por região (exploratória) |
 | `viz3_metricas_regioes.png` | Barras agrupadas comparando métricas por região (exploratória) |
