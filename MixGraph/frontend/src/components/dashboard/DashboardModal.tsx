@@ -26,7 +26,7 @@ interface Props {
 export default function DashboardModal({ activeModal, onClose, metrics, onHighlightRoutes }: Props) {
   return (
     <Dialog open={activeModal !== null} onOpenChange={open => { if (!open) onClose(); }}>
-      <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto border-slate-700/60 bg-slate-950/95 text-white backdrop-blur-2xl"
+      <DialogContent className="max-h-[90vh] w-[800px] max-w-[calc(100vw-2rem)] overflow-y-auto border-slate-700/60 bg-slate-950/95 text-white backdrop-blur-2xl"
         style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(34,211,238,0.3) transparent' }}>
         <DialogHeader>
           <DialogTitle className="text-cyan-100">
