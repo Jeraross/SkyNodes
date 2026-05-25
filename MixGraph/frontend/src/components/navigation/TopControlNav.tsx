@@ -35,7 +35,7 @@ export default function TopControlNav({ onEnterBrazil }: Props) {
   ];
 
   return (
-    <div className="pointer-events-auto absolute left-1/2 top-4 z-40 -translate-x-1/2">
+    <div className="pointer-events-auto absolute left-1/2 top-4 z-40 -translate-x-1/2 w-[min(90vw,800px)]">
       <CardNav
         items={items}
         baseColor="rgba(2, 6, 23, 0.72)"

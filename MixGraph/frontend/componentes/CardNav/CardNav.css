@@ -1,10 +1,6 @@
 .card-nav-container {
-  position: absolute;
-  top: 2em;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 800px;
+  position: relative;
+  width: 100%;
   z-index: 99;
   box-sizing: border-box;
 }

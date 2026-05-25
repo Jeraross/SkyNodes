@@ -1,3 +1,4 @@
+import { Play, Pause, RotateCcw, X } from 'lucide-react';
 import type { FlightSimulation } from '../../types';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -89,40 +90,40 @@ export default function SimulationSidebar({
           {(status === 'ready' || status === 'finished') && (
             <button
               onClick={onStart}
-              className="flex-1 py-1.5 rounded-lg text-xs font-medium border bg-green-700/25 border-green-500/40 text-green-300 hover:bg-green-700/40 transition-colors"
+              className="flex-1 py-1.5 rounded-lg text-xs font-medium border bg-green-700/25 border-green-500/40 text-green-300 hover:bg-green-700/40 transition-colors flex items-center justify-center gap-1"
             >
-              ▶ Voar
+              <Play size={11} className="fill-current" /> Voar
             </button>
           )}
           {status === 'playing' && (
             <button
               onClick={onPause}
-              className="flex-1 py-1.5 rounded-lg text-xs font-medium border bg-yellow-700/25 border-yellow-500/40 text-yellow-300 hover:bg-yellow-700/40 transition-colors"
+              className="flex-1 py-1.5 rounded-lg text-xs font-medium border bg-yellow-700/25 border-yellow-500/40 text-yellow-300 hover:bg-yellow-700/40 transition-colors flex items-center justify-center gap-1"
             >
-              ⏸ Pausar
+              <Pause size={11} className="fill-current" /> Pausar
             </button>
           )}
           {status === 'paused' && (
             <button
               onClick={onResume}
-              className="flex-1 py-1.5 rounded-lg text-xs font-medium border bg-cyan-700/25 border-cyan-500/40 text-cyan-300 hover:bg-cyan-700/40 transition-colors"
+              className="flex-1 py-1.5 rounded-lg text-xs font-medium border bg-cyan-700/25 border-cyan-500/40 text-cyan-300 hover:bg-cyan-700/40 transition-colors flex items-center justify-center gap-1"
             >
-              ▶ Continuar
+              <Play size={11} className="fill-current" /> Continuar
             </button>
           )}
           {(status === 'paused' || status === 'finished') && (
             <button
               onClick={onRestart}
-              className="py-1.5 px-2.5 rounded-lg text-xs font-medium border bg-slate-700/40 border-slate-600/50 text-slate-300 hover:bg-slate-700/60 transition-colors"
+              className="py-1.5 px-2.5 rounded-lg text-xs font-medium border bg-slate-700/40 border-slate-600/50 text-slate-300 hover:bg-slate-700/60 transition-colors flex items-center justify-center"
             >
-              ↺
+              <RotateCcw size={11} />
             </button>
           )}
           <button
             onClick={onClear}
-            className="py-1.5 px-2.5 rounded-lg text-xs font-medium border bg-red-900/25 border-red-700/40 text-red-400 hover:bg-red-900/40 transition-colors"
+            className="py-1.5 px-2.5 rounded-lg text-xs font-medium border bg-red-900/25 border-red-700/40 text-red-400 hover:bg-red-900/40 transition-colors flex items-center justify-center"
           >
-            ✕
+            <X size={11} />
           </button>
         </div>
 
