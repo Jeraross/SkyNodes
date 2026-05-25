@@ -1,11 +1,10 @@
-// src/components/dashboard/DashboardModal.tsx
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import OverviewPanel from './OverviewPanel';
 import RoutesPanel from './RoutesPanel';
 import AlgorithmsPanel from './AlgorithmsPanel';
 import CentralityPanel from './CentralityPanel';
 import RegionsPanel from './RegionsPanel';
-import type { ModalType } from '../../types';
+import type { ModalType, FlightSimulation } from '../../types';
 import type { GraphMetrics } from '../../lib/graph/graphMetrics';
 
 const titles: Record<NonNullable<ModalType>, string> = {
@@ -21,13 +20,26 @@ interface Props {
   onClose: () => void;
   metrics: GraphMetrics;
   onHighlightRoutes: (ids: string[]) => void;
+  simulation: FlightSimulation;
+  onSetReady: (path: string[], routeIds: string[], cost?: number) => void;
+  onStart: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onRestart: () => void;
+  onClear: () => void;
+  onSetSpeed: (s: number) => void;
 }
 
-export default function DashboardModal({ activeModal, onClose, metrics, onHighlightRoutes }: Props) {
+export default function DashboardModal({
+  activeModal, onClose, metrics, onHighlightRoutes,
+  simulation, onSetReady, onStart, onPause, onResume, onRestart, onClear, onSetSpeed,
+}: Props) {
   return (
     <Dialog open={activeModal !== null} onOpenChange={open => { if (!open) onClose(); }}>
-      <DialogContent className="max-h-[90vh] w-[800px] max-w-[calc(100vw-2rem)] overflow-y-auto border-slate-700/60 bg-slate-950/95 text-white backdrop-blur-2xl"
-        style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(34,211,238,0.3) transparent' }}>
+      <DialogContent
+        className="max-h-[90vh] w-[800px] max-w-[calc(100vw-2rem)] overflow-y-auto border-slate-700/60 bg-slate-950/95 text-white backdrop-blur-2xl"
+        style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(34,211,238,0.3) transparent' }}
+      >
         <DialogHeader>
           <DialogTitle className="text-cyan-100">
             {activeModal ? titles[activeModal] : ''}
@@ -36,7 +48,19 @@ export default function DashboardModal({ activeModal, onClose, metrics, onHighli
         <div className="mt-2">
           {activeModal === 'overview' && <OverviewPanel metrics={metrics} />}
           {activeModal === 'routes' && <RoutesPanel />}
-          {activeModal === 'algorithms' && <AlgorithmsPanel onHighlightRoutes={ids => { onHighlightRoutes(ids); onClose(); }} />}
+          {activeModal === 'algorithms' && (
+            <AlgorithmsPanel
+              onHighlightRoutes={onHighlightRoutes}
+              simulation={simulation}
+              onSetReady={onSetReady}
+              onStart={onStart}
+              onPause={onPause}
+              onResume={onResume}
+              onRestart={onRestart}
+              onClear={onClear}
+              onSetSpeed={onSetSpeed}
+            />
+          )}
           {activeModal === 'centrality' && <CentralityPanel metrics={metrics} />}
           {activeModal === 'regions' && <RegionsPanel metrics={metrics} />}
         </div>

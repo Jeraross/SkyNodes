@@ -1,2 +1,22 @@
 export type GlobeMode = 'orbit' | 'brazil-locked' | 'analysis';
 export type ModalType = 'overview' | 'routes' | 'algorithms' | 'centrality' | 'regions' | null;
+
+export type SimulationStatus = 'idle' | 'ready' | 'playing' | 'paused' | 'finished';
+
+export type PlanePosition = {
+  lat: number;
+  lng: number;
+  altitude: number;
+  heading: number;
+  visible: boolean;
+};
+
+export type FlightSimulation = {
+  status: SimulationStatus;
+  airportPath: string[];
+  routeIds: string[];
+  currentSegmentIndex: number;
+  progress: number;
+  speedMultiplier: number;
+  totalCost?: number;
+};
