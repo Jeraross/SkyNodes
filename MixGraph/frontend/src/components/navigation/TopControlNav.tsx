@@ -1,9 +1,13 @@
-// src/components/navigation/TopControlNav.tsx
 import CardNav from '@reactbits/CardNav/CardNav';
+import ViewModeToggle from './ViewModeToggle';
+import type { ViewMode } from '../../types';
 
-interface Props { onEnterBrazil: () => void; }
+interface Props {
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+}
 
-export default function TopControlNav({ onEnterBrazil }: Props) {
+export default function TopControlNav({ viewMode, onViewModeChange }: Props) {
   const items = [
     {
       label: 'Projeto',
@@ -40,10 +44,7 @@ export default function TopControlNav({ onEnterBrazil }: Props) {
         items={items}
         baseColor="rgba(2, 6, 23, 0.72)"
         menuColor="#67e8f9"
-        buttonBgColor="rgba(8, 145, 178, 0.35)"
-        buttonTextColor="#ecfeff"
-        ctaLabel="Analisar Brasil"
-        onCtaClick={onEnterBrazil}
+        ctaNode={<ViewModeToggle value={viewMode} onChange={onViewModeChange} />}
       />
     </div>
   );

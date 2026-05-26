@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import ClickSpark from '@reactbits/ClickSpark/ClickSpark';
 import Particles from '@reactbits/Particles/Particles';
+import IntroScreen from './components/IntroScreen';
 import FlightGlobe from './components/globe/FlightGlobe';
 import GlobeHeroOverlay from './components/globe/GlobeHeroOverlay';
 import GlobeStatusOverlay from './components/globe/GlobeStatusOverlay';
+import GraphView from './components/views/GraphView';
+import MapView from './components/views/MapView';
 import GlobeSidebar from './components/navigation/GlobeSidebar';
 import SimulationSidebar from './components/navigation/SimulationSidebar';
 import TopControlNav from './components/navigation/TopControlNav';
@@ -12,12 +15,14 @@ import { airports } from './data/airports';
 import { routes } from './data/routes';
 import { computeMetrics } from './lib/graph/graphMetrics';
 import { useFlightSimulation } from './hooks/useFlightSimulation';
-import type { GlobeMode, ModalType } from './types';
+import type { GlobeMode, ModalType, ViewMode } from './types';
 
 const metrics = computeMetrics(airports, routes);
 
 export default function App() {
+  const [showIntro, setShowIntro] = useState(true);
   const [mode, setMode] = useState<GlobeMode>('orbit');
+  const [viewMode, setViewMode] = useState<ViewMode>('globe');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState<string[]>([]);
 
@@ -38,8 +43,11 @@ export default function App() {
   };
 
   const currentRouteId = simulation.routeIds[simulation.currentSegmentIndex] ?? '';
+  const showSidebars = viewMode !== 'globe' || mode !== 'orbit';
 
   return (
+    <>
+      {showIntro && <IntroScreen onDone={() => setShowIntro(false)} />}
     <ClickSpark sparkColor="#67e8f9" sparkSize={10} sparkRadius={18} sparkCount={8} duration={420}>
       <main className="relative h-screen w-full overflow-hidden bg-[#020617] text-white">
         <div className="pointer-events-none absolute inset-0 z-0 opacity-55">
@@ -56,21 +64,25 @@ export default function App() {
           />
         </div>
 
-        <div className="absolute inset-0 z-10">
-          <FlightGlobe
-            mode={mode}
-            highlightedRouteIds={highlightedRouteIds}
-            currentRouteId={currentRouteId}
-            simulatedPlanePosition={planePosition}
-            onEnterBrazil={handleEnterBrazil}
-          />
-        </div>
+        {viewMode === 'globe' && (
+          <div className="absolute inset-0 z-10">
+            <FlightGlobe
+              mode={mode}
+              highlightedRouteIds={highlightedRouteIds}
+              currentRouteId={currentRouteId}
+              simulatedPlanePosition={planePosition}
+              onEnterBrazil={handleEnterBrazil}
+            />
+          </div>
+        )}
+        {viewMode === 'graph' && <GraphView highlightedRouteIds={highlightedRouteIds} />}
+        {viewMode === 'map'   && <MapView   highlightedRouteIds={highlightedRouteIds} />}
 
-        {mode === 'orbit' && <GlobeHeroOverlay onEnterBrazil={handleEnterBrazil} />}
-        <GlobeStatusOverlay mode={mode} />
-        <TopControlNav onEnterBrazil={handleEnterBrazil} />
-        {mode !== 'orbit' && <GlobeSidebar onOpenModal={setActiveModal} />}
-        {mode !== 'orbit' && (
+        {viewMode === 'globe' && mode === 'orbit' && <GlobeHeroOverlay onEnterBrazil={handleEnterBrazil} />}
+        {viewMode === 'globe' && <GlobeStatusOverlay mode={mode} />}
+        <TopControlNav viewMode={viewMode} onViewModeChange={setViewMode} />
+        {showSidebars && <GlobeSidebar onOpenModal={setActiveModal} />}
+        {showSidebars && (
           <SimulationSidebar
             simulation={simulation}
             onStart={start}
@@ -98,5 +110,6 @@ export default function App() {
         />
       </main>
     </ClickSpark>
+    </>
   );
 }

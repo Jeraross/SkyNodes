@@ -9,7 +9,7 @@ export default function GlobeHeroOverlay({ onEnterBrazil }: Props) {
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-start justify-center px-12 md:px-20">
       <div className="pointer-events-auto max-w-3xl">
         <p className="mb-3 font-mono text-xs uppercase tracking-[0.25em] text-cyan-400">
-          Flight Graph Control — MixGraph
+          Flight Graph Control — SkyNodes
         </p>
         <SplitText
           text="Visualize rotas aéreas como uma rede viva de grafos"

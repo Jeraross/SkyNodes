@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { gsap } from 'gsap';
 import { ArrowUpRight } from 'lucide-react';
 import './CardNav.css';
@@ -28,6 +28,7 @@ interface CardNavProps {
   buttonTextColor?: string;
   ctaLabel?: string;
   onCtaClick?: () => void;
+  ctaNode?: ReactNode;
 }
 
 const CardNav = ({
@@ -42,6 +43,7 @@ const CardNav = ({
   buttonTextColor,
   ctaLabel,
   onCtaClick,
+  ctaNode,
 }: CardNavProps) => {
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -183,14 +185,16 @@ const CardNav = ({
             </div>
           )}
 
-          <button
-            type="button"
-            className="card-nav-cta-button"
-            style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
-            onClick={onCtaClick}
-          >
-            {ctaLabel ?? 'Analisar Brasil'}
-          </button>
+          {ctaNode ?? (
+            <button
+              type="button"
+              className="card-nav-cta-button"
+              style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+              onClick={onCtaClick}
+            >
+              {ctaLabel ?? 'Analisar Brasil'}
+            </button>
+          )}
         </div>
 
         <div className="card-nav-content" aria-hidden={!isExpanded}>
