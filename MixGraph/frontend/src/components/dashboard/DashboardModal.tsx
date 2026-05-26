@@ -37,8 +37,9 @@ export default function DashboardModal({
   return (
     <Dialog open={activeModal !== null} onOpenChange={open => { if (!open) onClose(); }}>
       <DialogContent
-        className="max-h-[90vh] w-[800px] max-w-[calc(100vw-2rem)] overflow-y-auto border-slate-700/60 bg-slate-950/95 text-white backdrop-blur-2xl"
-        style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(34,211,238,0.3) transparent' }}
+        className="w-[800px] max-w-[calc(100vw-2rem)]"
+        contentClassName="max-h-[90vh] overflow-y-auto bg-slate-950/95 text-white backdrop-blur-2xl"
+        contentStyle={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(34,211,238,0.3) transparent' }}
       >
         <DialogHeader>
           <DialogTitle className="text-cyan-100">
