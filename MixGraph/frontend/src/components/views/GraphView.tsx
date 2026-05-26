@@ -4,20 +4,7 @@ import { airports } from '../../data/airports';
 import { routes } from '../../data/routes';
 import type { Region } from '../../data/airports';
 import type { RouteType } from '../../data/routes';
-
-const REGION_COLOR: Record<Region, string> = {
-  Norte:         '#10b981',
-  Nordeste:      '#f59e0b',
-  'Centro-Oeste':'#a78bfa',
-  Sudeste:       '#3b82f6',
-  Sul:           '#f87171',
-};
-
-const ROUTE_COLOR: Record<RouteType, string> = {
-  regional:       '#22d3ee',
-  hub:            '#f59e0b',
-  inter_regional: '#a78bfa',
-};
+import { REGION_COLOR, ROUTE_COLOR } from '../../data/colors';
 
 const theme = {
   ...darkTheme,
@@ -81,7 +68,8 @@ export default function GraphView({ highlightedRouteIds }: Props) {
             <span className="text-xs text-slate-400">{r}</span>
           </div>
         ))}
-        <p className="mb-1 mt-3 font-mono text-[10px] uppercase tracking-widest text-slate-500">Rotas</p>
+        <div className="my-2 border-t border-slate-700/60" />
+        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-slate-500">Rotas</p>
         {(Object.entries(ROUTE_COLOR) as [RouteType, string][]).map(([t, c]) => (
           <div key={t} className="flex items-center gap-2">
             <span className="h-[2px] w-4 rounded" style={{ background: c }} />
@@ -103,6 +91,7 @@ export default function GraphView({ highlightedRouteIds }: Props) {
           theme={theme}
           layoutType="forceDirected2d"
           edgeInterpolation="linear"
+          edgeArrowPosition="none"
           selections={selections}
           actives={actives}
           onNodeClick={onNodeClick}

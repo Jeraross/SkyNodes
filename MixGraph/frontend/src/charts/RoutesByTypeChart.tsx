@@ -1,16 +1,14 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, Label } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
-const TYPE_COLORS: Record<string, string> = {
-  regional: 'rgba(74,222,128,0.85)',
-  hub: 'rgba(34,211,238,0.85)',
-  inter_regional: 'rgba(167,139,250,0.85)',
-};
+import { ROUTE_COLOR } from '@/data/colors';
+import type { RouteType } from '@/data/routes';
 
 interface Props { routesByType: Record<string, number>; }
 
 export default function RoutesByTypeChart({ routesByType }: Props) {
   const data = Object.entries(routesByType).map(([type, value]) => ({ name: type, value }));
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+
   return (
     <Card className="border-cyan-400/20 bg-slate-950/70 text-white backdrop-blur-xl">
       <CardHeader>
@@ -20,10 +18,28 @@ export default function RoutesByTypeChart({ routesByType }: Props) {
       <CardContent>
         <ResponsiveContainer width="100%" height={180}>
           <PieChart>
-            <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} label>
-              {data.map((entry, i) => (
-                <Cell key={i} fill={TYPE_COLORS[entry.name] ?? 'rgba(255,255,255,0.5)'} />
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={40}
+              outerRadius={65}
+            >
+              {data.map((entry) => (
+                <Cell
+                  key={entry.name}
+                  fill={ROUTE_COLOR[entry.name as RouteType] ?? 'rgba(255,255,255,0.5)'}
+                />
               ))}
+              <Label
+                content={() => (
+                  <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill="#94a3b8" fontSize={13}>
+                    {total}
+                  </text>
+                )}
+              />
             </Pie>
             <Tooltip contentStyle={{ background: 'rgba(2,6,23,0.9)', border: '1px solid rgba(34,211,238,0.3)', color: '#e2e8f0' }} />
             <Legend wrapperStyle={{ color: '#94a3b8', fontSize: 11 }} />

@@ -18,9 +18,9 @@ export default function CentralityRankingChart({ degreeByAirport }: Props) {
       <CardContent>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 4, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(34,211,238,0.1)" horizontal={false} />
-            <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-            <YAxis type="category" dataKey="id" tick={{ fill: '#a5f3fc', fontSize: 11 }} width={36} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(34,211,238,0.04)" horizontal={false} />
+            <XAxis type="number" tick={{ fill: '#64748b', fontSize: 10 }} />
+            <YAxis type="category" dataKey="id" tick={{ fill: '#a5f3fc', fontSize: 10 }} width={36} />
             <Tooltip contentStyle={{ background: 'rgba(2,6,23,0.9)', border: '1px solid rgba(34,211,238,0.3)', color: '#e2e8f0' }} />
             <Bar dataKey="degree" fill="rgba(167,139,250,0.75)" radius={[0, 3, 3, 0]} />
           </BarChart>
