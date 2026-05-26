@@ -41,7 +41,11 @@ export default function RoutesByTypeChart({ routesByType }: Props) {
                 )}
               />
             </Pie>
-            <Tooltip contentStyle={{ background: 'rgba(2,6,23,0.9)', border: '1px solid rgba(34,211,238,0.3)', color: '#e2e8f0' }} />
+            <Tooltip
+              contentStyle={{ background: 'rgba(2,6,23,0.9)', border: '1px solid rgba(34,211,238,0.3)', color: '#e2e8f0' }}
+              itemStyle={{ color: '#e2e8f0' }}
+              labelStyle={{ color: '#94a3b8' }}
+            />
             <Legend wrapperStyle={{ color: '#94a3b8', fontSize: 11 }} />
           </PieChart>
         </ResponsiveContainer>

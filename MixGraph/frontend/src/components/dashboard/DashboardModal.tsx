@@ -6,6 +6,7 @@ import CentralityPanel from './CentralityPanel';
 import RegionsPanel from './RegionsPanel';
 import type { ModalType, FlightSimulation } from '../../types';
 import type { GraphMetrics } from '../../lib/graph/graphMetrics';
+import type { BfsLayersResult } from '../../lib/graph/bfsLayers';
 
 const titles: Record<NonNullable<ModalType>, string> = {
   overview: 'Visão Geral',
@@ -19,6 +20,7 @@ interface Props {
   activeModal: ModalType;
   onClose: () => void;
   metrics: GraphMetrics;
+  bfsResult: BfsLayersResult;
   onHighlightRoutes: (ids: string[]) => void;
   simulation: FlightSimulation;
   onSetReady: (path: string[], routeIds: string[], cost?: number) => void;
@@ -31,7 +33,7 @@ interface Props {
 }
 
 export default function DashboardModal({
-  activeModal, onClose, metrics, onHighlightRoutes,
+  activeModal, onClose, metrics, bfsResult, onHighlightRoutes,
   simulation, onSetReady, onStart, onPause, onResume, onRestart, onClear, onSetSpeed,
 }: Props) {
   return (
@@ -51,6 +53,7 @@ export default function DashboardModal({
           {activeModal === 'routes' && <RoutesPanel />}
           {activeModal === 'algorithms' && (
             <AlgorithmsPanel
+              bfsResult={bfsResult}
               onHighlightRoutes={onHighlightRoutes}
               simulation={simulation}
               onSetReady={onSetReady}

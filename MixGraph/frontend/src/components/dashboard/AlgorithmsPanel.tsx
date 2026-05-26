@@ -8,7 +8,9 @@ import { bfs } from '../../lib/graph/bfs';
 import { dfs } from '../../lib/graph/dfs';
 import { dijkstra } from '../../lib/graph/dijkstra';
 import { bellmanFord } from '../../lib/graph/bellmanFord';
+import BfsLayersChart from '../../charts/BfsLayersChart';
 import type { PathResult } from '../../lib/graph/bfs';
+import type { BfsLayersResult } from '../../lib/graph/bfsLayers';
 import type { FlightSimulation } from '../../types';
 
 const graph = buildGraph(airports, routes);
@@ -23,11 +25,12 @@ interface Props {
   onRestart: () => void;
   onClear: () => void;
   onSetSpeed: (s: number) => void;
+  bfsResult: BfsLayersResult;
 }
 
 export default function AlgorithmsPanel({
   onHighlightRoutes, simulation,
-  onSetReady,
+  onSetReady, bfsResult,
 }: Props) {
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
@@ -141,6 +144,10 @@ export default function AlgorithmsPanel({
           </p>
         </div>
       )}
+
+      <div className="border-t border-slate-700/50 pt-4">
+        <BfsLayersChart bfsResult={bfsResult} />
+      </div>
     </div>
   );
 }

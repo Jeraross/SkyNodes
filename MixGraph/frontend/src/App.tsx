@@ -13,11 +13,15 @@ import TopControlNav from './components/navigation/TopControlNav';
 import DashboardModal from './components/dashboard/DashboardModal';
 import { airports } from './data/airports';
 import { routes } from './data/routes';
+import { buildGraph } from './lib/graph/buildGraph';
 import { computeMetrics } from './lib/graph/graphMetrics';
+import { bfsLayers } from './lib/graph/bfsLayers';
 import { useFlightSimulation } from './hooks/useFlightSimulation';
 import type { GlobeMode, ModalType, ViewMode } from './types';
 
-const metrics = computeMetrics(airports, routes);
+const graph = buildGraph(airports, routes);
+const metrics = computeMetrics(airports, routes, graph);
+const bfsResult = bfsLayers(graph, 'REC');
 
 export default function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -75,8 +79,15 @@ export default function App() {
             />
           </div>
         )}
-        {viewMode === 'graph' && <GraphView highlightedRouteIds={highlightedRouteIds} />}
-        {viewMode === 'map'   && <MapView   highlightedRouteIds={highlightedRouteIds} />}
+        {viewMode === 'graph' && (
+          <GraphView
+            highlightedRouteIds={highlightedRouteIds}
+            dijkstraPaths={metrics.dijkstraPaths}
+            metrics={metrics}
+            egoByAirport={metrics.egoByAirport}
+          />
+        )}
+        {viewMode === 'map' && <MapView highlightedRouteIds={highlightedRouteIds} />}
 
         {viewMode === 'globe' && mode === 'orbit' && <GlobeHeroOverlay onEnterBrazil={handleEnterBrazil} />}
         {viewMode === 'globe' && <GlobeStatusOverlay mode={mode} />}
@@ -98,6 +109,7 @@ export default function App() {
           activeModal={activeModal}
           onClose={() => setActiveModal(null)}
           metrics={metrics}
+          bfsResult={bfsResult}
           onHighlightRoutes={handleHighlightRoutes}
           simulation={simulation}
           onSetReady={handleSetReady}

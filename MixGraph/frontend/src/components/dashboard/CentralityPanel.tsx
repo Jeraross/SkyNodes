@@ -1,6 +1,6 @@
-// src/components/dashboard/CentralityPanel.tsx
 import DegreeDistributionChart from '../../charts/DegreeDistributionChart';
 import CentralityRankingChart from '../../charts/CentralityRankingChart';
+import EgoScatterChart from '../../charts/EgoScatterChart';
 import type { GraphMetrics } from '../../lib/graph/graphMetrics';
 
 export default function CentralityPanel({ metrics }: { metrics: GraphMetrics }) {
@@ -12,6 +12,7 @@ export default function CentralityPanel({ metrics }: { metrics: GraphMetrics }) 
       </p>
       <CentralityRankingChart degreeByAirport={metrics.degreeByAirport} />
       <DegreeDistributionChart degreeByAirport={metrics.degreeByAirport} />
+      <EgoScatterChart egoByAirport={metrics.egoByAirport} degreeByAirport={metrics.degreeByAirport} />
     </div>
   );
 }
