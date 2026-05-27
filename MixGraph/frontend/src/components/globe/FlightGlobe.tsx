@@ -22,6 +22,8 @@ interface GlobeMethods {
 const EIFFEL_LAT = 48.8584;
 const EIFFEL_LNG = 2.2945;
 
+let aliciaPlayer: HTMLAudioElement | null = null;
+
 interface Props {
   mode: GlobeMode;
   highlightedRouteIds: string[];
@@ -167,7 +169,9 @@ export default function FlightGlobe({
         }
         onCustomLayerClick={(d: any) => {
           if (d._kind === 'tower') {
-            new Audio(aliciaAudio).play().catch(() => {});
+            if (aliciaPlayer && !aliciaPlayer.paused) return;
+            aliciaPlayer = new Audio(aliciaAudio);
+            aliciaPlayer.play().catch(() => {});
           }
         }}
         customThreeObjectUpdate={(obj: any, d: any) => {
