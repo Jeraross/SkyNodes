@@ -31,6 +31,7 @@ export default function App() {
   const [algorithmsOpen, setAlgorithmsOpen] = useState(false);
   const [benchmarkOpen, setBenchmarkOpen] = useState(false);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState<string[]>([]);
+  const [eiffelUnlocked, setEiffelUnlocked] = useState(false);
 
   const { simulation, planePosition, setReady, start, pause, resume, restart, clear, setSpeed } =
     useFlightSimulation();
@@ -78,6 +79,7 @@ export default function App() {
               currentRouteId={currentRouteId}
               simulatedPlanePosition={planePosition}
               onEnterBrazil={handleEnterBrazil}
+              eiffelUnlocked={eiffelUnlocked}
             />
           </div>
         )}
@@ -129,6 +131,7 @@ export default function App() {
         <BenchmarkModal
           open={benchmarkOpen}
           onClose={() => setBenchmarkOpen(false)}
+          onEiffelUnlock={() => setEiffelUnlocked(true)}
         />
       </main>
     </ClickSpark>

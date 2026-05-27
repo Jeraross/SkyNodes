@@ -3,9 +3,11 @@ import { useMotionValue, useSpring, useTransform, motion } from "motion/react";
 
 export const ContainerScroll = ({
   titleComponent,
+  sticker,
   children,
 }: {
   titleComponent?: string | React.ReactNode;
+  sticker?: React.ReactNode;
   children: React.ReactNode;
 }) => {
   const progress = useMotionValue(0);
@@ -15,9 +17,9 @@ export const ContainerScroll = ({
     progress.set(1);
   }, []);
 
-  const rotate = useTransform(spring, [0, 1], [65, 5]);
-  const scale  = useTransform(spring, [0, 1], [0.60, 1]);
-  const slideY = useTransform(spring, [0, 1], [80, 0]);
+  const rotate  = useTransform(spring, [0, 1], [65, 5]);
+  const scale   = useTransform(spring, [0, 1], [0.60, 1]);
+  const slideY  = useTransform(spring, [0, 1], [80, 0]);
 
   return (
     <div
@@ -30,7 +32,7 @@ export const ContainerScroll = ({
         </motion.div>
       )}
 
-      {/* Tablet frame */}
+      {/* Tablet frame — sem overflow-hidden para o sticker sobressair */}
       <motion.div
         style={{
           rotateX: rotate,
@@ -47,9 +49,9 @@ export const ContainerScroll = ({
             "0 2px 4px rgba(0,0,0,0.9)",
           ].join(", "),
         }}
-        className="w-full flex-1 min-h-0 rounded-[42px] flex flex-col overflow-hidden"
+        className="w-full flex-1 min-h-0 rounded-[42px] flex flex-col relative"
       >
-        {/* Top bezel — câmera */}
+        {/* Câmera */}
         <div className="shrink-0 flex items-center justify-center py-3">
           <div className="w-2 h-2 rounded-full bg-[#222] ring-1 ring-[#333] shadow-inner" />
         </div>
@@ -65,7 +67,7 @@ export const ContainerScroll = ({
           {children}
         </div>
 
-        {/* Bottom bezel — botão home */}
+        {/* Botão home */}
         <div className="shrink-0 flex items-center justify-center py-3">
           <div
             className="w-8 h-8 rounded-full"
@@ -75,6 +77,9 @@ export const ContainerScroll = ({
             }}
           />
         </div>
+
+        {/* Slot do sticker — fica na borda do frame */}
+        {sticker}
       </motion.div>
     </div>
   );

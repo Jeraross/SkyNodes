@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
+import EiffelSticker from './EiffelSticker';
 import BenchmarkGeneralStats from './BenchmarkGeneralStats';
 import BenchmarkGuidedComparison from './BenchmarkGuidedComparison';
 
 const PIXEL = { fontFamily: "'Press Start 2P', monospace" };
-const VT = { fontFamily: "'VT323', monospace" };
+const VT    = { fontFamily: "'VT323', monospace" };
 
 const BOOT_LINES = [
   '> MIXGRAPH BENCHMARK v1.0',
@@ -18,9 +19,10 @@ const BOOT_LINES = [
 interface Props {
   open: boolean;
   onClose: () => void;
+  onEiffelUnlock: () => void;
 }
 
-export default function BenchmarkModal({ open, onClose }: Props) {
+export default function BenchmarkModal({ open, onClose, onEiffelUnlock }: Props) {
   const [phase, setPhase] = useState<'loading' | 'ready'>('loading');
   const [progress, setProgress] = useState(0);
   const [visibleLines, setVisibleLines] = useState(0);
@@ -77,13 +79,14 @@ export default function BenchmarkModal({ open, onClose }: Props) {
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm"
           onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-          <div className="w-[940px] max-w-[calc(100vw-2rem)] h-[700px] max-h-[calc(100vh-2rem)] flex flex-col">
+          <div className="w-[920px] max-w-[calc(100vw-2rem)] h-[700px] max-h-[calc(100vh-2rem)] flex flex-col">
             <ContainerScroll
               titleComponent={
                 <p style={PIXEL} className="text-cyan-400 text-[11px] tracking-widest mb-1">
                   BENCHMARK
                 </p>
               }
+              sticker={<EiffelSticker onUnlock={onEiffelUnlock} />}
             >
               <AnimatePresence mode="wait">
                 {phase === 'loading' ? (
@@ -107,8 +110,7 @@ export default function BenchmarkModal({ open, onClose }: Props) {
                         </motion.p>
                       ))}
                     </div>
-
-                    <div className="w-full space-y-2">
+                    <div className="w-full">
                       <p style={PIXEL} className="text-cyan-300 text-[9px]">
                         [{bar}] {progress}%
                       </p>
