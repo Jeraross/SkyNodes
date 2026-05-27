@@ -9,66 +9,40 @@ export const ContainerScroll = ({
   titleComponent?: string | React.ReactNode;
   children: React.ReactNode;
 }) => {
-  const scrollYProgress = useMotionValue(0);
-  const scrollSpring = useSpring(scrollYProgress, { stiffness: 90, damping: 20 });
+  const progress = useMotionValue(0);
+  const spring = useSpring(progress, { stiffness: 60, damping: 18, mass: 1.1 });
 
   useEffect(() => {
-    scrollYProgress.set(1);
+    progress.set(1);
   }, []);
 
-  const rotate    = useTransform(scrollSpring, [0, 1], [55, 0]);
-  const scale     = useTransform(scrollSpring, [0, 1], [0.78, 1]);
-  const translate = useTransform(scrollSpring, [0, 1], [0, -40]);
+  // termina em 5 para manter leve inclinação 3D permanente
+  const rotate   = useTransform(spring, [0, 1], [65, 5]);
+  const scale    = useTransform(spring, [0, 1], [0.60, 1]);
+  const slideY   = useTransform(spring, [0, 1], [80, 0]);
 
   return (
-    <div className="flex items-center justify-center relative w-full h-full">
-      <div
-        className="w-full h-full relative"
-        style={{ perspective: "700px" }}
+    <div className="flex flex-col items-center w-full h-full" style={{ perspective: "900px", perspectiveOrigin: "50% 30%" }}>
+      {titleComponent && (
+        <motion.div style={{ translateY: slideY }} className="mb-2 text-center shrink-0">
+          {titleComponent}
+        </motion.div>
+      )}
+      <motion.div
+        style={{
+          rotateX: rotate,
+          scale,
+          translateY: slideY,
+          boxShadow:
+            "0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
+          transformOrigin: "50% 100%",
+        }}
+        className="w-full flex-1 min-h-0 border-4 border-[#6C6C6C] bg-[#222222] rounded-[30px] shadow-2xl overflow-hidden"
       >
-        {titleComponent && <Header translate={translate} titleComponent={titleComponent} />}
-        <Card rotate={rotate} translate={translate} scale={scale}>
+        <div className="h-full w-full overflow-hidden rounded-2xl bg-zinc-900 flex flex-col">
           {children}
-        </Card>
-      </div>
+        </div>
+      </motion.div>
     </div>
-  );
-};
-
-export const Header = ({ translate, titleComponent }: { translate: MotionValue<number>; titleComponent: React.ReactNode }) => {
-  return (
-    <motion.div
-      style={{ translateY: translate }}
-      className="max-w-5xl mx-auto text-center"
-    >
-      {titleComponent}
-    </motion.div>
-  );
-};
-
-export const Card = ({
-  rotate,
-  scale,
-  children,
-}: {
-  rotate: MotionValue<number>;
-  scale: MotionValue<number>;
-  translate: MotionValue<number>;
-  children: React.ReactNode;
-}) => {
-  return (
-    <motion.div
-      style={{
-        rotateX: rotate,
-        scale,
-        boxShadow:
-          "0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
-      }}
-      className="-mt-4 mx-auto w-full h-full border-4 border-[#6C6C6C] bg-[#222222] rounded-[30px] shadow-2xl flex flex-col overflow-hidden"
-    >
-      <div className="h-full w-full overflow-hidden rounded-2xl bg-zinc-900 flex flex-col">
-        {children}
-      </div>
-    </motion.div>
   );
 };
