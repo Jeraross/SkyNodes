@@ -1,15 +1,17 @@
-// src/components/dashboard/BenchmarkGeneralStats.tsx
 import { useMemo } from 'react';
 import { airports } from '../../data/airports';
 import { routes } from '../../data/routes';
 import { buildGraph } from '../../lib/graph/buildGraph';
 import { bfsLayers } from '../../lib/graph/bfsLayers';
+import { dfsTree } from '../../lib/graph/dfsTree';
 import { runGeneralBenchmark, bestIdx } from '../../lib/graph/benchmark';
 import type { BenchmarkSummary } from '../../lib/graph/benchmark';
 import BfsLayersChart from '../../charts/BfsLayersChart';
+import DfsTreeChart from '../../charts/DfsTreeChart';
 
 const graph = buildGraph(airports, routes);
 const bfsResult = bfsLayers(graph, 'REC');
+const dfsResult = dfsTree(graph, 'REC');
 
 export default function BenchmarkGeneralStats() {
   const summaries = useMemo(() => runGeneralBenchmark(graph, airports, routes), []);
@@ -27,6 +29,7 @@ export default function BenchmarkGeneralStats() {
 
   return (
     <div className="space-y-6">
+      {/* Tabela de stats */}
       <div>
         <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-slate-500">
           Estatísticas Gerais — {airports.length * (airports.length - 1)} pares
@@ -57,11 +60,22 @@ export default function BenchmarkGeneralStats() {
         </div>
       </div>
 
-      <div>
-        <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-slate-500">
-          Camadas BFS — REC
-        </p>
+      {/* Legenda de traversal */}
+      <div className="flex gap-4 text-[10px] text-slate-500 font-mono">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-full bg-blue-400/70" />
+          BFS — nós coloridos por nível (largura)
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-full bg-orange-400/70" />
+          DFS — nós coloridos por ordem de descoberta (profundidade)
+        </span>
+      </div>
+
+      {/* Charts lado a lado */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <BfsLayersChart bfsResult={bfsResult} />
+        <DfsTreeChart dfsResult={dfsResult} />
       </div>
     </div>
   );
