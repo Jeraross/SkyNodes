@@ -1,13 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Region } from '@/data/airports';
-
-interface RegionMetric {
-  region: Region;
-  order: number;
-  size: number;
-  density: number;
-}
+import type { RegionMetric } from '@/lib/graph/graphMetrics';
 
 interface Props { regionMetrics: RegionMetric[]; }
 
