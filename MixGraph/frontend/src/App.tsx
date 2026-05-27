@@ -12,6 +12,7 @@ import AlgorithmsSidebar from './components/navigation/AlgorithmsSidebar';
 import SimulationSidebar from './components/navigation/SimulationSidebar';
 import TopControlNav from './components/navigation/TopControlNav';
 import DashboardModal from './components/dashboard/DashboardModal';
+import BenchmarkModal from './components/dashboard/BenchmarkModal';
 import { airports } from './data/airports';
 import { routes } from './data/routes';
 import { buildGraph } from './lib/graph/buildGraph';
@@ -28,6 +29,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('globe');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [algorithmsOpen, setAlgorithmsOpen] = useState(false);
+  const [benchmarkOpen, setBenchmarkOpen] = useState(false);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState<string[]>([]);
 
   const { simulation, planePosition, setReady, start, pause, resume, restart, clear, setSpeed } =
@@ -95,8 +97,10 @@ export default function App() {
         {showSidebars && (
           <GlobeSidebar
             algorithmsOpen={algorithmsOpen}
+            benchmarkOpen={benchmarkOpen}
             onOpenModal={setActiveModal}
             onToggleAlgorithms={() => setAlgorithmsOpen(o => !o)}
+            onToggleBenchmark={() => setBenchmarkOpen(o => !o)}
           />
         )}
         <AlgorithmsSidebar
@@ -121,6 +125,10 @@ export default function App() {
           activeModal={activeModal}
           onClose={() => setActiveModal(null)}
           metrics={metrics}
+        />
+        <BenchmarkModal
+          open={benchmarkOpen}
+          onClose={() => setBenchmarkOpen(false)}
         />
       </main>
     </ClickSpark>
