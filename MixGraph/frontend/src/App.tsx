@@ -8,6 +8,7 @@ import GlobeStatusOverlay from './components/globe/GlobeStatusOverlay';
 import GraphView from './components/views/GraphView';
 import MapView from './components/views/MapView';
 import GlobeSidebar from './components/navigation/GlobeSidebar';
+import AlgorithmsSidebar from './components/navigation/AlgorithmsSidebar';
 import SimulationSidebar from './components/navigation/SimulationSidebar';
 import TopControlNav from './components/navigation/TopControlNav';
 import DashboardModal from './components/dashboard/DashboardModal';
@@ -15,19 +16,18 @@ import { airports } from './data/airports';
 import { routes } from './data/routes';
 import { buildGraph } from './lib/graph/buildGraph';
 import { computeMetrics } from './lib/graph/graphMetrics';
-import { bfsLayers } from './lib/graph/bfsLayers';
 import { useFlightSimulation } from './hooks/useFlightSimulation';
 import type { GlobeMode, ModalType, ViewMode } from './types';
 
 const graph = buildGraph(airports, routes);
 const metrics = computeMetrics(airports, routes, graph);
-const bfsResult = bfsLayers(graph, 'REC');
 
 export default function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [mode, setMode] = useState<GlobeMode>('orbit');
   const [viewMode, setViewMode] = useState<ViewMode>('globe');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [algorithmsOpen, setAlgorithmsOpen] = useState(false);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState<string[]>([]);
 
   const { simulation, planePosition, setReady, start, pause, resume, restart, clear, setSpeed } =
@@ -92,7 +92,19 @@ export default function App() {
         {viewMode === 'globe' && mode === 'orbit' && <GlobeHeroOverlay onEnterBrazil={handleEnterBrazil} />}
         {viewMode === 'globe' && <GlobeStatusOverlay mode={mode} />}
         <TopControlNav viewMode={viewMode} onViewModeChange={setViewMode} />
-        {showSidebars && <GlobeSidebar onOpenModal={setActiveModal} />}
+        {showSidebars && (
+          <GlobeSidebar
+            algorithmsOpen={algorithmsOpen}
+            onOpenModal={setActiveModal}
+            onToggleAlgorithms={() => setAlgorithmsOpen(o => !o)}
+          />
+        )}
+        <AlgorithmsSidebar
+          open={algorithmsOpen && simulation.status === 'idle'}
+          simulation={simulation}
+          onHighlightRoutes={handleHighlightRoutes}
+          onSetReady={handleSetReady}
+        />
         {showSidebars && (
           <SimulationSidebar
             simulation={simulation}
@@ -109,16 +121,6 @@ export default function App() {
           activeModal={activeModal}
           onClose={() => setActiveModal(null)}
           metrics={metrics}
-          bfsResult={bfsResult}
-          onHighlightRoutes={handleHighlightRoutes}
-          simulation={simulation}
-          onSetReady={handleSetReady}
-          onStart={start}
-          onPause={pause}
-          onResume={resume}
-          onRestart={restart}
-          onClear={clear}
-          onSetSpeed={setSpeed}
         />
       </main>
     </ClickSpark>

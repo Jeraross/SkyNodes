@@ -37,7 +37,8 @@
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
-.vdock-item:hover {
+.vdock-item:hover,
+.vdock-item--active {
   background: rgba(34, 211, 238, 0.12);
   border-color: rgba(34, 211, 238, 0.4);
   box-shadow: 0 0 12px rgba(34, 211, 238, 0.25);

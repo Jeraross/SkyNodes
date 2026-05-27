@@ -1,6 +1,6 @@
 export type GlobeMode = 'orbit' | 'brazil-locked' | 'analysis';
 export type ViewMode = 'globe' | 'graph' | 'map';
-export type ModalType = 'overview' | 'routes' | 'algorithms' | 'centrality' | 'regions' | null;
+export type ModalType = 'overview' | 'routes' | 'centrality' | 'regions' | null;
 
 export type SimulationStatus = 'idle' | 'ready' | 'playing' | 'paused' | 'finished';
 
