@@ -12,6 +12,16 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+
+# 3D models (hosted externally — too large for git)
+src/assets/modelos_3d/
+src/assets/pikachu/
+src/assets/scene.bin
+src/assets/scene.gltf
+public/models/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
