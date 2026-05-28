@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, Label } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ROUTE_COLOR } from '@/data/colors';
@@ -5,8 +6,27 @@ import type { RouteType } from '@/data/routes';
 
 interface Props { routesByType: Record<string, number>; }
 
+const ROUTE_TYPES: RouteType[] = ['hub', 'regional', 'inter_regional'];
+const LABELS: Record<RouteType, string> = {
+  hub: 'Hub',
+  regional: 'Regional',
+  inter_regional: 'Inter-regional',
+};
+
 export default function RoutesByTypeChart({ routesByType }: Props) {
-  const data = Object.entries(routesByType).map(([type, value]) => ({ name: type, value }));
+  const [activeTypes, setActiveTypes] = useState<Set<RouteType>>(new Set(ROUTE_TYPES));
+
+  const toggle = (t: RouteType) =>
+    setActiveTypes(prev => {
+      const next = new Set(prev);
+      next.has(t) ? next.delete(t) : next.add(t);
+      return next.size === 0 ? new Set(ROUTE_TYPES) : next;
+    });
+
+  const data = Object.entries(routesByType)
+    .filter(([type]) => activeTypes.has(type as RouteType))
+    .map(([type, value]) => ({ name: type, value }));
+
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
   return (
@@ -14,6 +34,26 @@ export default function RoutesByTypeChart({ routesByType }: Props) {
       <CardHeader>
         <CardTitle className="text-cyan-100 text-sm">Tipos de Rotas</CardTitle>
         <CardDescription className="text-slate-400 text-xs">Proporção de hub / regional / inter-regional</CardDescription>
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {ROUTE_TYPES.map(t => {
+            const color = ROUTE_COLOR[t];
+            return (
+              <button
+                key={t}
+                onClick={() => toggle(t)}
+                className="rounded px-2 py-0.5 text-[10px] font-medium transition-all"
+                style={{
+                  background: color + '22',
+                  border: `1px solid ${color}55`,
+                  color: activeTypes.has(t) ? color : '#475569',
+                  opacity: activeTypes.has(t) ? 1 : 0.4,
+                }}
+              >
+                {LABELS[t]}
+              </button>
+            );
+          })}
+        </div>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={180}>

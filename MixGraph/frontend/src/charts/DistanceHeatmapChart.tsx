@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { airports } from '@/data/airports';
+import { REGION_COLOR } from '@/data/colors';
+import type { Region } from '@/data/airports';
 
 interface Props {
   distanceMatrix: Record<string, Record<string, number | null>>;
 }
 
+const REGIONS: Region[] = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
+
 function ylOrRd(t: number): string {
-  // YlOrRd: yellow (254,227,145) → orange (253,141,60) → dark red (128,0,38)
   if (t < 0.5) {
     const u = t * 2;
     const r = Math.round(254 + u * (253 - 254));
@@ -24,8 +27,16 @@ function ylOrRd(t: number): string {
 
 export default function DistanceHeatmapChart({ distanceMatrix }: Props) {
   const [tooltip, setTooltip] = useState<{ from: string; to: string; cost: number | null } | null>(null);
+  const [activeRegions, setActiveRegions] = useState<Set<Region>>(new Set(REGIONS));
 
-  const ids = airports.map(a => a.id);
+  const toggleRegion = (r: Region) =>
+    setActiveRegions(prev => {
+      const next = new Set(prev);
+      next.has(r) ? next.delete(r) : next.add(r);
+      return next.size === 0 ? new Set(REGIONS) : next;
+    });
+
+  const ids = airports.filter(a => activeRegions.has(a.region)).map(a => a.id);
 
   const allDists: number[] = [];
   for (const from of ids) {
@@ -36,8 +47,8 @@ export default function DistanceHeatmapChart({ distanceMatrix }: Props) {
       }
     }
   }
-  const minDist = Math.min(...allDists);
-  const maxDist = Math.max(...allDists);
+  const minDist = allDists.length ? Math.min(...allDists) : 0;
+  const maxDist = allDists.length ? Math.max(...allDists) : 1;
   const range = maxDist - minDist || 1;
 
   const CELL = 22;
@@ -49,10 +60,27 @@ export default function DistanceHeatmapChart({ distanceMatrix }: Props) {
         <CardDescription className="text-slate-400 text-xs">
           Custo mínimo entre cada par — escala YlOrRd (amarelo = próximo, vermelho = distante)
         </CardDescription>
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {REGIONS.map(r => (
+            <button
+              key={r}
+              onClick={() => toggleRegion(r)}
+              className="rounded px-2 py-0.5 text-[10px] font-medium transition-all"
+              style={{
+                background: REGION_COLOR[r] + '22',
+                border: `1px solid ${REGION_COLOR[r]}55`,
+                color: activeRegions.has(r) ? REGION_COLOR[r] : '#475569',
+                opacity: activeRegions.has(r) ? 1 : 0.4,
+              }}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
       </CardHeader>
       <CardContent className="overflow-x-auto">
         <div style={{ position: 'relative', paddingTop: 52, paddingLeft: 28 }}>
-          {/* Column headers — rotated */}
+          {/* Column headers */}
           <div style={{ display: 'flex', position: 'absolute', top: 0, left: 28 }}>
             {ids.map(id => (
               <div
@@ -78,7 +106,6 @@ export default function DistanceHeatmapChart({ distanceMatrix }: Props) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {ids.map(from => (
               <div key={from} style={{ display: 'flex', alignItems: 'center' }}>
-                {/* Row label */}
                 <div style={{ width: 28, fontSize: 8, color: '#64748b', textAlign: 'right', paddingRight: 4, flexShrink: 0 }}>
                   {from}
                 </div>

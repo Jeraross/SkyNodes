@@ -2,16 +2,12 @@ import { useMemo } from 'react';
 import { airports } from '../../data/airports';
 import { routes } from '../../data/routes';
 import { buildGraph } from '../../lib/graph/buildGraph';
-import { bfsLayers } from '../../lib/graph/bfsLayers';
-import { dfsTree } from '../../lib/graph/dfsTree';
 import { runGeneralBenchmark, bestIdx } from '../../lib/graph/benchmark';
 import type { BenchmarkSummary } from '../../lib/graph/benchmark';
 import BfsLayersChart from '../../charts/BfsLayersChart';
 import DfsTreeChart from '../../charts/DfsTreeChart';
 
 const graph = buildGraph(airports, routes);
-const bfsResult = bfsLayers(graph, 'REC');
-const dfsResult = dfsTree(graph, 'REC');
 
 export default function BenchmarkGeneralStats() {
   const summaries = useMemo(() => runGeneralBenchmark(graph, airports, routes), []);
@@ -74,8 +70,8 @@ export default function BenchmarkGeneralStats() {
 
       {/* Charts lado a lado */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <BfsLayersChart bfsResult={bfsResult} />
-        <DfsTreeChart dfsResult={dfsResult} />
+        <BfsLayersChart />
+        <DfsTreeChart />
       </div>
     </div>
   );

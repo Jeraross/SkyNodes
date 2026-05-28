@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { DfsTreeResult } from '@/lib/graph/dfsTree';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { airports } from '@/data/airports';
+import { routes } from '@/data/routes';
+import { buildGraph } from '@/lib/graph/buildGraph';
+import { dfsTree } from '@/lib/graph/dfsTree';
 
-interface Props { dfsResult: DfsTreeResult; }
+const graph = buildGraph(airports, routes);
 
 const NODE_R = 16;
 const COL_W = 80;
@@ -18,8 +22,11 @@ function discoveryColor(idx: number, total: number): string {
   return `rgb(${r},${g},${b})`;
 }
 
-export default function DfsTreeChart({ dfsResult }: Props) {
+export default function DfsTreeChart() {
+  const [startId, setStartId] = useState('REC');
   const [hovered, setHovered] = useState<string | null>(null);
+
+  const dfsResult = useMemo(() => dfsTree(graph, startId), [startId]);
 
   const { levels, treeEdges, order, depthMap } = dfsResult;
   const maxLevel = Math.max(...Object.keys(levels).map(Number));
@@ -39,13 +46,29 @@ export default function DfsTreeChart({ dfsResult }: Props) {
     });
   }
 
+  const startAirport = airports.find(a => a.id === startId);
+
   return (
     <Card className="border-orange-400/20 bg-slate-950/70 text-white backdrop-blur-xl">
       <CardHeader>
-        <CardTitle className="text-orange-200 text-sm">Árvore DFS — REC</CardTitle>
+        <CardTitle className="text-orange-200 text-sm">Árvore DFS</CardTitle>
         <CardDescription className="text-slate-400 text-xs">
-          Exploração em profundidade a partir de Recife · cor = ordem de descoberta
+          Exploração em profundidade a partir de {startAirport?.city ?? startId} · cor = ordem de descoberta
         </CardDescription>
+        <div className="pt-1 w-48">
+          <Select value={startId} onValueChange={setStartId}>
+            <SelectTrigger className="border-slate-700 bg-slate-900 text-slate-200 text-xs h-7">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="border-slate-700 bg-slate-900">
+              {airports.map(a => (
+                <SelectItem key={a.id} value={a.id} className="text-slate-200 focus:bg-slate-800 text-xs">
+                  {a.id} — {a.city}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent className="overflow-x-auto">
         <svg width={svgWidth} height={svgHeight} style={{ display: 'block' }}>
@@ -92,7 +115,6 @@ export default function DfsTreeChart({ dfsResult }: Props) {
                 >
                   {id}
                 </text>
-                {/* discovery order badge */}
                 <text
                   x={p.x + NODE_R - 2} y={p.y - NODE_R + 2}
                   textAnchor="middle" dominantBaseline="middle"

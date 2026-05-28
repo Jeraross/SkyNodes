@@ -132,7 +132,7 @@ export default function App() {
           onClose={() => setBenchmarkOpen(false)}
           onEiffelUnlock={() => setEiffelUnlocked(true)}
         />
-        <StickerAlbum unlockedIds={eiffelUnlocked ? ['eiffel_tower'] : []} />
+        {viewMode === 'globe' && <StickerAlbum unlockedIds={eiffelUnlocked ? ['eiffel_tower'] : []} />}
       </main>
     </ClickSpark>
     </>

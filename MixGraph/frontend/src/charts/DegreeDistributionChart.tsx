@@ -1,18 +1,37 @@
+import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, Cell } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { airports } from '@/data/airports';
+import { REGION_COLOR } from '@/data/colors';
+import type { Region } from '@/data/airports';
 
 interface Props { degreeByAirport: Record<string, number>; }
 
+const REGIONS: Region[] = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
+
 export default function DegreeDistributionChart({ degreeByAirport }: Props) {
-  const values = Object.values(degreeByAirport);
+  const [activeRegions, setActiveRegions] = useState<Set<Region>>(new Set(REGIONS));
+
+  const toggle = (r: Region) =>
+    setActiveRegions(prev => {
+      const next = new Set(prev);
+      next.has(r) ? next.delete(r) : next.add(r);
+      return next.size === 0 ? new Set(REGIONS) : next;
+    });
+
+  const filteredIds = new Set(airports.filter(a => activeRegions.has(a.region)).map(a => a.id));
+  const values = Object.entries(degreeByAirport)
+    .filter(([id]) => filteredIds.has(id))
+    .map(([, d]) => d);
+
   const freq: Record<number, number> = {};
   values.forEach(d => { freq[d] = (freq[d] ?? 0) + 1; });
   const data = Object.entries(freq)
     .map(([degree, count]) => ({ degree: Number(degree), count }))
     .sort((a, b) => a.degree - b.degree);
 
-  const mean = values.reduce((s, d) => s + d, 0) / values.length;
-  const maxCount = Math.max(...data.map(d => d.count));
+  const mean = values.length ? values.reduce((s, d) => s + d, 0) / values.length : 0;
+  const maxCount = data.length ? Math.max(...data.map(d => d.count)) : 1;
 
   return (
     <Card className="border-cyan-400/20 bg-slate-950/70 text-white backdrop-blur-xl">
@@ -21,6 +40,23 @@ export default function DegreeDistributionChart({ degreeByAirport }: Props) {
         <CardDescription className="text-slate-400 text-xs">
           Frequência de aeroportos por grau — média {mean.toFixed(1)}
         </CardDescription>
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {REGIONS.map(r => (
+            <button
+              key={r}
+              onClick={() => toggle(r)}
+              className="rounded px-2 py-0.5 text-[10px] font-medium transition-all"
+              style={{
+                background: REGION_COLOR[r] + '22',
+                border: `1px solid ${REGION_COLOR[r]}55`,
+                color: activeRegions.has(r) ? REGION_COLOR[r] : '#475569',
+                opacity: activeRegions.has(r) ? 1 : 0.4,
+              }}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={220}>
@@ -40,12 +76,14 @@ export default function DegreeDistributionChart({ degreeByAirport }: Props) {
               labelStyle={{ color: '#94a3b8' }}
               formatter={(value, _name, props) => [`${value} aeroporto(s)`, `Grau ${props.payload.degree}`]}
             />
-            <ReferenceLine
-              x={mean}
-              stroke="#ef4444"
-              strokeDasharray="4 2"
-              label={{ value: `Média: ${mean.toFixed(1)}`, position: 'top', fill: '#ef4444', fontSize: 10 }}
-            />
+            {data.length > 0 && (
+              <ReferenceLine
+                x={mean}
+                stroke="#ef4444"
+                strokeDasharray="4 2"
+                label={{ value: `Média: ${mean.toFixed(1)}`, position: 'top', fill: '#ef4444', fontSize: 10 }}
+              />
+            )}
             <Bar dataKey="count" radius={[3, 3, 0, 0]}>
               {data.map(entry => (
                 <Cell

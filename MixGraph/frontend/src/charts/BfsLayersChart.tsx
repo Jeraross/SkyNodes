@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { BfsLayersResult } from '@/lib/graph/bfsLayers';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { airports } from '@/data/airports';
+import { routes } from '@/data/routes';
+import { buildGraph } from '@/lib/graph/buildGraph';
+import { bfsLayers } from '@/lib/graph/bfsLayers';
 
-interface Props { bfsResult: BfsLayersResult; }
+const graph = buildGraph(airports, routes);
 
 const NODE_R = 16;
 const COL_W = 80;
@@ -18,8 +22,11 @@ function levelColor(level: number, maxLevel: number): string {
   return `rgb(${r},${g},${b})`;
 }
 
-export default function BfsLayersChart({ bfsResult }: Props) {
+export default function BfsLayersChart() {
+  const [startId, setStartId] = useState('REC');
   const [hovered, setHovered] = useState<string | null>(null);
+
+  const bfsResult = useMemo(() => bfsLayers(graph, startId), [startId]);
 
   const { levels, treeEdges } = bfsResult;
   const maxLevel = Math.max(...Object.keys(levels).map(Number));
@@ -38,17 +45,32 @@ export default function BfsLayersChart({ bfsResult }: Props) {
     });
   }
 
+  const startAirport = airports.find(a => a.id === startId);
+
   return (
     <Card className="border-cyan-400/20 bg-slate-950/70 text-white backdrop-blur-xl">
       <CardHeader>
-        <CardTitle className="text-cyan-100 text-sm">Camadas BFS — REC</CardTitle>
+        <CardTitle className="text-cyan-100 text-sm">Camadas BFS</CardTitle>
         <CardDescription className="text-slate-400 text-xs">
-          Exploração em largura a partir de Recife
+          Exploração em largura a partir de {startAirport?.city ?? startId}
         </CardDescription>
+        <div className="pt-1 w-48">
+          <Select value={startId} onValueChange={setStartId}>
+            <SelectTrigger className="border-slate-700 bg-slate-900 text-slate-200 text-xs h-7">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="border-slate-700 bg-slate-900">
+              {airports.map(a => (
+                <SelectItem key={a.id} value={a.id} className="text-slate-200 focus:bg-slate-800 text-xs">
+                  {a.id} — {a.city}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent className="overflow-x-auto">
         <svg width={svgWidth} height={svgHeight} style={{ display: 'block' }}>
-          {/* Tree edges */}
           {treeEdges.map(([a, b], i) => {
             const pa = pos.get(a);
             const pb = pos.get(b);
@@ -65,7 +87,6 @@ export default function BfsLayersChart({ bfsResult }: Props) {
             );
           })}
 
-          {/* Nodes */}
           {Object.entries(levels).flatMap(([levelStr, nodes]) =>
             nodes.map(id => {
               const level = Number(levelStr);
@@ -80,21 +101,16 @@ export default function BfsLayersChart({ bfsResult }: Props) {
                   style={{ cursor: 'pointer' }}
                 >
                   <circle
-                    cx={p.x}
-                    cy={p.y}
+                    cx={p.x} cy={p.y}
                     r={isHovered ? NODE_R + 2 : NODE_R}
                     fill={levelColor(level, maxLevel)}
                     stroke={isHovered ? '#fff' : 'rgba(255,255,255,0.2)'}
                     strokeWidth={isHovered ? 1.5 : 1}
                   />
                   <text
-                    x={p.x}
-                    y={p.y}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontSize={9}
-                    fill="#0f172a"
-                    fontWeight="bold"
+                    x={p.x} y={p.y}
+                    textAnchor="middle" dominantBaseline="middle"
+                    fontSize={9} fill="#0f172a" fontWeight="bold"
                     style={{ pointerEvents: 'none', userSelect: 'none' }}
                   >
                     {id}
@@ -102,10 +118,8 @@ export default function BfsLayersChart({ bfsResult }: Props) {
                   {isHovered && (
                     <g>
                       <rect
-                        x={p.x + NODE_R + 4}
-                        y={p.y - 18}
-                        width={80}
-                        height={36}
+                        x={p.x + NODE_R + 4} y={p.y - 18}
+                        width={80} height={36}
                         rx={4}
                         fill="rgba(2,6,23,0.95)"
                         stroke="rgba(34,211,238,0.3)"

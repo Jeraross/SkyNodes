@@ -11,6 +11,7 @@ import pokeballImg from '../../assets/Stickers/pokeball_sticker.png';
 import spiderImg   from '../../assets/Stickers/spider_sticker.png';
 import blockImg    from '../../assets/Stickers/block_sticker.png';
 import peepImg     from '../../assets/Stickers/peeper_sticker.png';
+import d20Img      from '../../assets/Stickers/d20_sticker.png';
 
 interface Sticker { id: string; name: string; desc: string; img: string; }
 
@@ -22,9 +23,10 @@ const STICKERS: Sticker[] = [
   { id: 'spider',       name: 'NEW YORK',         desc: 'Marvel\'s Spider-Man — Herói de NY balança entre o Empire State e o Chrysler',     img: spiderImg   },
   { id: 'block',        name: 'SUÉCIA',           desc: 'Minecraft — O bloco de grama mais famoso nasceu nos fiordes suecos',               img: blockImg    },
   { id: 'peeper',       name: 'OCEANO PACÍFICO',  desc: 'Subnautica — Sobreviva nas profundezas alienígenas do Pacífico',                   img: peepImg     },
+  { id: 'd20',          name: 'BÉLGICA',          desc: 'Baldur\'s Gate 3 — Role o D20 e decida o destino de Faerûn',                       img: d20Img      },
 ];
 
-const ROTATIONS = [-2, 3, -1, 2.5, -3, 1.5, 2];
+const ROTATIONS = [-2, 3, -1, 2.5, -3, 1.5, 2, -1.5];
 
 // Press Start 2P — use only for short labels at 8px+
 const PIXEL: CSSProperties  = { fontFamily: "'Press Start 2P', monospace" };
@@ -101,24 +103,6 @@ function StickerSlot({ sticker, unlocked, rotation, ref }: SlotProps) {
   );
 }
 
-function EmptySlot({ ref }: { ref?: React.Ref<HTMLDivElement> }) {
-  return (
-    <div ref={ref} className="flex flex-col items-center gap-2">
-      <div
-        className="relative w-full rounded-xl overflow-hidden flex items-center justify-center"
-        style={{
-          height: 170,
-          border: '2px dashed rgba(100,116,139,0.1)',
-          background: 'rgba(2,6,23,0.25)',
-        }}
-      >
-        <p style={{ ...PIXEL, fontSize: 20 }} className="text-slate-800">?</p>
-      </div>
-      <p style={{ ...PIXEL, fontSize: 8 }} className="text-slate-800 tracking-widest">BÉLGICA</p>
-      <p style={{ ...MONO, fontSize: 11 }} className="text-slate-800 text-center">Baldur's Gate 3 — Em breve</p>
-    </div>
-  );
-}
 
 export interface StickerAlbumProps {
   unlockedIds: string[];
@@ -310,7 +294,7 @@ export default function StickerAlbum({ unlockedIds }: StickerAlbumProps) {
                       PAG. 02
                     </p>
                     <div className="absolute inset-0 grid grid-cols-2 gap-5 p-8 pt-14">
-                      {STICKERS.slice(4, 7).map((s, i) => (
+                      {STICKERS.slice(4, 8).map((s, i) => (
                         <StickerSlot
                           key={s.id}
                           sticker={s}
@@ -319,7 +303,6 @@ export default function StickerAlbum({ unlockedIds }: StickerAlbumProps) {
                           ref={el => { stickerRefs.current[i + 4] = el; }}
                         />
                       ))}
-                      <EmptySlot ref={el => { stickerRefs.current[7] = el; }} />
                     </div>
                   </div>
                 </div>

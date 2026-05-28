@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { REGION_COLOR } from '@/data/colors';
@@ -36,13 +37,24 @@ function CustomDot(props: { cx?: number; cy?: number; payload?: DotEntry }) {
 }
 
 export default function EgoScatterChart({ egoByAirport, degreeByAirport }: Props) {
-  const data: DotEntry[] = airports.map(a => ({
-    id: a.id,
-    city: a.city,
-    region: a.region,
-    degree: degreeByAirport[a.id] ?? 0,
-    ego: egoByAirport[a.id] ?? 0,
-  }));
+  const [activeRegions, setActiveRegions] = useState<Set<Region>>(new Set(REGIONS));
+
+  const toggle = (r: Region) =>
+    setActiveRegions(prev => {
+      const next = new Set(prev);
+      next.has(r) ? next.delete(r) : next.add(r);
+      return next.size === 0 ? new Set(REGIONS) : next;
+    });
+
+  const data: DotEntry[] = airports
+    .filter(a => activeRegions.has(a.region))
+    .map(a => ({
+      id: a.id,
+      city: a.city,
+      region: a.region,
+      degree: degreeByAirport[a.id] ?? 0,
+      ego: egoByAirport[a.id] ?? 0,
+    }));
 
   return (
     <Card className="border-cyan-400/20 bg-slate-950/70 text-white backdrop-blur-xl">
@@ -51,6 +63,23 @@ export default function EgoScatterChart({ egoByAirport, degreeByAirport }: Props
         <CardDescription className="text-slate-400 text-xs">
           Cada ponto = 1 aeroporto — tamanho proporcional ao grau
         </CardDescription>
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {REGIONS.map(r => (
+            <button
+              key={r}
+              onClick={() => toggle(r)}
+              className="rounded px-2 py-0.5 text-[10px] font-medium transition-all"
+              style={{
+                background: REGION_COLOR[r] + '22',
+                border: `1px solid ${REGION_COLOR[r]}55`,
+                color: activeRegions.has(r) ? REGION_COLOR[r] : '#475569',
+                opacity: activeRegions.has(r) ? 1 : 0.4,
+              }}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={260}>
@@ -88,7 +117,11 @@ export default function EgoScatterChart({ egoByAirport, degreeByAirport }: Props
             />
             <Scatter data={data} shape={<CustomDot />} />
             <Legend
-              payload={REGIONS.map(r => ({ value: r, type: 'circle' as const, color: REGION_COLOR[r] }))}
+              payload={REGIONS.filter(r => activeRegions.has(r)).map(r => ({
+                value: r,
+                type: 'circle' as const,
+                color: REGION_COLOR[r],
+              }))}
               wrapperStyle={{ color: '#94a3b8', fontSize: 10 }}
             />
           </ScatterChart>
