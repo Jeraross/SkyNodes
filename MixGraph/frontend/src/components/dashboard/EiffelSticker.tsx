@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import eiffelImg from '../../assets/eiffel_tower.png';
+import eiffelImg from '../../assets/Stickers/eiffel_tower.png';
 
 interface Particle {
   id: number;
