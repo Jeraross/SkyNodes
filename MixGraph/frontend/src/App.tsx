@@ -4,7 +4,6 @@ import Particles from '@reactbits/Particles/Particles';
 import IntroScreen from './components/IntroScreen';
 import FlightGlobe from './components/globe/FlightGlobe';
 import GlobeHeroOverlay from './components/globe/GlobeHeroOverlay';
-import GlobeStatusOverlay from './components/globe/GlobeStatusOverlay';
 import GraphView from './components/views/GraphView';
 import MapView from './components/views/MapView';
 import GlobeSidebar from './components/navigation/GlobeSidebar';
@@ -13,6 +12,7 @@ import SimulationSidebar from './components/navigation/SimulationSidebar';
 import TopControlNav from './components/navigation/TopControlNav';
 import DashboardModal from './components/dashboard/DashboardModal';
 import BenchmarkModal from './components/dashboard/BenchmarkModal';
+import StickerAlbum from './components/dashboard/StickerAlbum';
 import { airports } from './data/airports';
 import { routes } from './data/routes';
 import { buildGraph } from './lib/graph/buildGraph';
@@ -94,7 +94,6 @@ export default function App() {
         {viewMode === 'map' && <MapView highlightedRouteIds={highlightedRouteIds} />}
 
         {viewMode === 'globe' && mode === 'orbit' && <GlobeHeroOverlay onEnterBrazil={handleEnterBrazil} />}
-        {viewMode === 'globe' && <GlobeStatusOverlay mode={mode} />}
         <TopControlNav viewMode={viewMode} onViewModeChange={setViewMode} />
         {showSidebars && (
           <GlobeSidebar
@@ -133,6 +132,7 @@ export default function App() {
           onClose={() => setBenchmarkOpen(false)}
           onEiffelUnlock={() => setEiffelUnlocked(true)}
         />
+        <StickerAlbum unlockedIds={eiffelUnlocked ? ['eiffel_tower'] : []} />
       </main>
     </ClickSpark>
     </>
