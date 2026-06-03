@@ -1,4 +1,4 @@
-# Projeto Final — Teoria dos Grafos: Rede de Aeroportos do Brasil
+# Teoria dos Grafos
 
 ## Descrição
 
@@ -64,7 +64,7 @@ MixGraph/
 
 ```bash
 # 1. Clone o repositório
-git clone <url-do-repositorio>
+git clone https://github.com/Jeraross/MixGraph.git
 cd MixGraph
 
 # 2. Crie e ative o ambiente virtual
@@ -257,9 +257,3 @@ Isso penaliza conexões inter-regionais sem hub intermediário e beneficia rotas
 | `viz4_ego_grau_densidade.png` | Scatter grau × densidade da ego-rede por região (exploratória) |
 | `viz5_camadas_bfs.png` | Camadas BFS a partir de REC em layout por colunas (explanatória) |
 | `viz6_heatmap_distancias.png` | Heatmap 20×20 das distâncias mínimas Dijkstra entre todos os pares (explanatória) |
-
----
-
-## Autores
-
-- **Jerin** — Universidade Federal de Pernambuco (UFPE)
