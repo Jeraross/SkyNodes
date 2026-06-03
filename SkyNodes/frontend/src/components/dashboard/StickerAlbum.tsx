@@ -4,27 +4,8 @@ import { flushSync } from 'react-dom';
 import gsap from 'gsap';
 import { BookOpen, Lock, Globe, MousePointerClick } from 'lucide-react';
 
-import eiffelImg   from '../../assets/Stickers/eiffel_tower.png';
-import bigbenImg   from '../../assets/Stickers/bigben_sticker.png';
-import greekImg    from '../../assets/Stickers/greek_sticker.png';
-import pokeballImg from '../../assets/Stickers/pokeball_sticker.png';
-import spiderImg   from '../../assets/Stickers/spider_sticker.png';
-import blockImg    from '../../assets/Stickers/block_sticker.png';
-import peepImg     from '../../assets/Stickers/peeper_sticker.png';
-import d20Img      from '../../assets/Stickers/d20_sticker.png';
-
-interface Sticker { id: string; name: string; desc: string; img: string; }
-
-const STICKERS: Sticker[] = [
-  { id: 'eiffel_tower', name: 'FRANÇA',          desc: 'Clair Obscur: Expedition 33 — RPG de turno nascido nas sombras da Torre Eiffel',   img: eiffelImg   },
-  { id: 'bigben',       name: 'INGLATERRA',       desc: '007 — O agente mais famoso do MI6 sob o relógio do Big Ben',                       img: bigbenImg   },
-  { id: 'greek',        name: 'GRÉCIA',           desc: 'God of War — Kratos destrói o Olimpo pedra por pedra',                             img: greekImg    },
-  { id: 'pokeball',     name: 'JAPÃO',            desc: 'Pokémon — Capture-os todos nas terras do sol nascente',                            img: pokeballImg },
-  { id: 'spider',       name: 'NEW YORK',         desc: 'Marvel\'s Spider-Man — Herói de NY balança entre o Empire State e o Chrysler',     img: spiderImg   },
-  { id: 'block',        name: 'SUÉCIA',           desc: 'Minecraft — O bloco de grama mais famoso nasceu nos fiordes suecos',               img: blockImg    },
-  { id: 'peeper',       name: 'OCEANO PACÍFICO',  desc: 'Subnautica — Sobreviva nas profundezas alienígenas do Pacífico',                   img: peepImg     },
-  { id: 'd20',          name: 'BÉLGICA',          desc: 'Baldur\'s Gate 3 — Role o D20 e decida o destino de Faerûn',                       img: d20Img      },
-];
+import { STICKERS } from '../../data/stickers';
+import type { Sticker } from '../../data/stickers';
 
 const ROTATIONS = [-2, 3, -1, 2.5, -3, 1.5, 2, -1.5];
 
@@ -106,9 +87,11 @@ function StickerSlot({ sticker, unlocked, rotation, ref }: SlotProps) {
 
 export interface StickerAlbumProps {
   unlockedIds: string[];
+  forceOpen?: boolean;
+  onForceOpenDone?: () => void;
 }
 
-export default function StickerAlbum({ unlockedIds }: StickerAlbumProps) {
+export default function StickerAlbum({ unlockedIds, forceOpen, onForceOpenDone }: StickerAlbumProps) {
   const [phase, setPhaseState] = useState<Phase>('widget');
   const phaseRef = useRef<Phase>('widget');
 
@@ -147,6 +130,13 @@ export default function StickerAlbum({ unlockedIds }: StickerAlbumProps) {
     tl.to(backdropRef.current, { opacity: 1, duration: 0.25 });
     tl.to(albumRef.current,    { scale: 1, opacity: 1, y: 0, duration: 0.55, ease: 'back.out(1.2)' }, '-=0.1');
   }, []);
+
+  useEffect(() => {
+    if (forceOpen && phase === 'widget') {
+      enterCentered();
+      onForceOpenDone?.();
+    }
+  }, [forceOpen, phase, enterCentered, onForceOpenDone]);
 
   const openBook = useCallback(() => {
     if (phaseRef.current !== 'centered') return;
