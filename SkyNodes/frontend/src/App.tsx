@@ -13,6 +13,8 @@ import TopControlNav from './components/navigation/TopControlNav';
 import DashboardModal from './components/dashboard/DashboardModal';
 import BenchmarkModal from './components/dashboard/BenchmarkModal';
 import StickerAlbum from './components/dashboard/StickerAlbum';
+import QuizWidget from './components/quiz/QuizWidget';
+import QuizModal  from './components/quiz/QuizModal';
 import { airports } from './data/airports';
 import { routes } from './data/routes';
 import { buildGraph } from './lib/graph/buildGraph';
@@ -32,6 +34,16 @@ export default function App() {
   const [benchmarkOpen, setBenchmarkOpen] = useState(false);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState<string[]>([]);
   const [eiffelUnlocked, setEiffelUnlocked] = useState(false);
+  const [quizOpen,    setQuizOpen]    = useState(false);
+  const [unlockedIds, setUnlockedIds] = useState<string[]>([]);
+  const [albumOpen,   setAlbumOpen]   = useState(false);
+
+  const handleUnlockSticker = (id: string) => {
+    setUnlockedIds(prev => prev.includes(id) ? prev : [...prev, id]);
+  };
+
+  const eiffelIds   = eiffelUnlocked ? ['eiffel_tower'] : [];
+  const allUnlocked = [...new Set([...eiffelIds, ...unlockedIds])];
 
   const { simulation, planePosition, setReady, start, pause, resume, restart, clear, setSpeed } =
     useFlightSimulation();
@@ -132,7 +144,21 @@ export default function App() {
           onClose={() => setBenchmarkOpen(false)}
           onEiffelUnlock={() => setEiffelUnlocked(true)}
         />
-        {viewMode === 'globe' && <StickerAlbum unlockedIds={eiffelUnlocked ? ['eiffel_tower'] : []} />}
+        <QuizWidget onClick={() => setQuizOpen(true)} />
+        <QuizModal
+          open={quizOpen}
+          alreadyUnlocked={allUnlocked}
+          onClose={() => setQuizOpen(false)}
+          onUnlockSticker={handleUnlockSticker}
+          onViewAlbum={() => { setQuizOpen(false); setAlbumOpen(true); }}
+        />
+        {viewMode === 'globe' && (
+          <StickerAlbum
+            unlockedIds={allUnlocked}
+            forceOpen={albumOpen}
+            onForceOpenDone={() => setAlbumOpen(false)}
+          />
+        )}
       </main>
     </ClickSpark>
     </>
