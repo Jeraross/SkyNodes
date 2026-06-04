@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import ClickSpark from '@reactbits/ClickSpark/ClickSpark';
 import Particles from '@reactbits/Particles/Particles';
 import IntroScreen from './components/IntroScreen';
@@ -12,9 +13,7 @@ import SimulationSidebar from './components/navigation/SimulationSidebar';
 import TopControlNav from './components/navigation/TopControlNav';
 import DashboardModal from './components/dashboard/DashboardModal';
 import BenchmarkModal from './components/dashboard/BenchmarkModal';
-import StickerAlbum from './components/dashboard/StickerAlbum';
 import QuizWidget from './components/quiz/QuizWidget';
-import QuizModal  from './components/quiz/QuizModal';
 import { airports } from './data/airports';
 import { routes } from './data/routes';
 import { buildGraph } from './lib/graph/buildGraph';
@@ -26,6 +25,7 @@ const graph = buildGraph(airports, routes);
 const metrics = computeMetrics(airports, routes, graph);
 
 export default function App() {
+  const [, navigate] = useLocation();
   const [showIntro, setShowIntro] = useState(true);
   const [mode, setMode] = useState<GlobeMode>('orbit');
   const [viewMode, setViewMode] = useState<ViewMode>('globe');
@@ -34,16 +34,6 @@ export default function App() {
   const [benchmarkOpen, setBenchmarkOpen] = useState(false);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState<string[]>([]);
   const [eiffelUnlocked, setEiffelUnlocked] = useState(false);
-  const [quizOpen,    setQuizOpen]    = useState(false);
-  const [unlockedIds, setUnlockedIds] = useState<string[]>([]);
-  const [albumOpen,   setAlbumOpen]   = useState(false);
-
-  const handleUnlockSticker = (id: string) => {
-    setUnlockedIds(prev => prev.includes(id) ? prev : [...prev, id]);
-  };
-
-  const eiffelIds   = eiffelUnlocked ? ['eiffel_tower'] : [];
-  const allUnlocked = [...new Set([...eiffelIds, ...unlockedIds])];
 
   const { simulation, planePosition, setReady, start, pause, resume, restart, clear, setSpeed } =
     useFlightSimulation();
@@ -144,21 +134,7 @@ export default function App() {
           onClose={() => setBenchmarkOpen(false)}
           onEiffelUnlock={() => setEiffelUnlocked(true)}
         />
-        <QuizWidget onClick={() => setQuizOpen(true)} />
-        <QuizModal
-          open={quizOpen}
-          alreadyUnlocked={allUnlocked}
-          onClose={() => setQuizOpen(false)}
-          onUnlockSticker={handleUnlockSticker}
-          onViewAlbum={() => { setQuizOpen(false); setAlbumOpen(true); }}
-        />
-        {viewMode === 'globe' && (
-          <StickerAlbum
-            unlockedIds={allUnlocked}
-            forceOpen={albumOpen}
-            onForceOpenDone={() => setAlbumOpen(false)}
-          />
-        )}
+        <QuizWidget onClick={() => navigate('/quiz')} />
       </main>
     </ClickSpark>
     </>
