@@ -74,6 +74,9 @@ export default function QuizIntro({ onComplete }: Props) {
   const glowRef     = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const fromWidget = sessionStorage.getItem('quiz_curtain_transition') === '1';
+    if (fromWidget) sessionStorage.removeItem('quiz_curtain_transition');
+
     // Set initial states
     gsap.set(spotRef.current,  { opacity: 0, scaleY: 0, transformOrigin: 'top center' });
     gsap.set(glowRef.current,  { opacity: 0 });
@@ -81,11 +84,21 @@ export default function QuizIntro({ onComplete }: Props) {
 
     const tl = gsap.timeline({ onComplete });
 
-    // 1. Scene appears
-    tl.fromTo(overlayRef.current,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.35, ease: 'power2.out' },
-    );
+    // 1. Scene appears — instant if coming from widget (overlay still covers screen)
+    if (fromWidget) {
+      gsap.set(overlayRef.current, { opacity: 1 });
+      // Double-RAF: garante que o browser pintou o QuizIntro antes de remover o overlay
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.getElementById('quiz-curtain-overlay')?.remove();
+        });
+      });
+    } else {
+      tl.fromTo(overlayRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.35, ease: 'power2.out' },
+      );
+    }
 
     // 2. Spotlight descends from above — anticipation
     tl.to(spotRef.current,
