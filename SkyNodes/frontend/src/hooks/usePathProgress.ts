@@ -26,18 +26,18 @@ export function getNodeStatus(
   nodeId: string,
   mode: QuizMode,
   progress: PathProgress,
-): 'locked' | 'available' | 'completed' | 'boss' {
+): 'locked' | 'available' | 'completed' | 'current' {
   const { completedNodeIds, lockedNodeIds } = progress;
   const root = getRootNodeId(mode);
 
   if (completedNodeIds.includes(nodeId)) return 'completed';
-  if (lockedNodeIds.includes(nodeId)) return 'locked';
+  if (lockedNodeIds.includes(nodeId))    return 'locked';
 
-  const preds = getPredecessors(mode, nodeId);
-  const isRoot = nodeId === root;
-  const anyPredComplete = preds.some(p => completedNodeIds.includes(p));
+  const preds      = getPredecessors(mode, nodeId);
+  const isRoot     = nodeId === root;
+  const anyPredOk  = preds.some(p => completedNodeIds.includes(p));
 
-  if (isRoot || anyPredComplete) return 'available';
+  if (isRoot || anyPredOk) return 'available';
   return 'locked';
 }
 

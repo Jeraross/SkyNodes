@@ -1,61 +1,75 @@
 import { useState, useCallback } from 'react';
 import { getQuestions } from '../data/quizQuestions';
-import type { QuizQuestion, QuizDifficulty } from '../data/quizQuestions';
+import type { QuizQuestion } from '../data/quizQuestions';
 import type { QuizMode } from '../data/quizPathData';
 
-export type SessionPhase = 'playing' | 'feedback' | 'complete';
+export type SessionPhase = 'selecting' | 'feedback' | 'complete';
 
 export interface NodeSessionState {
   phase:           SessionPhase;
   questions:       QuizQuestion[];
   currentIndex:    number;
-  selectedAnswer:  'A' | 'B' | 'C' | 'D' | null;
+  pendingAnswer:   'A' | 'B' | 'C' | 'D' | null; // selected but not confirmed
+  submittedAnswer: 'A' | 'B' | 'C' | 'D' | null; // confirmed
   score:           number;
   streak:          number;
   maxStreak:       number;
-  hintsUsed:       number;
+  points:          number;
+  hintsUsed:       number;   // per question, resets on next
+  hintsRevealedThisQ: number[]; // which hint indices shown for current Q
   skippedCount:    number;
-  powerUpsUsed:    { eliminate: boolean; audience: boolean };
   eliminatedOpts:  ('A' | 'B' | 'C' | 'D')[];
+  audienceUsed:    boolean;
 }
 
 const INITIAL_STATE: NodeSessionState = {
-  phase: 'playing',
+  phase: 'selecting',
   questions: [],
   currentIndex: 0,
-  selectedAnswer: null,
+  pendingAnswer: null,
+  submittedAnswer: null,
   score: 0,
   streak: 0,
   maxStreak: 0,
+  points: 0,
   hintsUsed: 0,
+  hintsRevealedThisQ: [],
   skippedCount: 0,
-  powerUpsUsed: { eliminate: false, audience: false },
   eliminatedOpts: [],
-};
-
-const CATEGORY_MAP: Record<QuizMode, 'grafos' | 'avd' | 'mix'> = {
-  grafos: 'grafos', avd: 'avd', mix: 'mix',
+  audienceUsed: false,
 };
 
 export function useNodeSession(mode: QuizMode, questionCount: number) {
   const [state, setState] = useState<NodeSessionState>(() => {
-    const questions = getQuestions(CATEGORY_MAP[mode], 'all', questionCount);
+    const pool = mode === 'mix' ? 'mix' : mode === 'avd' ? 'avd' : 'grafos';
+    const questions = getQuestions(pool, 'all', questionCount);
     return { ...INITIAL_STATE, questions };
   });
 
-  const submitAnswer = useCallback((answer: 'A' | 'B' | 'C' | 'D') => {
+  const selectAnswer = useCallback((answer: 'A' | 'B' | 'C' | 'D') => {
     setState(prev => {
-      if (prev.phase !== 'playing') return prev;
+      if (prev.phase !== 'selecting') return prev;
+      // Toggle deselect
+      if (prev.pendingAnswer === answer) return { ...prev, pendingAnswer: null };
+      return { ...prev, pendingAnswer: answer };
+    });
+  }, []);
+
+  const confirmAnswer = useCallback(() => {
+    setState(prev => {
+      if (prev.phase !== 'selecting' || !prev.pendingAnswer) return prev;
       const q = prev.questions[prev.currentIndex];
-      const correct = answer === q.respostaCorreta;
+      const correct = prev.pendingAnswer === q.respostaCorreta;
       const streak  = correct ? prev.streak + 1 : 0;
+      const bonus   = correct ? 100 + streak * 50 : 0;
       return {
         ...prev,
-        phase: 'feedback',
-        selectedAnswer: answer,
-        score:     correct ? prev.score + 1 : prev.score,
+        phase:           'feedback',
+        submittedAnswer: prev.pendingAnswer,
+        score:           correct ? prev.score + 1 : prev.score,
         streak,
-        maxStreak: Math.max(prev.maxStreak, streak),
+        maxStreak:       Math.max(prev.maxStreak, streak),
+        points:          prev.points + bonus,
       };
     });
   }, []);
@@ -66,11 +80,14 @@ export function useNodeSession(mode: QuizMode, questionCount: number) {
       if (isLast) return { ...prev, phase: 'complete' };
       return {
         ...prev,
-        phase: 'playing',
-        currentIndex:  prev.currentIndex + 1,
-        selectedAnswer: null,
-        eliminatedOpts: [],
-        powerUpsUsed: { eliminate: false, audience: false },
+        phase:           'selecting',
+        currentIndex:    prev.currentIndex + 1,
+        pendingAnswer:   null,
+        submittedAnswer: null,
+        eliminatedOpts:  [],
+        hintsRevealedThisQ: [],
+        hintsUsed:       0,
+        audienceUsed:    false,
       };
     });
   }, []);
@@ -81,34 +98,42 @@ export function useNodeSession(mode: QuizMode, questionCount: number) {
       if (isLast) return { ...prev, phase: 'complete', skippedCount: prev.skippedCount + 1 };
       return {
         ...prev,
-        phase: 'playing',
-        currentIndex:  prev.currentIndex + 1,
-        selectedAnswer: null,
-        skippedCount:  prev.skippedCount + 1,
-        eliminatedOpts: [],
-        powerUpsUsed: { eliminate: false, audience: false },
+        phase:           'selecting',
+        currentIndex:    prev.currentIndex + 1,
+        pendingAnswer:   null,
+        submittedAnswer: null,
+        skippedCount:    prev.skippedCount + 1,
+        eliminatedOpts:  [],
+        hintsRevealedThisQ: [],
+        hintsUsed:       0,
+        audienceUsed:    false,
       };
     });
   }, []);
 
-  const useHint = useCallback(() => {
-    setState(prev => ({ ...prev, hintsUsed: prev.hintsUsed + 1 }));
+  const revealHint = useCallback((hintIdx: number) => {
+    setState(prev => {
+      if (prev.hintsRevealedThisQ.includes(hintIdx)) return prev;
+      return {
+        ...prev,
+        hintsUsed:          prev.hintsUsed + 1,
+        hintsRevealedThisQ: [...prev.hintsRevealedThisQ, hintIdx],
+      };
+    });
   }, []);
 
   const useEliminate = useCallback(() => {
     setState(prev => {
-      if (prev.powerUpsUsed.eliminate) return prev;
       const q = prev.questions[prev.currentIndex];
       const wrong = (['A', 'B', 'C', 'D'] as const)
         .filter(l => l !== q.respostaCorreta && !prev.eliminatedOpts.includes(l));
-      const toElim = wrong.slice(0, 2) as ('A' | 'B' | 'C' | 'D')[];
-      return { ...prev, eliminatedOpts: toElim, powerUpsUsed: { ...prev.powerUpsUsed, eliminate: true } };
+      return { ...prev, eliminatedOpts: wrong.slice(0, 2) as ('A' | 'B' | 'C' | 'D')[] };
     });
   }, []);
 
   const useAudience = useCallback(() => {
-    setState(prev => ({ ...prev, powerUpsUsed: { ...prev.powerUpsUsed, audience: true } }));
+    setState(prev => ({ ...prev, audienceUsed: true }));
   }, []);
 
-  return { state, submitAnswer, nextQuestion, skipQuestion, useHint, useEliminate, useAudience };
+  return { state, selectAnswer, confirmAnswer, nextQuestion, skipQuestion, revealHint, useEliminate, useAudience };
 }
