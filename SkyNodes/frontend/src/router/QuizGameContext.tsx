@@ -5,6 +5,8 @@ interface QuizGameContextValue {
   unlockSticker: (id: string) => void;
   sessionPlayer: string | null;
   setSessionPlayer: (name: string) => void;
+  playerIcon: string;
+  setPlayerIcon: (icon: string) => void;
 }
 
 const QuizGameContext = createContext<QuizGameContextValue | null>(null);
@@ -13,6 +15,9 @@ export function QuizGameProvider({ children }: { children: React.ReactNode }) {
   const [unlockedStickerIds, setUnlockedStickerIds] = useState<string[]>([]);
   const [sessionPlayer, setSessionPlayer] = useState<string | null>(
     () => localStorage.getItem('quiz_player'),
+  );
+  const [playerIcon, setPlayerIcon] = useState<string>(
+    () => localStorage.getItem('quiz_player_icon') ?? 'Zap',
   );
 
   const unlockSticker = (id: string) => {
@@ -24,9 +29,18 @@ export function QuizGameProvider({ children }: { children: React.ReactNode }) {
     setSessionPlayer(name);
   };
 
+  const handleSetPlayerIcon = (icon: string) => {
+    localStorage.setItem('quiz_player_icon', icon);
+    setPlayerIcon(icon);
+  };
+
   return (
     <QuizGameContext.Provider
-      value={{ unlockedStickerIds, unlockSticker, sessionPlayer, setSessionPlayer: handleSetSessionPlayer }}
+      value={{
+        unlockedStickerIds, unlockSticker,
+        sessionPlayer, setSessionPlayer: handleSetSessionPlayer,
+        playerIcon, setPlayerIcon: handleSetPlayerIcon,
+      }}
     >
       {children}
     </QuizGameContext.Provider>
