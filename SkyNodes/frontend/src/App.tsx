@@ -134,7 +134,7 @@ export default function App() {
           onClose={() => setBenchmarkOpen(false)}
           onEiffelUnlock={() => setEiffelUnlocked(true)}
         />
-        <QuizWidget onClick={() => navigate('/quiz')} />
+        <QuizWidget />
       </main>
     </ClickSpark>
     </>
