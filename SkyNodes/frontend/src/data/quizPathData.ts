@@ -1,94 +1,126 @@
-export type QuizMode = 'avd' | 'grafos' | 'mix';
-export type NodeStatus = 'locked' | 'available' | 'completed' | 'boss';
+export type QuizMode    = 'avd' | 'grafos' | 'mix';
+export type NodeType    = 'inicio' | 'normal' | 'decisorio' | 'boss' | 'final';
+export type NodeStatus  = 'locked' | 'available' | 'completed' | 'current';
 
 export interface PathNode {
-  id: string;
-  label: string;
-  tema: string;
-  questionCount: number;
-  x: number;
-  y: number;
-  type: 'normal' | 'boss';
+  id:            string;
+  label:         string;
+  tema:          string;
+  questionCount: number;  // 0 for decisorio/inicio/final
+  x:             number;
+  y:             number;
+  type:          NodeType;
 }
 
 export interface PathEdge {
-  from: string;
-  to: string;
-  difficulty: 'Fácil' | 'Médio' | 'Difícil';
+  from:       string;
+  to:         string;
+  difficulty: 'Fácil' | 'Médio' | 'Difícil' | 'none';
 }
 
 export interface PathData {
-  mode: QuizMode;
+  mode:             QuizMode;
   masteryStickerId: string;
-  nodes: PathNode[];
-  edges: PathEdge[];
+  nodes:            PathNode[];
+  edges:            PathEdge[];
 }
 
-// SVG viewport: 800 x 420
+// ─── SVG viewport 900 × 480 ───────────────────────────────────────────────────
+//
+// Path shape (all modes share same topology, themes differ):
+//
+//  [inicio] → [n1] → [n2] → [dec] → [n3a] → [n4a] → [boss] → [final_a]
+//                               ↓
+//                            [n3b] → [n4b] ─────────────────→ [final_b]
+
 const BASE_NODES: Omit<PathNode, 'tema'>[] = [
-  { id: 'n1',   label: '01', questionCount: 5,  x: 80,  y: 210, type: 'normal' },
-  { id: 'n2',   label: '02', questionCount: 6,  x: 240, y: 210, type: 'normal' },
-  { id: 'n3',   label: '03', questionCount: 7,  x: 360, y: 310, type: 'normal' },
-  { id: 'n4',   label: '04', questionCount: 7,  x: 360, y: 110, type: 'normal' },
-  { id: 'n5',   label: '05', questionCount: 8,  x: 520, y: 210, type: 'normal' },
-  { id: 'boss', label: 'BOSS', questionCount: 1, x: 700, y: 210, type: 'boss'   },
+  { id: 'inicio', label: 'INÍCIO', questionCount: 0,  x: 70,  y: 240, type: 'inicio'   },
+  { id: 'n1',     label: 'NÓ 1',   questionCount: 5,  x: 190, y: 240, type: 'normal'   },
+  { id: 'n2',     label: 'NÓ 2',   questionCount: 6,  x: 310, y: 240, type: 'normal'   },
+  { id: 'dec',    label: 'DEC',    questionCount: 0,  x: 430, y: 240, type: 'decisorio' },
+  { id: 'n3a',    label: 'NÓ 3A',  questionCount: 7,  x: 550, y: 130, type: 'normal'   },
+  { id: 'n3b',    label: 'NÓ 3B',  questionCount: 5,  x: 550, y: 350, type: 'normal'   },
+  { id: 'n4a',    label: 'NÓ 4A',  questionCount: 8,  x: 670, y: 130, type: 'normal'   },
+  { id: 'n4b',    label: 'NÓ 4B',  questionCount: 6,  x: 670, y: 350, type: 'normal'   },
+  { id: 'boss',   label: 'BOSS',   questionCount: 1,  x: 790, y: 130, type: 'boss'     },
+  { id: 'final_a', label: 'FINAL', questionCount: 0,  x: 880, y: 130, type: 'final'    },
+  { id: 'final_b', label: 'FINAL', questionCount: 0,  x: 790, y: 350, type: 'final'    },
 ];
 
 const BASE_EDGES: PathEdge[] = [
-  { from: 'n1',   to: 'n2',   difficulty: 'Fácil'   },
-  { from: 'n2',   to: 'n4',   difficulty: 'Médio'   },
-  { from: 'n2',   to: 'n3',   difficulty: 'Difícil' },
-  { from: 'n4',   to: 'n5',   difficulty: 'Difícil' },
-  { from: 'n3',   to: 'n5',   difficulty: 'Fácil'   },
-  { from: 'n5',   to: 'boss', difficulty: 'Difícil' },
+  { from: 'inicio', to: 'n1',     difficulty: 'none'     },
+  { from: 'n1',     to: 'n2',     difficulty: 'Fácil'    },
+  { from: 'n2',     to: 'dec',    difficulty: 'none'     },
+  { from: 'dec',    to: 'n3a',    difficulty: 'Difícil'  },
+  { from: 'dec',    to: 'n3b',    difficulty: 'Fácil'    },
+  { from: 'n3a',    to: 'n4a',    difficulty: 'Médio'    },
+  { from: 'n3b',    to: 'n4b',    difficulty: 'Médio'    },
+  { from: 'n4a',    to: 'boss',   difficulty: 'Difícil'  },
+  { from: 'n4b',    to: 'final_b', difficulty: 'none'    },
+  { from: 'boss',   to: 'final_a', difficulty: 'none'    },
 ];
 
 const TEMAS: Record<QuizMode, Record<string, string>> = {
   avd: {
-    n1:   'Fundamentos de Visualização',
-    n2:   'Gráficos de Barras e Linhas',
-    n3:   'Distribuições e Histogramas',
-    n4:   'Gráficos de Dispersão',
-    n5:   'Dashboards e Boas Práticas',
-    boss: 'Construção de Gráfico',
+    inicio:  'Início — Caminho de Dados',
+    n1:      'Fundamentos de Visualização',
+    n2:      'Gráficos de Barras e Linhas',
+    dec:     'Decisório — Escolha seu ramo',
+    n3a:     'Distribuições Estatísticas',
+    n3b:     'Gráficos de Dispersão',
+    n4a:     'Dashboards e Interatividade',
+    n4b:     'Boas Práticas de Visualização',
+    boss:    'Boss — Construção de Gráfico',
+    final_a: 'Final — Maestria',
+    final_b: 'Final — Maestria',
   },
   grafos: {
-    n1:   'Conceitos Básicos de Grafos',
-    n2:   'Representações e Tipos',
-    n3:   'Busca em Largura (BFS)',
-    n4:   'Busca em Profundidade (DFS)',
-    n5:   'Caminhos Mínimos',
-    boss: 'Construção de Grafo',
+    inicio:  'Início — Caminho de Grafos',
+    n1:      'Conceitos Básicos de Grafos',
+    n2:      'Representações e Tipos',
+    dec:     'Decisório — Escolha seu ramo',
+    n3a:     'BFS — Busca em Largura',
+    n3b:     'DFS — Busca em Profundidade',
+    n4a:     'Caminhos Mínimos (Dijkstra)',
+    n4b:     'Árvores e Spanning Trees',
+    boss:    'Boss — Construção de Grafo',
+    final_a: 'Final — Maestria',
+    final_b: 'Final — Maestria',
   },
   mix: {
-    n1:   'Fundamentos Mistos',
-    n2:   'Grafos e Dados',
-    n3:   'Algoritmos e Visualizações',
-    n4:   'Análise e Estruturas',
-    n5:   'Integração AVD + Grafos',
-    boss: 'Desafio Misto',
+    inicio:  'Início — Caminho Mix',
+    n1:      'Fundamentos Mistos',
+    n2:      'Grafos e Visualização',
+    dec:     'Decisório — Escolha seu ramo',
+    n3a:     'Algoritmos e Análise',
+    n3b:     'Dados e Estruturas de Grafos',
+    n4a:     'Integração AVD + Grafos',
+    n4b:     'Otimização e Visualização',
+    boss:    'Boss — Desafio Misto',
+    final_a: 'Final — Gamers',
+    final_b: 'Final — Gamers',
   },
 };
 
 const MASTERY: Record<QuizMode, string> = {
-  avd:   'maestro_dados',
+  avd:    'maestro_dados',
   grafos: 'maestro_grafos',
-  mix:   'pokeball', // figurinha gamer
+  mix:    'pokeball',
 };
 
 function buildPath(mode: QuizMode): PathData {
   return {
     mode,
     masteryStickerId: MASTERY[mode],
-    nodes: BASE_NODES.map(n => ({ ...n, tema: TEMAS[mode][n.id] })),
+    nodes: BASE_NODES.map(n => ({ ...n, tema: TEMAS[mode][n.id] ?? n.id })),
     edges: BASE_EDGES,
   };
 }
 
 export const PATH_DATA: Record<QuizMode, PathData> = {
-  avd:   buildPath('avd'),
+  avd:    buildPath('avd'),
   grafos: buildPath('grafos'),
-  mix:   buildPath('mix'),
+  mix:    buildPath('mix'),
 };
 
 export function getNodeById(mode: QuizMode, nodeId: string): PathNode | undefined {
@@ -96,19 +128,18 @@ export function getNodeById(mode: QuizMode, nodeId: string): PathNode | undefine
 }
 
 export function getSuccessors(mode: QuizMode, nodeId: string): string[] {
-  return PATH_DATA[mode].edges
-    .filter(e => e.from === nodeId)
-    .map(e => e.to);
+  return PATH_DATA[mode].edges.filter(e => e.from === nodeId).map(e => e.to);
 }
 
 export function getPredecessors(mode: QuizMode, nodeId: string): string[] {
-  return PATH_DATA[mode].edges
-    .filter(e => e.to === nodeId)
-    .map(e => e.from);
+  return PATH_DATA[mode].edges.filter(e => e.to === nodeId).map(e => e.from);
 }
 
-/** Returns the root node id (no predecessors). */
 export function getRootNodeId(mode: QuizMode): string {
-  const nodeIds = PATH_DATA[mode].nodes.map(n => n.id);
-  return nodeIds.find(id => getPredecessors(mode, id).length === 0) ?? nodeIds[0];
+  const ids = PATH_DATA[mode].nodes.map(n => n.id);
+  return ids.find(id => getPredecessors(mode, id).length === 0) ?? ids[0];
+}
+
+export function isQuestionNode(node: PathNode): boolean {
+  return node.type === 'normal' || node.type === 'boss';
 }

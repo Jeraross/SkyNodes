@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import gsap from 'gsap';
 import { getDialogue } from './presenterDialogues';
 
@@ -12,91 +13,36 @@ interface Props {
   size:           PresenterSize;
 }
 
-const SIZES: Record<PresenterSize, { w: number; h: number; fontSize: number }> = {
-  large:   { w: 280, h: 380, fontSize: 13 },
-  medium:  { w: 180, h: 240, fontSize: 12 },
-  compact: { w: 100, h: 140, fontSize: 11 },
+const MODEL_URL = 'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
+
+// Maps our states to animation clips in RobotExpressive
+const CLIP_MAP: Record<PresenterState, string> = {
+  idle:        'Idle',
+  talking:     'Wave',
+  celebrating: 'Dance',
+  thinking:    'Pointing',
+  empathy:     'No',
 };
 
-function buildPresenter(): THREE.Group {
-  const mat = (color: number) =>
-    new THREE.MeshToonMaterial({ color, emissive: color, emissiveIntensity: 0.08 });
-
-  const group = new THREE.Group();
-
-  // Head
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 10, 10), mat(0x22d3ee));
-  head.position.set(0, 1.55, 0);
-  head.name = 'head';
-
-  // Body
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.75, 10), mat(0x0891b2));
-  body.position.set(0, 0.9, 0);
-
-  // Left arm
-  const lArm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.55, 8), mat(0x22d3ee));
-  lArm.position.set(-0.42, 0.95, 0);
-  lArm.rotation.z = 0.3;
-  lArm.name = 'lArm';
-
-  // Right arm
-  const rArm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.55, 8), mat(0x22d3ee));
-  rArm.position.set(0.42, 0.95, 0);
-  rArm.rotation.z = -0.3;
-  rArm.name = 'rArm';
-
-  // Left leg
-  const lLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 0.6, 8), mat(0x0e7490));
-  lLeg.position.set(-0.17, 0.25, 0);
-
-  // Right leg
-  const rLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 0.6, 8), mat(0x0e7490));
-  rLeg.position.set(0.17, 0.25, 0);
-
-  group.add(head, body, lArm, rArm, lLeg, rLeg);
-  group.position.set(0, -1.1, 0);
-  return group;
-}
-
-function applyAnimation(group: THREE.Group, state: PresenterState) {
-  const head = group.getObjectByName('head')!;
-  const rArm = group.getObjectByName('rArm')!;
-  const lArm = group.getObjectByName('lArm')!;
-
-  gsap.killTweensOf([group.position, group.rotation, head.rotation, rArm.rotation, lArm.rotation]);
-
-  if (state === 'idle') {
-    gsap.to(group.position, { y: -1.1, duration: 0.5, ease: 'power2.out' });
-    gsap.to(group.rotation, { z: 0, duration: 0.5 });
-    gsap.to(head.rotation,  { z: 0, duration: 0.5 });
-    gsap.to(rArm.rotation,  { z: -0.3, duration: 0.5 });
-    gsap.to(lArm.rotation,  { z:  0.3, duration: 0.5 });
-  } else if (state === 'talking') {
-    gsap.to(head.rotation,  { z: 0.12, yoyo: true, repeat: -1, duration: 0.6 });
-    gsap.to(rArm.rotation,  { z: -1.1, duration: 0.4, ease: 'back.out(1.5)' });
-  } else if (state === 'celebrating') {
-    gsap.to(group.position, { y: -0.5, yoyo: true, repeat: 3, duration: 0.3, ease: 'power1.inOut',
-      onComplete: () => gsap.to(group.position, { y: -1.1, duration: 0.4 }) });
-    gsap.to(rArm.rotation, { z: -2.2, duration: 0.3 });
-    gsap.to(lArm.rotation, { z:  2.2, duration: 0.3 });
-  } else if (state === 'thinking') {
-    gsap.to(group.rotation, { z: 0.15, duration: 0.4 });
-    gsap.to(head.rotation,  { z: -0.2, duration: 0.4 });
-    gsap.to(rArm.rotation,  { z: -1.4, duration: 0.4 });
-  } else if (state === 'empathy') {
-    gsap.to(group.rotation, { z: -0.08, yoyo: true, repeat: 3, duration: 0.4,
-      onComplete: () => gsap.to(group.rotation, { z: 0, duration: 0.3 }) });
-    gsap.to(rArm.rotation, { z: -0.1, duration: 0.4 });
-    gsap.to(lArm.rotation, { z:  0.1, duration: 0.4 });
-  }
-}
+const SIZES: Record<PresenterSize, { w: number; h: number; fontSize: number; camY: number; camZ: number; fov: number }> = {
+  large:   { w: 300, h: 440, fontSize: 13, camY: 0.6, camZ: 5.5, fov: 38 },
+  medium:  { w: 190, h: 290, fontSize: 12, camY: 0.6, camZ: 5.8, fov: 38 },
+  compact: { w: 120, h: 180, fontSize: 11, camY: 0.6, camZ: 6.0, fov: 38 },
+};
 
 export default function QuizPresenter3D({ presenterState, dialogueKey, size }: Props) {
-  const mountRef   = useRef<HTMLDivElement>(null);
-  const sceneRef   = useRef<{ renderer: THREE.WebGLRenderer; group: THREE.Group; animId: number } | null>(null);
+  const mountRef    = useRef<HTMLDivElement>(null);
+  const mixerRef    = useRef<THREE.AnimationMixer | null>(null);
+  const clipsRef    = useRef<Record<string, THREE.AnimationClip>>({});
+  const actionRef   = useRef<THREE.AnimationAction | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const frameRef    = useRef<number>(0);
+
   const [dialogue, setDialogue] = useState('');
   const [showText, setShowText] = useState(false);
-  const { w, h, fontSize } = SIZES[size];
+  const [loading, setLoading]   = useState(true);
+
+  const { w, h, fontSize, camY, camZ, fov } = SIZES[size];
 
   useEffect(() => {
     const mount = mountRef.current!;
@@ -104,44 +50,109 @@ export default function QuizPresenter3D({ presenterState, dialogueKey, size }: P
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
+    renderer.shadowMap.enabled = true;
     mount.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
     const scene  = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-    camera.position.set(0, 0.2, 4);
+    const camera = new THREE.PerspectiveCamera(fov, w / h, 0.1, 100);
+    camera.position.set(0, camY, camZ);
+    camera.lookAt(0, 0.6, 0);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-    const point   = new THREE.PointLight(0x22d3ee, 2, 10);
-    point.position.set(2, 3, 3);
-    scene.add(ambient, point);
+    // Lighting — dramatic stage feel
+    const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+    const key     = new THREE.DirectionalLight(0xffd166, 1.8);
+    key.position.set(2, 4, 3);
+    const fill    = new THREE.DirectionalLight(0x22d3ee, 0.6);
+    fill.position.set(-3, 2, 1);
+    const rim     = new THREE.DirectionalLight(0xffffff, 0.3);
+    rim.position.set(0, 3, -4);
+    scene.add(ambient, key, fill, rim);
 
-    const group = buildPresenter();
-    scene.add(group);
+    // Load RobotExpressive
+    const loader = new GLTFLoader();
+    loader.load(
+      MODEL_URL,
+      gltf => {
+        const model = gltf.scene;
+        model.scale.set(0.75, 0.75, 0.75);
+        model.position.set(0, -0.85, 0);
+        scene.add(model);
 
-    let animId = 0;
+        const mixer = new THREE.AnimationMixer(model);
+        mixerRef.current = mixer;
+
+        gltf.animations.forEach(clip => {
+          clipsRef.current[clip.name] = clip;
+        });
+
+        // Start idle
+        const idleClip = clipsRef.current['Idle'];
+        if (idleClip) {
+          actionRef.current = mixer.clipAction(idleClip);
+          actionRef.current.play();
+        }
+        setLoading(false);
+      },
+      undefined,
+      () => {
+        // Model load failed — silent fallback (procedural sphere)
+        setLoading(false);
+      },
+    );
+
     const clock = new THREE.Clock();
     const animate = () => {
-      animId = requestAnimationFrame(animate);
-      const t = clock.getElapsedTime();
-      group.rotation.y = Math.sin(t * 0.5) * 0.15;
+      frameRef.current = requestAnimationFrame(animate);
+      const dt = clock.getDelta();
+      mixerRef.current?.update(dt);
       renderer.render(scene, camera);
     };
     animate();
 
-    sceneRef.current = { renderer, group, animId };
-
     return () => {
-      cancelAnimationFrame(animId);
+      cancelAnimationFrame(frameRef.current);
       renderer.dispose();
-      mount.removeChild(renderer.domElement);
+      if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
-  }, [w, h]);
+  }, [w, h, camY, camZ]);
 
+  // Switch animation when state changes
   useEffect(() => {
-    if (!sceneRef.current) return;
-    applyAnimation(sceneRef.current.group, presenterState);
+    const mixer = mixerRef.current;
+    if (!mixer) return;
+
+    const clipName = CLIP_MAP[presenterState];
+    const clip = clipsRef.current[clipName];
+    if (!clip) return;
+
+    const prev = actionRef.current;
+    const next = mixer.clipAction(clip);
+
+    if (prev === next) return;
+
+    next.reset().play();
+    if (prev) {
+      prev.crossFadeTo(next, 0.3, true);
+    }
+    actionRef.current = next;
+
+    // Auto-return to idle for non-looping states
+    if (['celebrating', 'empathy'].includes(presenterState)) {
+      const duration = clip.duration * 1000;
+      const timer = setTimeout(() => {
+        const idleClip = clipsRef.current['Idle'];
+        if (!idleClip) return;
+        const idle = mixer.clipAction(idleClip);
+        idle.reset().play();
+        next.crossFadeTo(idle, 0.5, true);
+        actionRef.current = idle;
+      }, Math.min(duration, 3000));
+      return () => clearTimeout(timer);
+    }
   }, [presenterState]);
 
+  // Typewriter dialogue
   useEffect(() => {
     if (!dialogueKey) { setShowText(false); return; }
     const text = getDialogue(dialogueKey);
@@ -152,27 +163,38 @@ export default function QuizPresenter3D({ presenterState, dialogueKey, size }: P
       i++;
       setDialogue(text.slice(0, i));
       if (i >= text.length) clearInterval(id);
-    }, 28);
+    }, 24);
     return () => clearInterval(id);
   }, [dialogueKey]);
 
   return (
     <div className="flex flex-col items-center gap-3 select-none">
-      <div ref={mountRef} style={{ width: w, height: h }} />
+      <div ref={mountRef} style={{ width: w, height: h, opacity: loading ? 0.3 : 1, transition: 'opacity 0.5s' }} />
+
       {showText && dialogue && (
         <div
-          className="rounded-xl px-4 py-3 max-w-xs text-center"
+          className="relative px-4 py-3 max-w-[240px] text-center"
           style={{
-            background: 'rgba(6,182,212,0.08)',
-            border: '1px solid rgba(6,182,212,0.25)',
-            fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+            background: 'rgba(13,11,32,0.92)',
+            border: '1px solid rgba(255,209,102,0.3)',
+            borderRadius: 12,
+            fontFamily: "'Sora', sans-serif",
             fontSize,
-            color: '#cbd5e1',
-            lineHeight: 1.5,
+            color: '#E8DFC8',
+            lineHeight: 1.55,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
           }}
         >
+          {/* Speech bubble tail */}
+          <div
+            className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45"
+            style={{ background: 'rgba(13,11,32,0.92)', borderLeft: '1px solid rgba(255,209,102,0.3)', borderTop: '1px solid rgba(255,209,102,0.3)' }}
+          />
           {dialogue}
-          <span className="animate-pulse text-cyan-400">|</span>
+          <span
+            className="inline-block w-0.5 h-3 ml-0.5 align-middle"
+            style={{ background: '#FFD166', animation: 'pulse 1s step-end infinite' }}
+          />
         </div>
       )}
     </div>

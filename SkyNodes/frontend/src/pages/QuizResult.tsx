@@ -9,158 +9,128 @@ import type { QuizMode } from '../data/quizPathData';
 import { STICKERS } from '../data/stickers';
 import { useQuizGame } from '../router/QuizGameContext';
 
-const PIXEL = { fontFamily: "'Press Start 2P', monospace" };
-const MONO  = { fontFamily: 'ui-monospace, SFMono-Regular, monospace' };
-
 function getStars(score: number, total: number) {
-  const ratio = total > 0 ? score / total : 0;
-  if (ratio >= 0.9) return 3;
-  if (ratio >= 0.7) return 2;
-  if (ratio >= 0.5) return 1;
-  return 0;
+  const r = total > 0 ? score / total : 0;
+  return r >= 0.9 ? 3 : r >= 0.7 ? 2 : r >= 0.5 ? 1 : 0;
 }
 
 function getDialogueKey(stars: number) {
-  if (stars === 3) return 'resultPerfect';
-  if (stars >= 2)  return 'resultGood';
-  return 'resultOk';
+  return stars === 3 ? 'resultPerfect' : stars >= 2 ? 'resultGood' : 'resultOk';
 }
 
 export default function QuizResult() {
   const [, navigate] = useLocation();
-  const params = useParams<{ mode: string }>();
-  const mode   = (params.mode ?? 'grafos') as QuizMode;
+  const params   = useParams<{ mode: string }>();
+  const mode     = (params.mode ?? 'grafos') as QuizMode;
   const pathData = PATH_DATA[mode];
-
   const { unlockedStickerIds, unlockSticker } = useQuizGame();
-  const pageRef = useRef<HTMLDivElement>(null);
+  const pageRef  = useRef<HTMLDivElement>(null);
 
-  // Aggregate scores from sessionStorage
   const nodeIds = pathData.nodes.filter(n => n.type === 'normal').map(n => n.id);
-  let totalScore = 0;
-  let totalQuestions = 0;
+  let totalScore = 0, totalQ = 0;
   nodeIds.forEach(id => {
     const raw = sessionStorage.getItem(`node_result_${mode}_${id}`);
-    if (raw) {
-      const { score, total } = JSON.parse(raw);
-      totalScore     += score;
-      totalQuestions += total;
-    }
+    if (raw) { const { score, total } = JSON.parse(raw); totalScore += score; totalQ += total; }
   });
-  // Count boss as 1 correct (simplified — boss is pass/fail)
-  totalQuestions += 1;
-  totalScore     += 1;
+  totalQ += 1; totalScore += 1; // boss counts as 1 correct
 
-  const stars     = getStars(totalScore, totalQuestions);
-  const masteryId = pathData.masteryStickerId;
+  const stars      = getStars(totalScore, totalQ);
+  const masteryId  = pathData.masteryStickerId;
   const alreadyHad = unlockedStickerIds.includes(masteryId);
-  const masterySticker = STICKERS.find(s => s.id === masteryId);
+  const sticker    = STICKERS.find(s => s.id === masteryId);
 
   useEffect(() => {
-    gsap.fromTo(pageRef.current, { scale: 0.92, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.2)' });
+    gsap.fromTo(pageRef.current, { scale: 0.94, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.2)' });
     if (!alreadyHad) unlockSticker(masteryId);
   }, []);
 
-  const go = (path: string) => {
-    gsap.to(pageRef.current, {
-      opacity: 0, scale: 0.95, duration: 0.3,
-      onComplete: () => navigate(path),
-    });
-  };
+  const go = (path: string) =>
+    gsap.to(pageRef.current, { opacity: 0, scale: 0.96, duration: 0.3, onComplete: () => navigate(path) });
+
+  const scorePercent = totalQ > 0 ? Math.round((totalScore / totalQ) * 100) : 0;
 
   return (
-    <div ref={pageRef} className="fixed inset-0 z-50 bg-[#020617] flex flex-col items-center justify-center gap-8 px-8">
+    <div ref={pageRef} className="hex-bg spotlight fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 px-8 overflow-y-auto" style={{ background: 'var(--bg-deep)' }}>
       {/* Presenter */}
       <QuizPresenter3D presenterState="celebrating" dialogueKey={getDialogueKey(stars)} size="large" />
 
       {/* Score */}
-      <div className="text-center flex flex-col gap-3">
-        <p style={{ ...PIXEL, fontSize: 9 }} className="text-slate-500 tracking-widest">PONTUACAO FINAL</p>
-        <motion.p
+      <div className="text-center flex flex-col items-center gap-4">
+        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, letterSpacing: '0.15em', color: 'var(--text-muted)', fontWeight: 600 }}>
+          PONTUAÇÃO FINAL
+        </p>
+        <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5, ease: 'back.out(1.4)' }}
-          style={{ ...PIXEL, fontSize: 48 }}
-          className="text-white"
+          transition={{ delay: 0.3, duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+          className="flex items-end gap-2"
         >
-          {totalScore}
-          <span style={{ fontSize: 22 }} className="text-slate-500">/{totalQuestions}</span>
-        </motion.p>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 80, letterSpacing: '-0.02em', color: 'var(--gold)', lineHeight: 1 }}>
+            {scorePercent}
+          </span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 36, color: 'var(--text-muted)', lineHeight: 1, paddingBottom: 8 }}>
+            %
+          </span>
+        </motion.div>
+
+        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--text-muted)' }}>
+          {totalScore} de {totalQ} acertos
+        </p>
 
         {/* Stars */}
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-3">
           {[0, 1, 2].map(i => (
             <motion.div
               key={i}
               initial={{ scale: 0, rotate: -30 }}
-              animate={{ scale: i < stars ? 1 : 0.6, rotate: 0 }}
-              transition={{ delay: 0.5 + i * 0.12, duration: 0.4, ease: 'back.out(1.5)' }}
+              animate={{ scale: i < stars ? 1 : 0.55, rotate: 0 }}
+              transition={{ delay: 0.5 + i * 0.12, duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
             >
-              <Star
-                size={32}
-                fill={i < stars ? '#fbbf24' : 'transparent'}
-                className={i < stars ? 'text-yellow-400' : 'text-slate-700'}
-                strokeWidth={i < stars ? 1.5 : 1}
-              />
+              <Star size={34} fill={i < stars ? '#FFD166' : 'transparent'} stroke={i < stars ? '#FFD166' : '#2A2640'} strokeWidth={1.5} />
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* Mastery sticker unlock */}
-      {masterySticker && (
+      {/* Mastery sticker */}
+      {sticker && (
         <motion.div
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6, type: 'spring', stiffness: 200 }}
+          transition={{ delay: 0.8, duration: 0.6, type: 'spring', stiffness: 180 }}
           className="flex flex-col items-center gap-3"
         >
-          <p style={{ ...PIXEL, fontSize: 7 }} className="text-yellow-400 tracking-widest">
-            {alreadyHad ? 'JA DESBLOQUEADA' : 'FIGURINHA DESBLOQUEADA'}
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: alreadyHad ? 'var(--text-muted)' : 'var(--gold)' }}>
+            {alreadyHad ? 'JÁ DESBLOQUEADA' : '✦ FIGURINHA DESBLOQUEADA'}
           </p>
-          <img
-            src={masterySticker.img}
-            alt={masterySticker.name}
+          <div
+            className="w-24 h-24 rounded-2xl flex items-center justify-center"
             style={{
-              width: 96, height: 96, objectFit: 'contain',
-              filter: `drop-shadow(0 0 ${alreadyHad ? '6px rgba(251,191,36,0.3)' : '16px rgba(251,191,36,0.7)'})`,
+              background: 'rgba(255,209,102,0.06)',
+              border: '1.5px solid rgba(255,209,102,0.3)',
+              boxShadow: alreadyHad ? 'none' : '0 0 28px rgba(255,209,102,0.25)',
             }}
-            draggable={false}
-          />
-          <p style={{ ...PIXEL, fontSize: 8 }} className="text-yellow-400">{masterySticker.name}</p>
+          >
+            <img src={sticker.img} alt={sticker.name} className="w-16 h-16 object-contain" draggable={false} />
+          </div>
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--gold)' }}>
+            {sticker.name}
+          </p>
         </motion.div>
       )}
 
       {/* Buttons */}
-      <div className="flex gap-4 flex-wrap justify-center">
-        <button
-          onClick={() => go(`/quiz/map/${mode}`)}
-          className="px-6 py-3 rounded-xl border-2 border-cyan-500/50 cursor-pointer"
-          style={{ background: 'rgba(6,182,212,0.1)' }}
-        >
-          <p style={{ ...PIXEL, fontSize: 8 }} className="text-cyan-300">JOGAR NOVAMENTE</p>
-        </button>
-        <button
-          onClick={() => go('/quiz')}
-          className="px-6 py-3 rounded-xl border-2 border-slate-500/30 cursor-pointer"
-          style={{ background: 'rgba(100,116,139,0.08)' }}
-        >
-          <p style={{ ...PIXEL, fontSize: 8 }} className="text-slate-400">OUTROS MODOS</p>
-        </button>
-        <button
-          onClick={() => go('/album')}
-          className="px-6 py-3 rounded-xl border-2 border-yellow-500/40 cursor-pointer"
-          style={{ background: 'rgba(251,191,36,0.08)' }}
-        >
-          <p style={{ ...PIXEL, fontSize: 8 }} className="text-yellow-400">VER ALBUM</p>
-        </button>
-        <button
-          onClick={() => go('/leaderboard')}
-          className="px-6 py-3 rounded-xl border-2 border-violet-500/40 cursor-pointer"
-          style={{ background: 'rgba(167,139,250,0.08)' }}
-        >
-          <p style={{ ...PIXEL, fontSize: 8 }} className="text-violet-400">RANKING</p>
-        </button>
+      <div className="flex flex-wrap gap-3 justify-center">
+        {[
+          { label: 'Jogar Novamente', path: `/quiz/map/${mode}`, style: 'gold-btn px-6 py-3' },
+          { label: 'Outros Modos',   path: '/quiz',             style: 'teal-btn px-6 py-3' },
+          { label: 'Ver Álbum',      path: '/album',            style: 'teal-btn px-6 py-3' },
+          { label: 'Ranking',        path: '/leaderboard',      style: 'teal-btn px-6 py-3' },
+        ].map(({ label, path, style }) => (
+          <button key={path} onClick={() => go(path)} className={style} style={{ fontSize: 14 }}>
+            {label}
+          </button>
+        ))}
       </div>
     </div>
   );

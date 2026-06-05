@@ -1,171 +1,263 @@
 import { useState } from 'react';
-import type { PathData, PathNode, PathEdge } from '../../data/quizPathData';
+import type { PathData, PathNode } from '../../data/quizPathData';
 import type { PathProgress } from '../../hooks/usePathProgress';
 import { getNodeStatus } from '../../hooks/usePathProgress';
 
-const PIXEL = { fontFamily: "'Press Start 2P', monospace" };
-const MONO  = { fontFamily: 'ui-monospace, SFMono-Regular, monospace' };
-
-const STATUS_COLORS = {
-  locked:    { fill: '#1e293b', stroke: '#334155',  text: '#475569' },
-  available: { fill: '#0c4a6e', stroke: '#22d3ee',  text: '#22d3ee' },
-  completed: { fill: '#14532d', stroke: '#4ade80',  text: '#4ade80' },
-  boss:      { fill: '#451a03', stroke: '#f59e0b',  text: '#f59e0b' },
-};
-
-const DIFFICULTY_COLOR: Record<string, string> = {
-  'Fácil':   '#4ade80',
-  'Médio':   '#fbbf24',
-  'Difícil': '#f87171',
-};
-
 interface Props {
-  pathData:   PathData;
-  progress:   PathProgress;
-  onNodeClick: (nodeId: string) => void;
-  onNodeHover: (nodeId: string | null) => void;
+  pathData:       PathData;
+  progress:       PathProgress;
+  onNodeClick:    (nodeId: string) => void;
+  onNodeHover:    (nodeId: string | null) => void;
 }
+
+const DIFF_COLOR: Record<string, string> = {
+  'Fácil':   '#4ADE80',
+  'Médio':   '#FFD166',
+  'Difícil': '#FF4757',
+  'none':    'rgba(255,255,255,0.15)',
+};
+
+// ── Node renderers by type ───────────────────────────────────────────────────
+
+function InícioNode({ x, y, status }: { x: number; y: number; status: string }) {
+  const c = status === 'completed' ? '#4ADE80' : '#22D3EE';
+  return (
+    <g>
+      <circle cx={x} cy={y} r={24} fill="#0c2c4a" stroke={c} strokeWidth={2.5} />
+      {/* Play triangle */}
+      <polygon points={`${x-7},${y-9} ${x+12},${y} ${x-7},${y+9}`} fill={c} />
+    </g>
+  );
+}
+
+function NormalNode({ x, y, label, status, hovered }: { x: number; y: number; label: string; status: string; hovered: boolean }) {
+  const completed  = status === 'completed';
+  const available  = status === 'available';
+  const fill   = completed ? '#0A2215' : available ? '#0D1B4B' : '#0D0B1E';
+  const stroke = completed ? '#4ADE80' : available ? '#22D3EE' : '#2A2640';
+  const text   = completed ? '#4ADE80' : available ? '#F1EEF8' : '#3D3A5C';
+  const r = hovered && available ? 26 : 24;
+
+  return (
+    <g>
+      {available && (
+        <circle cx={x} cy={y} r={r + 10} fill="none" stroke={stroke} strokeWidth={1} opacity={0}>
+          <animate attributeName="r" values={`${r + 8};${r + 16};${r + 8}`} dur="2s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.35;0;0.35" dur="2s" repeatCount="indefinite" />
+        </circle>
+      )}
+      <circle cx={x} cy={y} r={r} fill={fill} stroke={stroke} strokeWidth={available ? 2.5 : 2}
+        style={{ transition: 'r 0.15s, stroke-width 0.15s' }} />
+      {completed && (
+        <text x={x} y={y + 5} textAnchor="middle" style={{ fontFamily: 'Sora', fontSize: 14, fontWeight: 700 }} fill="#4ADE80">✓</text>
+      )}
+      {!completed && (
+        <text x={x} y={y + 5} textAnchor="middle" style={{ fontFamily: 'Sora', fontSize: 10, fontWeight: 600 }} fill={text}>
+          {label.replace('NÓ ', '')}
+        </text>
+      )}
+    </g>
+  );
+}
+
+function DecisórioNode({ x, y, status, hovered }: { x: number; y: number; status: string; hovered: boolean }) {
+  const available = status === 'available';
+  const completed = status === 'completed';
+  const s = hovered && available ? 30 : 26;
+  const fill   = completed ? '#1A0C07' : available ? '#1A1400' : '#0D0B1E';
+  const stroke = completed ? '#4ADE80' : available ? '#FFD166' : '#2A2640';
+
+  // Diamond points
+  const pts = `${x},${y-s} ${x+s},${y} ${x},${y+s} ${x-s},${y}`;
+
+  return (
+    <g>
+      {available && (
+        <polygon points={`${x},${y-(s+12)} ${x+(s+12)},${y} ${x},${y+(s+12)} ${x-(s+12)},${y}`}
+          fill="none" stroke={stroke} strokeWidth={1} opacity={0}>
+          <animate attributeName="opacity" values="0.4;0;0.4" dur="1.8s" repeatCount="indefinite" />
+        </polygon>
+      )}
+      <polygon points={pts} fill={fill} stroke={stroke} strokeWidth={available ? 2.5 : 2}
+        style={{ transition: 'stroke-width 0.15s' }} />
+      {/* Split arrow icon */}
+      <text x={x} y={y + 5} textAnchor="middle" style={{ fontFamily: 'Sora', fontSize: 12 }} fill={stroke}>⑂</text>
+    </g>
+  );
+}
+
+function BossNode({ x, y, status, hovered }: { x: number; y: number; status: string; hovered: boolean }) {
+  const available = status === 'available';
+  const r = hovered && available ? 29 : 26;
+  const stroke = available ? '#F59E0B' : status === 'completed' ? '#4ADE80' : '#3D2800';
+  const fill   = status === 'completed' ? '#0A1A08' : '#1A0E00';
+
+  return (
+    <g>
+      {available && (
+        <circle cx={x} cy={y} r={r + 12} fill="none" stroke="#F59E0B" strokeWidth={1.5} opacity={0}>
+          <animate attributeName="opacity" values="0.5;0;0.5" dur="1.5s" repeatCount="indefinite" />
+          <animate attributeName="r" values={`${r+10};${r+18};${r+10}`} dur="1.5s" repeatCount="indefinite" />
+        </circle>
+      )}
+      <circle cx={x} cy={y} r={r} fill={fill} stroke={stroke} strokeWidth={2.5} />
+      {/* Crown emoji replacement via path-like circles */}
+      <text x={x} y={y + 6} textAnchor="middle" style={{ fontSize: 18 }} fill={stroke}>♛</text>
+    </g>
+  );
+}
+
+function FinalNode({ x, y, status }: { x: number; y: number; status: string }) {
+  const completed = status === 'completed';
+  const available = status === 'available';
+  const c = completed ? '#4ADE80' : available ? '#FFD166' : '#2A2640';
+
+  // Star polygon (5 points)
+  const starPts = (cx: number, cy: number, or: number, ir: number) =>
+    Array.from({ length: 10 }, (_, i) => {
+      const a = (Math.PI / 5) * i - Math.PI / 2;
+      const r = i % 2 === 0 ? or : ir;
+      return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
+    }).join(' ');
+
+  return (
+    <g>
+      <polygon points={starPts(x, y, 24, 11)}
+        fill={completed ? '#0A2215' : available ? '#1A1400' : '#0D0B1E'}
+        stroke={c} strokeWidth={2} />
+      <text x={x} y={y + 5} textAnchor="middle" style={{ fontSize: 11 }} fill={c}>★</text>
+    </g>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
 
 export default function PathMapGraph({ pathData, progress, onNodeClick, onNodeHover }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const { nodes, edges, mode } = pathData;
 
-  const getStatus = (nodeId: string) => getNodeStatus(nodeId, mode, progress);
+  const status = (id: string) => getNodeStatus(id, mode, progress);
 
-  const handleHover = (id: string | null) => {
-    setHoveredId(id);
-    onNodeHover(id);
+  const handleHover = (id: string | null) => { setHoveredId(id); onNodeHover(id); };
+
+  const isClickable = (node: PathNode) => {
+    const s = status(node.id);
+    return s === 'available' && node.type !== 'inicio' && node.type !== 'final';
   };
 
-  const mid = (a: number, b: number) => (a + b) / 2;
-
   return (
-    <svg viewBox="0 0 800 420" className="w-full h-full" style={{ maxHeight: 360 }}>
+    <svg viewBox="20 85 900 340" className="w-full h-full" style={{ overflow: 'visible' }}>
       <defs>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        <filter id="glow-gold">
+          <feGaussianBlur stdDeviation="3" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <filter id="glow-green">
+          <feGaussianBlur stdDeviation="2" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
 
       {/* Edges */}
       {edges.map(edge => {
-        const from = nodes.find(n => n.id === edge.from)!;
-        const to   = nodes.find(n => n.id === edge.to)!;
-        const fromStatus = getStatus(edge.from);
-        const toStatus   = getStatus(edge.to);
-        const active = fromStatus === 'completed' || toStatus === 'completed';
-        const color  = active ? DIFFICULTY_COLOR[edge.difficulty] : '#1e293b';
-        const mx = mid(from.x, to.x);
-        const my = mid(from.y, to.y);
+        const f = nodes.find(n => n.id === edge.from)!;
+        const t = nodes.find(n => n.id === edge.to)!;
+        const fs = status(edge.from);
+        const ts = status(edge.to);
+        const active = fs === 'completed';
+        const color  = active ? DIFF_COLOR[edge.difficulty] : DIFF_COLOR['none'];
 
         return (
           <g key={`${edge.from}-${edge.to}`}>
-            <line
-              x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-              stroke={color} strokeWidth={active ? 2 : 1.5}
-              strokeDasharray={active ? '0' : '6 4'}
-              opacity={active ? 0.8 : 0.3}
+            <line x1={f.x} y1={f.y} x2={t.x} y2={t.y}
+              stroke={color} strokeWidth={active ? 2.5 : 1.5}
+              strokeDasharray={active ? 'none' : '5 4'}
+              opacity={active ? 0.85 : 0.3}
             />
-            {/* Difficulty label */}
-            <text
-              x={mx} y={my - 10}
-              textAnchor="middle"
-              style={{ ...PIXEL, fontSize: 6 }}
-              fill={color} opacity={0.7}
-            >
-              {edge.difficulty.toUpperCase()}
-            </text>
-          </g>
-        );
-      })}
-
-      {/* Nodes */}
-      {nodes.map(node => {
-        const status = getStatus(node.id);
-        const colors = node.type === 'boss' && status === 'available'
-          ? STATUS_COLORS.boss
-          : STATUS_COLORS[status];
-        const r = node.type === 'boss' ? 34 : 28;
-        const isHovered = hoveredId === node.id && status === 'available';
-        const isAvailable = status === 'available';
-
-        return (
-          <g
-            key={node.id}
-            style={{ cursor: isAvailable ? 'pointer' : 'default' }}
-            onClick={() => isAvailable && onNodeClick(node.id)}
-            onMouseEnter={() => handleHover(node.id)}
-            onMouseLeave={() => handleHover(null)}
-          >
-            {/* Glow ring for available nodes */}
-            {isAvailable && (
-              <circle
-                cx={node.x} cy={node.y} r={r + 8}
-                fill="none"
-                stroke={colors.stroke}
-                strokeWidth={1.5}
-                opacity={0.4}
-                filter="url(#glow)"
-              >
-                <animate attributeName="r" values={`${r + 6};${r + 12};${r + 6}`} dur="2s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite" />
+            {/* Moving particle on active edges */}
+            {active && (
+              <circle r="4" fill={color} opacity="0.9">
+                <animateMotion dur="1.6s" repeatCount="indefinite"
+                  path={`M${f.x},${f.y} L${t.x},${t.y}`} />
               </circle>
             )}
-
-            {/* Main circle */}
-            <circle
-              cx={node.x} cy={node.y} r={isHovered ? r + 3 : r}
-              fill={colors.fill}
-              stroke={colors.stroke}
-              strokeWidth={isHovered ? 3 : 2}
-              style={{ transition: 'r 0.15s, stroke-width 0.15s' }}
-            />
-
-            {/* Label */}
-            {node.type === 'boss' ? (
-              <text x={node.x} y={node.y + 5} textAnchor="middle"
-                style={{ ...PIXEL, fontSize: 9 }} fill={colors.text}>
-                BOSS
-              </text>
-            ) : (
-              <text x={node.x} y={node.y + 5} textAnchor="middle"
-                style={{ ...PIXEL, fontSize: 10 }} fill={colors.text}>
-                {node.label}
-              </text>
-            )}
-
-            {/* Checkmark for completed */}
-            {status === 'completed' && (
-              <text x={node.x + r - 6} y={node.y - r + 10} textAnchor="middle"
-                style={{ fontSize: 14 }} fill="#4ade80">
-                ✓
-              </text>
-            )}
-
-            {/* Tooltip on hover */}
-            {isHovered && (
+            {/* Difficulty label (skip 'none') */}
+            {edge.difficulty !== 'none' && (
               <g>
                 <rect
-                  x={node.x - 90} y={node.y + r + 8}
-                  width={180} height={50} rx={8}
-                  fill="#0a111f" stroke="rgba(6,182,212,0.3)" strokeWidth={1}
+                  x={(f.x + t.x) / 2 - 24} y={(f.y + t.y) / 2 - 10}
+                  width={48} height={18} rx={9}
+                  fill="#080B18" stroke={color} strokeWidth={1} opacity={0.9}
                 />
-                <text x={node.x} y={node.y + r + 26}
+                <text
+                  x={(f.x + t.x) / 2} y={(f.y + t.y) / 2 + 5}
                   textAnchor="middle"
-                  style={{ ...MONO, fontSize: 11 }} fill="#94a3b8">
-                  {node.tema}
-                </text>
-                <text x={node.x} y={node.y + r + 44}
-                  textAnchor="middle"
-                  style={{ ...PIXEL, fontSize: 7 }} fill="#475569">
-                  {node.questionCount} QUESTOES
+                  style={{ fontFamily: 'Sora, sans-serif', fontSize: 8, fontWeight: 600 }}
+                  fill={color}
+                >
+                  {edge.difficulty.toUpperCase()}
                 </text>
               </g>
             )}
           </g>
         );
       })}
+
+      {/* Nodes */}
+      {nodes.map(node => {
+        const s   = status(node.id);
+        const hov = hoveredId === node.id;
+        const clickable = isClickable(node);
+        const filterAttr = s === 'available' ? 'url(#glow-gold)' : s === 'completed' ? 'url(#glow-green)' : 'none';
+
+        return (
+          <g
+            key={node.id}
+            style={{ cursor: clickable ? 'pointer' : 'default' }}
+            onClick={() => clickable && onNodeClick(node.id)}
+            onMouseEnter={() => handleHover(node.id)}
+            onMouseLeave={() => handleHover(null)}
+            filter={filterAttr}
+          >
+            {node.type === 'inicio'    && <InícioNode    x={node.x} y={node.y} status={s} />}
+            {node.type === 'normal'    && <NormalNode     x={node.x} y={node.y} label={node.label} status={s} hovered={hov} />}
+            {node.type === 'decisorio' && <DecisórioNode  x={node.x} y={node.y} status={s} hovered={hov} />}
+            {node.type === 'boss'      && <BossNode       x={node.x} y={node.y} status={s} hovered={hov} />}
+            {node.type === 'final'     && <FinalNode      x={node.x} y={node.y} status={s} />}
+
+            {/* Hover tooltip */}
+            {hov && node.type !== 'inicio' && (
+              <g>
+                <rect
+                  x={node.x - 100} y={node.y + 34}
+                  width={200} height={node.questionCount > 0 ? 56 : 42}
+                  rx={10} fill="#0A0C1E"
+                  stroke="rgba(255,255,255,0.1)" strokeWidth={1}
+                />
+                <text
+                  x={node.x} y={node.y + 52}
+                  textAnchor="middle"
+                  style={{ fontFamily: 'Sora, sans-serif', fontSize: 11, fontWeight: 600 }}
+                  fill="#C4BFD8"
+                >
+                  {node.tema.length > 28 ? node.tema.slice(0, 26) + '…' : node.tema}
+                </text>
+                {node.questionCount > 0 && (
+                  <text
+                    x={node.x} y={node.y + 70}
+                    textAnchor="middle"
+                    style={{ fontFamily: 'Sora, sans-serif', fontSize: 10 }}
+                    fill="#7B7899"
+                  >
+                    {node.questionCount} questões
+                  </text>
+                )}
+              </g>
+            )}
+          </g>
+        );
+      })}
+
     </svg>
   );
 }
