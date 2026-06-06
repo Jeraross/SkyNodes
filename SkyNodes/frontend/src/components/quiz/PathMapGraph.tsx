@@ -86,23 +86,25 @@ function DecisórioNode({ x, y, status, hovered }: { x: number; y: number; statu
   );
 }
 
-function BossNode({ x, y, status, hovered }: { x: number; y: number; status: string; hovered: boolean }) {
+function BossNode({ x, y, status, hovered, nodeId }: { x: number; y: number; status: string; hovered: boolean; nodeId: string }) {
   const available = status === 'available';
+  const easy      = nodeId === 'boss_easy';
   const r = hovered && available ? 29 : 26;
-  const stroke = available ? '#F59E0B' : status === 'completed' ? '#4ADE80' : '#3D2800';
-  const fill   = status === 'completed' ? '#0A1A08' : '#1A0E00';
+  const accent = easy ? '#22D3EE' : '#F59E0B';
+  const stroke = status === 'completed' ? '#4ADE80' : available ? accent : (easy ? '#082a33' : '#3D2800');
+  const fill   = status === 'completed' ? '#0A1A08' : easy ? '#041318' : '#1A0E00';
+  const icon   = easy ? '♟' : '♛';
 
   return (
     <g>
       {available && (
-        <circle cx={x} cy={y} r={r + 12} fill="none" stroke="#F59E0B" strokeWidth={1.5} opacity={0}>
+        <circle cx={x} cy={y} r={r + 12} fill="none" stroke={accent} strokeWidth={1.5} opacity={0}>
           <animate attributeName="opacity" values="0.5;0;0.5" dur="1.5s" repeatCount="indefinite" />
           <animate attributeName="r" values={`${r+10};${r+18};${r+10}`} dur="1.5s" repeatCount="indefinite" />
         </circle>
       )}
       <circle cx={x} cy={y} r={r} fill={fill} stroke={stroke} strokeWidth={2.5} />
-      {/* Crown emoji replacement via path-like circles */}
-      <text x={x} y={y + 6} textAnchor="middle" style={{ fontSize: 18 }} fill={stroke}>♛</text>
+      <text x={x} y={y + 6} textAnchor="middle" style={{ fontSize: 18 }} fill={stroke}>{icon}</text>
     </g>
   );
 }
@@ -142,7 +144,7 @@ export default function PathMapGraph({ pathData, progress, onNodeClick, onNodeHo
 
   const isClickable = (node: PathNode) => {
     const s = status(node.id);
-    return s === 'available' && node.type !== 'inicio' && node.type !== 'final';
+    return s === 'available' && node.type !== 'inicio';
   };
 
   return (
@@ -222,8 +224,7 @@ export default function PathMapGraph({ pathData, progress, onNodeClick, onNodeHo
             {node.type === 'inicio'    && <InícioNode    x={node.x} y={node.y} status={s} />}
             {node.type === 'normal'    && <NormalNode     x={node.x} y={node.y} label={node.label} status={s} hovered={hov} />}
             {node.type === 'decisorio' && <DecisórioNode  x={node.x} y={node.y} status={s} hovered={hov} />}
-            {node.type === 'boss'      && <BossNode       x={node.x} y={node.y} status={s} hovered={hov} />}
-            {node.type === 'final'     && <FinalNode      x={node.x} y={node.y} status={s} />}
+            {node.type === 'boss'      && <BossNode       x={node.x} y={node.y} status={s} hovered={hov} nodeId={node.id} />}
 
             {/* Hover tooltip */}
             {hov && node.type !== 'inicio' && (

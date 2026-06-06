@@ -72,13 +72,13 @@ function AnswerBtn({
 }
 
 // ── Inner session (stateful) ─────────────────────────────────────────────────
-interface SessionResult { score: number; total: number; points: number }
+interface SessionResult { score: number; total: number; points: number; usedIds: string[] }
 
 function NodeSession({
-  mode, nodeId, skipsRemaining,
+  mode, nodeId, skipsRemaining, excludeIds,
   onComplete, onUseSkip, onPointsChange,
 }: {
-  mode: QuizMode; nodeId: string; skipsRemaining: number;
+  mode: QuizMode; nodeId: string; skipsRemaining: number; excludeIds: string[];
   onComplete: (r: SessionResult) => void;
   onUseSkip: () => void;
   onPointsChange: (p: number) => void;
@@ -88,7 +88,7 @@ function NodeSession({
   const {
     state, selectAnswer, confirmAnswer, nextQuestion,
     skipQuestion, revealHint, useEliminate, useAudience,
-  } = useNodeSession(mode, count);
+  } = useNodeSession(mode, count, excludeIds);
 
   const [audience, setAudience] = useState<Record<string, number> | null>(null);
 
@@ -98,7 +98,12 @@ function NodeSession({
   // On complete
   useEffect(() => {
     if (state.phase === 'complete') {
-      onComplete({ score: state.score, total: state.questions.length, points: state.points });
+      onComplete({
+        score: state.score,
+        total: state.questions.length,
+        points: state.points,
+        usedIds: state.questions.map(q => q.id),
+      });
     }
   }, [state.phase]);
 
@@ -333,7 +338,7 @@ export default function QuizNodeSession() {
   const nodeId  =  params.nodeId ?? 'n1';
   const node    = getNodeById(mode, nodeId);
 
-  const { progress, completeNode, useSkip: consumeSkip } = usePathProgress(mode);
+  const { progress, completeNode, useSkip: consumeSkip, markQuestionsUsed } = usePathProgress(mode);
   const [points, setPoints] = useState(0);
   const pageRef = useRef<HTMLDivElement>(null);
 
@@ -348,7 +353,8 @@ export default function QuizNodeSession() {
     onComplete: () => navigate(`/quiz/map/${mode}`),
   });
 
-  const handleComplete = ({ score, total }: { score: number; total: number; points: number }) => {
+  const handleComplete = ({ score, total, usedIds }: { score: number; total: number; points: number; usedIds: string[] }) => {
+    markQuestionsUsed(usedIds);
     completeNode(nodeId);
     sessionStorage.setItem(`node_result_${mode}_${nodeId}`, JSON.stringify({ score, total }));
     gsap.to(pageRef.current, {
@@ -401,6 +407,7 @@ export default function QuizNodeSession() {
         mode={mode}
         nodeId={nodeId}
         skipsRemaining={progress.skipsRemaining}
+        excludeIds={progress.usedQuestionIds}
         onComplete={handleComplete}
         onUseSkip={consumeSkip}
         onPointsChange={setPoints}

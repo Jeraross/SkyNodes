@@ -21,7 +21,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/quiz"                    component={QuizModeSelect}  />
           <Route path="/quiz/map/:mode"          component={QuizPathMap}     />
           <Route path="/quiz/node/:mode/:nodeId" component={QuizNodeSession} />
-          <Route path="/quiz/boss/:mode"         component={QuizBoss}        />
+          <Route path="/quiz/boss/:mode/:bossId"  component={QuizBoss}        />
           <Route path="/quiz/result/:mode"       component={QuizResult}      />
           <Route path="/album"                   component={AlbumPage}       />
           <Route path="/leaderboard"             component={LeaderboardPage} />

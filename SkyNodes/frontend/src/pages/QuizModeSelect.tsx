@@ -2,10 +2,11 @@ import { useRef, useState } from 'react';
 import { useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'motion/react';
 import gsap from 'gsap';
-import { Trophy } from 'lucide-react';
+import { Trophy, BookOpen } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import QuizIntro from '../components/quiz/QuizIntro';
 import ProfileModal from '../components/quiz/ProfileModal';
+import StickerAlbum from '../components/dashboard/StickerAlbum';
 import { useQuizGame } from '../router/QuizGameContext';
 import type { QuizMode } from '../data/quizPathData';
 
@@ -170,10 +171,11 @@ function StageFloor() {
 
 export default function QuizModeSelect() {
   const [, navigate]                    = useLocation();
-  const { sessionPlayer, playerIcon }   = useQuizGame();
+  const { sessionPlayer, playerIcon, unlockedStickerIds } = useQuizGame();
   const [showIntro, setShowIntro]       = useState(true);
   const [hovered, setHovered]           = useState<QuizMode | null>(null);
   const [profileOpen, setProfileOpen]   = useState(false);
+  const [albumOpen, setAlbumOpen]       = useState(false);
 
   const pageRef  = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
@@ -260,6 +262,12 @@ export default function QuizModeSelect() {
                 onMouseEnter={e=>(e.currentTarget.style.color='#FFD166')}
                 onMouseLeave={e=>(e.currentTarget.style.color='rgba(255,209,102,0.5)')}>
                 <Trophy size={13} /> RANKING
+              </button>
+              <button onClick={() => setAlbumOpen(true)} className="flex items-center gap-1.5"
+                style={{ fontFamily:'var(--font-ui)', fontSize:12, fontWeight:500, color:'rgba(255,209,102,0.5)', cursor:'pointer', letterSpacing:'0.08em', transition:'color .2s' }}
+                onMouseEnter={e=>(e.currentTarget.style.color='#FFD166')}
+                onMouseLeave={e=>(e.currentTarget.style.color='rgba(255,209,102,0.5)')}>
+                <BookOpen size={13} /> ÁLBUM
               </button>
               <button onClick={() => setProfileOpen(true)} className="flex items-center gap-1.5"
                 style={{ fontFamily:'var(--font-ui)', fontSize:12, fontWeight:500, color:'rgba(255,209,102,0.5)', cursor:'pointer', letterSpacing:'0.08em', transition:'color .2s' }}
@@ -378,6 +386,14 @@ export default function QuizModeSelect() {
           </div>
         </div>
       </div>
+
+      {/* Álbum: renderizado depois do quiz para ficar acima no z-index */}
+      <StickerAlbum
+        unlockedIds={unlockedStickerIds}
+        forceOpen={albumOpen}
+        onForceOpenDone={() => setAlbumOpen(false)}
+        hideWidget
+      />
     </>
   );
 }
