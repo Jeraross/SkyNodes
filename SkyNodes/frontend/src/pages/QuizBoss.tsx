@@ -20,10 +20,11 @@ function buildInitialBars(enunciado: string): ChartBar[] {
 
 export default function QuizBoss() {
   const [, navigate] = useLocation();
-  const params = useParams<{ mode: string }>();
-  const mode   = (params.mode ?? 'grafos') as QuizMode;
+  const params  = useParams<{ mode: string; bossId: string }>();
+  const mode    = (params.mode   ?? 'grafos') as QuizMode;
+  const bossId  =  params.bossId ?? 'boss_hard';
 
-  const questions  = getBossQuestions(mode);
+  const questions  = getBossQuestions(mode, bossId);
   const [qIndex, setQIndex] = useState(0);
   const question = questions[qIndex];
 

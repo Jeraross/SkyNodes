@@ -39,10 +39,10 @@ const INITIAL_STATE: NodeSessionState = {
   audienceUsed: false,
 };
 
-export function useNodeSession(mode: QuizMode, questionCount: number) {
+export function useNodeSession(mode: QuizMode, questionCount: number, excludeIds: string[] = []) {
   const [state, setState] = useState<NodeSessionState>(() => {
     const pool = mode === 'mix' ? 'mix' : mode === 'avd' ? 'avd' : 'grafos';
-    const questions = getQuestions(pool, 'all', questionCount);
+    const questions = getQuestions(pool, 'all', questionCount, excludeIds);
     return { ...INITIAL_STATE, questions };
   });
 

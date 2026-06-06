@@ -33,6 +33,7 @@ export interface BossProperty {
 export interface BossQuestion {
   id: string;
   mode: QuizMode;
+  nodeId: 'boss_hard' | 'boss_easy';
   type: 'graph' | 'chart';
   enunciado: string;
   properties: BossProperty[];
@@ -85,6 +86,7 @@ export const BOSS_QUESTIONS: BossQuestion[] = [
   {
     id: 'boss_grafos',
     mode: 'grafos',
+    nodeId: 'boss_hard',
     type: 'graph',
     enunciado:
       'Monte um grafo não-direcionado com exatamente 5 nós onde: o grafo seja conectado (todos os nós alcançáveis), exista pelo menos um ciclo, e o nó A tenha grau maior ou igual a 3.',
@@ -126,6 +128,7 @@ export const BOSS_QUESTIONS: BossQuestion[] = [
   {
     id: 'boss_avd',
     mode: 'avd',
+    nodeId: 'boss_hard',
     type: 'chart',
     enunciado:
       'Monte um gráfico de barras com os 4 valores fornecidos organizados em ordem crescente da esquerda para a direita. Valores: Rio (42), São Paulo (78), Brasília (31), Salvador (55).',
@@ -161,6 +164,7 @@ export const BOSS_QUESTIONS: BossQuestion[] = [
   {
     id: 'boss_mix_graph',
     mode: 'mix',
+    nodeId: 'boss_hard',
     type: 'graph',
     enunciado:
       'Monte um grafo não-direcionado com exatamente 4 nós onde: o grafo seja conectado e todo nó tenha grau exatamente 2 (forma um ciclo completo).',
@@ -193,6 +197,7 @@ export const BOSS_QUESTIONS: BossQuestion[] = [
   {
     id: 'boss_mix_chart',
     mode: 'mix',
+    nodeId: 'boss_hard',
     type: 'chart',
     enunciado:
       'Monte um gráfico de barras com os 3 valores em ordem decrescente (maior à esquerda). Valores: Nó A (90), Nó B (45), Nó C (70).',
@@ -225,8 +230,112 @@ export const BOSS_QUESTIONS: BossQuestion[] = [
       },
     ],
   },
+
+  // ── BOSSES FÁCEIS ────────────────────────────────────────────────────────────
+  {
+    id: 'boss_easy_grafos',
+    mode: 'grafos',
+    nodeId: 'boss_easy',
+    type: 'graph',
+    enunciado:
+      'Construa uma árvore geradora com exatamente 4 nós. Uma árvore é um grafo conectado e sem ciclos — imagine uma rede de estradas onde você consegue chegar a qualquer cidade, mas não existe caminho de volta ao mesmo ponto sem passar pela mesma estrada.',
+    hints: [
+      'Uma árvore com 4 nós precisa de exatamente 3 arestas. A fórmula é: número de arestas = número de nós − 1.',
+      'Comece conectando A a B. Depois conecte C a qualquer nó já existente. Por fim, conecte D da mesma forma.',
+      'Uma árvore pode parecer uma linha (A–B–C–D) ou uma estrela (B no centro conectado a A, C e D). Ambas são válidas!',
+    ],
+    properties: [
+      {
+        id: 'four_nodes',
+        label: 'Exatamente 4 nós',
+        tooltip: 'O grafo deve ter exatamente 4 nós na área.',
+        check: s => s.nodes.length === 4,
+      },
+      {
+        id: 'connected',
+        label: 'Grafo conectado',
+        tooltip: 'Todo nó deve ser alcançável a partir de qualquer outro.',
+        check: s => isConnected(s.nodes, s.edges),
+      },
+      {
+        id: 'no_cycle',
+        label: 'Sem ciclos (é uma árvore)',
+        tooltip: 'Não pode existir caminho que comece e termine no mesmo nó.',
+        check: s => !hasCycle(s.nodes, s.edges),
+      },
+    ],
+  },
+  {
+    id: 'boss_easy_avd',
+    mode: 'avd',
+    nodeId: 'boss_easy',
+    type: 'chart',
+    enunciado:
+      'Monte um gráfico de barras com 3 regiões organizadas em ordem crescente (menor valor à esquerda). Valores: Norte (25), Sul (40), Centro (55).',
+    hints: [
+      'Ordem crescente significa do menor para o maior. O valor mais baixo deve ficar na primeira barra, à esquerda.',
+      'Os três valores são: Norte = 25, Sul = 40, Centro = 55. O menor é Norte com 25.',
+      'A ordem correta é: Norte (25) → Sul (40) → Centro (55). Arraste as barras até essa sequência.',
+    ],
+    properties: [
+      {
+        id: 'three_bars',
+        label: 'Exatamente 3 barras',
+        tooltip: 'O gráfico deve ter as 3 barras posicionadas.',
+        check: s => s.bars.length === 3,
+      },
+      {
+        id: 'ascending',
+        label: 'Ordem crescente',
+        tooltip: 'Os valores devem aumentar da esquerda para a direita.',
+        check: s => s.bars.every((b, i) => i === 0 || b.value >= s.bars[i - 1].value),
+      },
+      {
+        id: 'correct_values',
+        label: 'Valores corretos',
+        tooltip: 'Os três valores originais devem estar presentes.',
+        check: s => {
+          const vals = s.bars.map(b => b.value).sort((a, b) => a - b);
+          return JSON.stringify(vals) === JSON.stringify([25, 40, 55]);
+        },
+      },
+    ],
+  },
+  {
+    id: 'boss_easy_mix',
+    mode: 'mix',
+    nodeId: 'boss_easy',
+    type: 'graph',
+    enunciado:
+      'Monte um grafo com exatamente 3 nós onde todos estejam conectados entre si, formando um triângulo. Esse tipo de grafo é chamado de K3 (grafo completo com 3 nós) — cada nó se conecta a todos os outros.',
+    hints: [
+      'Um triângulo tem 3 nós e 3 arestas: A–B, B–C e C–A. Cada nó termina com exatamente 2 conexões.',
+      'Comece conectando A a B. Depois conecte B a C. Por fim, feche o triângulo conectando C de volta a A.',
+      'Quando todos os 3 nós tiverem grau 2, o grafo está correto. Grau é o número de arestas em cada nó.',
+    ],
+    properties: [
+      {
+        id: 'three_nodes',
+        label: 'Exatamente 3 nós',
+        tooltip: 'O grafo deve ter exatamente 3 nós.',
+        check: s => s.nodes.length === 3,
+      },
+      {
+        id: 'connected',
+        label: 'Grafo conectado',
+        tooltip: 'Todo nó deve ser alcançável a partir de qualquer outro.',
+        check: s => isConnected(s.nodes, s.edges),
+      },
+      {
+        id: 'all_degree_2',
+        label: 'Todo nó com grau 2 (triângulo)',
+        tooltip: 'Cada nó deve ter exatamente 2 arestas — forma um triângulo.',
+        check: s => s.nodes.every(n => nodeDegree(n.id, s.edges) === 2),
+      },
+    ],
+  },
 ];
 
-export function getBossQuestions(mode: QuizMode): BossQuestion[] {
-  return BOSS_QUESTIONS.filter(b => b.mode === mode);
+export function getBossQuestions(mode: QuizMode, nodeId: string): BossQuestion[] {
+  return BOSS_QUESTIONS.filter(b => b.mode === mode && b.nodeId === nodeId);
 }

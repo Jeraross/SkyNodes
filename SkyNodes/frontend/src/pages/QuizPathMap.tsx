@@ -51,7 +51,7 @@ export default function QuizPathMap() {
       return;
     }
     if (node.type === 'boss') {
-      navigateTo(`/quiz/boss/${mode}`);
+      navigateTo(`/quiz/boss/${mode}/${nodeId}`);
       return;
     }
     navigateTo(`/quiz/node/${mode}/${nodeId}`);
