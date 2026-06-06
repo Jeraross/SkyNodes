@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Maximize2, Minimize2 } from 'lucide-react';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
 import EiffelSticker from './EiffelSticker';
 import BenchmarkGeneralStats from './BenchmarkGeneralStats';
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function BenchmarkModal({ open, onClose, onEiffelUnlock }: Props) {
+  const [expanded, setExpanded] = useState(false);
   const [phase, setPhase] = useState<'loading' | 'ready'>('loading');
   const [progress, setProgress] = useState(0);
   const [visibleLines, setVisibleLines] = useState(0);
@@ -33,6 +35,7 @@ export default function BenchmarkModal({ open, onClose, onEiffelUnlock }: Props)
       setPhase('loading');
       setProgress(0);
       setVisibleLines(0);
+      setExpanded(false);
       return;
     }
 
@@ -79,12 +82,30 @@ export default function BenchmarkModal({ open, onClose, onEiffelUnlock }: Props)
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm"
           onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-          <div className="w-[920px] max-w-[calc(100vw-2rem)] h-[700px] max-h-[calc(100vh-2rem)] flex flex-col">
+          <motion.div
+            layout
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className={`group ${
+              expanded
+                ? 'fixed inset-4 flex flex-col'
+                : 'w-[920px] max-w-[calc(100vw-2rem)] h-[700px] max-h-[calc(100vh-2rem)] flex flex-col'
+            }`}
+          >
             <ContainerScroll
               titleComponent={
-                <p style={PIXEL} className="text-cyan-400 text-[11px] tracking-widest mb-1">
-                  BENCHMARK
-                </p>
+                <div className="flex items-center gap-3">
+                  <p style={PIXEL} className="text-cyan-400 text-[11px] tracking-widest mb-1">
+                    BENCHMARK
+                  </p>
+                  <button
+                    onClick={() => setExpanded(e => !e)}
+                    style={PIXEL}
+                    className="mb-1 text-zinc-500 hover:text-cyan-400 transition-colors lg:opacity-0 lg:group-hover:opacity-100"
+                    title={expanded ? 'Restaurar' : 'Expandir'}
+                  >
+                    {expanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                  </button>
+                </div>
               }
               sticker={<EiffelSticker onUnlock={onEiffelUnlock} />}
             >
@@ -143,7 +164,7 @@ export default function BenchmarkModal({ open, onClose, onEiffelUnlock }: Props)
                 )}
               </AnimatePresence>
             </ContainerScroll>
-          </div>
+          </motion.div>
 
           <button
             onClick={onClose}
