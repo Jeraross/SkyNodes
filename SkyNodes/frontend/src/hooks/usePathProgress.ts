@@ -6,6 +6,7 @@ export interface PathProgress {
   completedNodeIds: string[];
   lockedNodeIds: string[];
   skipsRemaining: number;
+  usedQuestionIds: string[];
 }
 
 const SESSION_KEY = (mode: QuizMode) => `path_progress_${mode}`;
@@ -13,9 +14,12 @@ const SESSION_KEY = (mode: QuizMode) => `path_progress_${mode}`;
 function loadProgress(mode: QuizMode): PathProgress {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY(mode));
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { usedQuestionIds: [], ...parsed };
+    }
   } catch { /* ignore */ }
-  return { completedNodeIds: [], lockedNodeIds: [], skipsRemaining: 2 };
+  return { completedNodeIds: [], lockedNodeIds: [], skipsRemaining: 2, usedQuestionIds: [] };
 }
 
 function saveProgress(mode: QuizMode, progress: PathProgress) {
@@ -63,6 +67,14 @@ export function usePathProgress(mode: QuizMode) {
     });
   }, [mode]);
 
+  const markQuestionsUsed = useCallback((ids: string[]) => {
+    setProgress(prev => {
+      const next = { ...prev, usedQuestionIds: [...new Set([...prev.usedQuestionIds, ...ids])] };
+      saveProgress(mode, next);
+      return next;
+    });
+  }, [mode]);
+
   const useSkip = useCallback(() => {
     setProgress(prev => {
       const next = { ...prev, skipsRemaining: Math.max(0, prev.skipsRemaining - 1) };
@@ -72,11 +84,11 @@ export function usePathProgress(mode: QuizMode) {
   }, [mode]);
 
   const reset = useCallback(() => {
-    const fresh = { completedNodeIds: [], lockedNodeIds: [], skipsRemaining: 2 };
+    const fresh = { completedNodeIds: [], lockedNodeIds: [], skipsRemaining: 2, usedQuestionIds: [] };
     sessionStorage.removeItem(SESSION_KEY(mode));
     sessionStorage.removeItem(`skips_${mode}`);
     setProgress(fresh);
   }, [mode]);
 
-  return { progress, completeNode, useSkip, reset };
+  return { progress, completeNode, useSkip, reset, markQuestionsUsed };
 }

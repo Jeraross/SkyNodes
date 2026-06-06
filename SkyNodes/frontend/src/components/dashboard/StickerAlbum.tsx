@@ -1,374 +1,323 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
 import type { CSSProperties } from 'react';
-import { flushSync } from 'react-dom';
 import gsap from 'gsap';
-import { BookOpen, Lock, Globe, MousePointerClick } from 'lucide-react';
+import { Canvas } from '@react-three/fiber';
+import { ContactShadows, Environment, OrbitControls } from '@react-three/drei';
+import { X, BookOpen, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 
 import { STICKERS } from '../../data/stickers';
-import type { Sticker } from '../../data/stickers';
+import { AlbumScene, TOTAL_FLIPS } from './Album3DScene';
 
-const ROTATIONS = [-2, 3, -1, 2.5, -3, 1.5, 2, -1.5];
+const SORA: CSSProperties = { fontFamily: 'Sora, sans-serif' };
 
-// Press Start 2P — use only for short labels at 8px+
-const PIXEL: CSSProperties  = { fontFamily: "'Press Start 2P', monospace" };
-// Regular mono for descriptions — legible at small sizes
-const MONO: CSSProperties   = { fontFamily: 'ui-monospace, SFMono-Regular, monospace' };
-
-type Phase = 'widget' | 'centered' | 'open';
-
-interface SlotProps {
-  sticker: Sticker;
-  unlocked: boolean;
-  rotation: number;
-  ref?: React.Ref<HTMLDivElement>;
-}
-
-function StickerSlot({ sticker, unlocked, rotation, ref }: SlotProps) {
-  return (
-    <div ref={ref} className="flex flex-col items-center gap-2 group">
-      {/* Image area */}
-      <div
-        className="relative w-full rounded-xl overflow-hidden"
-        style={{
-          height: 170,
-          border: `2px dashed rgba(6,182,212,${unlocked ? '0.45' : '0.15'})`,
-          background: 'rgba(2,6,23,0.7)',
-        }}
-      >
-        {unlocked && (
-          <div
-            className="absolute inset-0 rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-            style={{ boxShadow: 'inset 0 0 22px rgba(6,182,212,0.3)' }}
-          />
-        )}
-        <div className={`w-full h-full flex items-center justify-center transition-transform duration-200 ${unlocked ? 'group-hover:scale-[1.07]' : ''}`}>
-          <img
-            src={sticker.img}
-            alt=""
-            className="w-[80%] h-[80%] object-contain"
-            style={{
-              transform: `rotate(${rotation}deg)`,
-              filter: unlocked
-                ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.7))'
-                : 'grayscale(100%) brightness(0.18)',
-            }}
-            draggable={false}
-          />
-        </div>
-        {!unlocked && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <Lock size={28} className="text-slate-600 opacity-50" />
-          </div>
-        )}
-        {unlocked && (
-          <div className="absolute inset-0 rounded-[10px] border border-yellow-400/30 pointer-events-none" />
-        )}
-      </div>
-
-      {/* Name */}
-      <p
-        style={{ ...PIXEL, fontSize: 8 }}
-        className={`tracking-widest text-center leading-tight ${unlocked ? 'text-cyan-400' : 'text-slate-600'}`}
-      >
-        {unlocked ? sticker.name : '???'}
-      </p>
-
-      {/* Description — uses regular mono for legibility */}
-      <p
-        style={{ ...MONO, fontSize: 11 }}
-        className={`text-center leading-snug px-1 ${unlocked ? 'text-slate-300/80' : 'text-slate-700'}`}
-      >
-        {unlocked ? sticker.desc : '??? ??? ???'}
-      </p>
-    </div>
-  );
-}
-
+type Phase = 'widget' | 'open';
 
 export interface StickerAlbumProps {
   unlockedIds: string[];
   forceOpen?: boolean;
   onForceOpenDone?: () => void;
+  hideWidget?: boolean;
 }
 
-export default function StickerAlbum({ unlockedIds, forceOpen, onForceOpenDone }: StickerAlbumProps) {
-  const [phase, setPhaseState] = useState<Phase>('widget');
-  const phaseRef = useRef<Phase>('widget');
+export default function StickerAlbum({
+  unlockedIds,
+  forceOpen,
+  onForceOpenDone,
+  hideWidget,
+}: StickerAlbumProps) {
+  const [phase,   setPhase]   = useState<Phase>('widget');
+  const [flipped, setFlipped] = useState(0);
 
   const widgetCoverRef = useRef<HTMLDivElement>(null);
-  const backdropRef    = useRef<HTMLDivElement>(null);
-  const albumRef       = useRef<HTMLDivElement>(null);
-  const coverRef       = useRef<HTMLDivElement>(null);
-  const stickerRefs    = useRef<(HTMLDivElement | null)[]>([]);
-  const tlRef          = useRef<gsap.core.Timeline | null>(null);
+  const overlayRef     = useRef<HTMLDivElement>(null);
 
-  useEffect(() => () => { tlRef.current?.kill(); }, []);
+  // ── Open / close ───────────────────────────────────────────────────────────
 
-  const onWidgetEnter = useCallback(() => {
-    gsap.to(widgetCoverRef.current, { rotateY: -28, duration: 0.4, ease: 'power2.out' });
-  }, []);
-
-  const onWidgetLeave = useCallback(() => {
-    gsap.to(widgetCoverRef.current, { rotateY: 0, duration: 0.4, ease: 'power2.inOut' });
-  }, []);
-
-  const enterCentered = useCallback(() => {
-    gsap.killTweensOf(widgetCoverRef.current);
-    tlRef.current?.kill();
-    stickerRefs.current = [];
-
-    phaseRef.current = 'centered';
-    flushSync(() => setPhaseState('centered'));
-
-    gsap.set(backdropRef.current, { opacity: 0 });
-    gsap.set(albumRef.current,    { scale: 0.1, opacity: 0, y: 200 });
-    gsap.set(coverRef.current,    { rotateY: 0 });
-    gsap.set(stickerRefs.current.filter(Boolean), { opacity: 0, y: 24 });
-
-    const tl = gsap.timeline();
-    tlRef.current = tl;
-    tl.to(backdropRef.current, { opacity: 1, duration: 0.25 });
-    tl.to(albumRef.current,    { scale: 1, opacity: 1, y: 0, duration: 0.55, ease: 'back.out(1.2)' }, '-=0.1');
+  const openAlbum = useCallback(() => {
+    setFlipped(0);
+    setPhase('open');
+    requestAnimationFrame(() => {
+      if (!overlayRef.current) return;
+      gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: 'power2.out' });
+    });
   }, []);
 
   useEffect(() => {
     if (forceOpen && phase === 'widget') {
-      enterCentered();
+      openAlbum();
       onForceOpenDone?.();
     }
-  }, [forceOpen, phase, enterCentered, onForceOpenDone]);
+  }, [forceOpen, phase, openAlbum, onForceOpenDone]);
 
-  const openBook = useCallback(() => {
-    if (phaseRef.current !== 'centered') return;
-    phaseRef.current = 'open';
-    setPhaseState('open');
-
-    tlRef.current?.kill();
-    const tl = gsap.timeline();
-    tlRef.current = tl;
-    tl.to(coverRef.current, { rotateY: -180, duration: 0.75, ease: 'power3.inOut' });
-    tl.to(stickerRefs.current.filter(Boolean), {
-      y: 0, opacity: 1, stagger: 0.06, duration: 0.4, ease: 'power2.out',
-    }, '-=0.35');
+  const closeAlbum = useCallback(() => {
+    if (!overlayRef.current) return;
+    gsap.to(overlayRef.current, {
+      opacity: 0,
+      duration: 0.3,
+      ease: 'power2.in',
+      onComplete: () => setPhase('widget'),
+    });
   }, []);
 
-  const closeAll = useCallback(() => {
-    if (phaseRef.current === 'widget') return;
-    const closingFrom = phaseRef.current;
-    phaseRef.current = 'widget';
+  // ── Keyboard ───────────────────────────────────────────────────────────────
 
-    tlRef.current?.kill();
-    const tl = gsap.timeline({ onComplete: () => setPhaseState('widget') });
-    tlRef.current = tl;
+  useEffect(() => {
+    if (phase !== 'open') return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape')       closeAlbum();
+      if (e.key === 'ArrowRight')   setFlipped(f => Math.min(f + 1, TOTAL_FLIPS));
+      if (e.key === 'ArrowLeft')    setFlipped(f => Math.max(f - 1, 0));
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [phase, closeAlbum]);
 
-    if (closingFrom === 'open') {
-      tl.to(stickerRefs.current.filter(Boolean), {
-        y: -8, opacity: 0, stagger: 0.025, duration: 0.2, ease: 'power2.in',
-      });
-      tl.to(coverRef.current, { rotateY: 0, duration: 0.55, ease: 'power3.inOut' }, '-=0.1');
-    }
-    tl.to(albumRef.current,    { scale: 0.1, opacity: 0, y: 200, duration: 0.4, ease: 'power2.in' }, '-=0.2');
-    tl.to(backdropRef.current, { opacity: 0, duration: 0.2 }, '-=0.1');
+  // ── Page label ─────────────────────────────────────────────────────────────
+
+  const pageLabel =
+    flipped === 0 ? 'Capa'           :
+    flipped === 1 ? 'Págs. 01 — 02' :
+                    'Maestria';
+
+  // ── Widget hover ───────────────────────────────────────────────────────────
+
+  const onWidgetEnter = useCallback(() => {
+    gsap.to(widgetCoverRef.current, { rotateY: -28, duration: 0.4, ease: 'power2.out' });
   }, []);
+  const onWidgetLeave = useCallback(() => {
+    gsap.to(widgetCoverRef.current, { rotateY: 0,   duration: 0.4, ease: 'power2.inOut' });
+  }, []);
+
+  const COVER_BG = 'linear-gradient(170deg, #F5A623 0%, #E8870A 55%, #C86E08 100%)';
 
   return (
     <>
-      {/* Widget */}
-      {phase === 'widget' && (
+      {/* ── Widget ── */}
+      {phase === 'widget' && !hideWidget && (
         <div
           className="fixed bottom-4 right-4 z-40 select-none cursor-pointer"
-          style={{ width: 96, height: 120, perspective: '500px', rotate: '-8deg' }}
+          style={{ width: 80, height: 104, perspective: '500px', rotate: '-5deg' }}
           onMouseEnter={onWidgetEnter}
           onMouseLeave={onWidgetLeave}
-          onClick={enterCentered}
+          onClick={openAlbum}
         >
-          <div className="absolute left-0 top-0 h-full rounded-l-sm" style={{ width: 12, background: 'linear-gradient(90deg, #0d2044, #1e3a5f)' }} />
-          <div className="absolute inset-0 rounded-sm" style={{ marginLeft: 12, background: '#080f1e' }}>
-            <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(255,255,255,0.025) 8px)' }} />
-          </div>
           <div
-            ref={widgetCoverRef}
-            className="absolute inset-0 flex flex-col items-center justify-between py-2"
+            className="absolute left-0 top-0 h-full"
+            style={{
+              width: 12,
+              borderRadius: '4px 0 0 4px',
+              background: 'linear-gradient(90deg, #7A3F00, #C26A00, #7A3F00)',
+              boxShadow: 'inset -2px 0 5px rgba(0,0,0,0.35)',
+            }}
+          />
+          <div
+            className="absolute inset-0"
             style={{
               marginLeft: 12,
-              background: 'linear-gradient(160deg, #0f172a, #1e2d45 60%, #0f172a)',
               borderRadius: '0 4px 4px 0',
+              background: '#F7F2EA',
+              boxShadow: '2px 2px 8px rgba(0,0,0,0.28)',
+            }}
+          />
+          <div
+            ref={widgetCoverRef}
+            className="absolute inset-0 flex flex-col items-center justify-center gap-2"
+            style={{
+              marginLeft: 12,
+              borderRadius: '0 4px 4px 0',
+              background: COVER_BG,
               transformOrigin: 'left center',
-              boxShadow: '2px 2px 12px rgba(0,0,0,0.7)',
+              boxShadow: '2px 2px 10px rgba(0,0,0,0.35)',
             }}
           >
-            <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(255,255,255,0.025) 8px)', borderRadius: 'inherit' }} />
-            <div className="absolute inset-0 border border-cyan-500/20" style={{ borderRadius: 'inherit' }} />
-            <p style={{ ...PIXEL, fontSize: 5 }} className="relative z-10 text-center text-cyan-400 tracking-wider mt-1 leading-relaxed">
-              COMP<br />ÊNDIO
+            <BookOpen size={18} style={{ color: 'rgba(255,255,255,0.9)' }} />
+            <p style={{ ...SORA, fontSize: 8, fontWeight: 800, color: '#fff', letterSpacing: '0.06em', textAlign: 'center' }}>
+              ÁLBUM
             </p>
-            <div className="relative z-10">
-              <BookOpen size={22} className="text-cyan-400/70" />
-            </div>
-            <div style={{ height: 8 }} />
           </div>
         </div>
       )}
 
-      {/* Album overlay */}
-      {phase !== 'widget' && (
-        <>
+      {/* ── Full-screen overlay ── */}
+      {phase === 'open' && (
+        <div
+          ref={overlayRef}
+          className="fixed inset-0 z-[200]"
+          style={{
+            background: 'linear-gradient(170deg, #2a1008 0%, #180804 55%, #0d0402 100%)',
+          }}
+        >
+          {/* Three.js canvas fills the entire overlay */}
+          <Canvas
+            shadows
+            camera={{ position: [0, 1.6, 6.4], fov: 42 }}
+            dpr={[1, 2]}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+          >
+            <Suspense fallback={null}>
+              <ambientLight intensity={0.65} />
+              <directionalLight
+                position={[3, 6, 5]}
+                intensity={1.5}
+                castShadow
+                shadow-mapSize={[1024, 1024]}
+              />
+              <directionalLight position={[-4, 2, -2]} intensity={0.35} />
+
+              <AlbumScene
+                flipped={flipped}
+                unlockedIds={unlockedIds}
+                stickers={STICKERS}
+              />
+
+              <ContactShadows
+                position={[0, -2.1, 0]}
+                opacity={0.5}
+                scale={14}
+                blur={2.8}
+                far={4}
+              />
+              <Environment preset="apartment" />
+              <OrbitControls
+                enablePan={false}
+                minDistance={4}
+                maxDistance={9}
+                minPolarAngle={0.3}
+                maxPolarAngle={Math.PI / 2.1}
+              />
+            </Suspense>
+          </Canvas>
+
+          {/* ── HUD: top bar ── */}
           <div
-            ref={backdropRef}
-            className="fixed inset-0 z-[49] bg-black/80 backdrop-blur-sm"
-            onClick={closeAll}
-          />
-
-          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-            <div
-              ref={albumRef}
-              className="relative pointer-events-auto"
-              style={{ width: 'min(1100px, 96vw)' }}
-            >
-              <button
-                onClick={closeAll}
-                className="absolute -top-9 right-0 cursor-pointer bg-transparent border-0 text-slate-500 hover:text-white transition-colors"
-                style={{ ...PIXEL, fontSize: 11 }}
-              >
-                ✕ FECHAR
-              </button>
-
-              {/* Book */}
-              <div
-                className="relative flex rounded-xl"
-                style={{ height: 'min(720px, 86vh)', perspective: '1400px', boxShadow: '0 30px 70px rgba(0,0,0,0.95)' }}
-              >
-                {/* Spine */}
-                <div
-                  className="rounded-l-xl flex-shrink-0"
-                  style={{
-                    width: 32,
-                    background: 'linear-gradient(90deg, #050d1a, #1e3a5f 40%, #050d1a)',
-                    boxShadow: 'inset -3px 0 12px rgba(0,0,0,0.6)',
-                  }}
-                />
-
-                {/* Pages */}
-                <div className="flex flex-1">
-                  {/* Left page */}
-                  <div
-                    className="relative flex-1 overflow-hidden"
-                    style={{ background: '#0a111f', borderRight: '1px solid rgba(6,182,212,0.12)', boxShadow: 'inset -10px 0 24px rgba(0,0,0,0.35)' }}
-                  >
-                    <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(255,255,255,0.022) 32px)' }} />
-                    <div className="absolute inset-4 border border-cyan-500/[0.06] rounded-lg pointer-events-none" />
-                    <p style={{ ...PIXEL, fontSize: 8 }} className="absolute top-4 left-0 right-0 text-center text-slate-600/50 tracking-widest">
-                      PAG. 01
-                    </p>
-                    <div className="absolute inset-0 grid grid-cols-2 gap-5 p-8 pt-14">
-                      {STICKERS.slice(0, 4).map((s, i) => (
-                        <StickerSlot
-                          key={s.id}
-                          sticker={s}
-                          unlocked={unlockedIds.includes(s.id)}
-                          rotation={ROTATIONS[i]}
-                          ref={el => { stickerRefs.current[i] = el; }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Right page */}
-                  <div
-                    className="relative flex-1 overflow-hidden rounded-r-xl"
-                    style={{ background: '#0a111f' }}
-                  >
-                    <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(255,255,255,0.022) 32px)' }} />
-                    <div className="absolute inset-4 border border-cyan-500/[0.06] rounded-lg pointer-events-none" />
-                    <p style={{ ...PIXEL, fontSize: 8 }} className="absolute top-4 left-0 right-0 text-center text-slate-600/50 tracking-widest">
-                      PAG. 02
-                    </p>
-                    <div className="absolute inset-0 grid grid-cols-2 gap-5 p-8 pt-14">
-                      {STICKERS.slice(4, 8).map((s, i) => (
-                        <StickerSlot
-                          key={s.id}
-                          sticker={s}
-                          unlocked={unlockedIds.includes(s.id)}
-                          rotation={ROTATIONS[i + 4]}
-                          ref={el => { stickerRefs.current[i + 4] = el; }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cover — pivots at spine edge, clickable when centered */}
-                <div
-                  ref={coverRef}
-                  className="absolute z-10"
-                  style={{
-                    left: 32,
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    transformOrigin: 'left center',
-                    transformStyle: 'preserve-3d',
-                    cursor: phase === 'centered' ? 'pointer' : 'default',
-                  }}
-                  onClick={openBook}
-                >
-                  {/* Cover front */}
-                  <div
-                    className="absolute inset-0 rounded-r-xl"
-                    style={{
-                      background: 'linear-gradient(155deg, #0c1628 0%, #182a40 50%, #0c1628 100%)',
-                      backfaceVisibility: 'hidden',
-                      boxShadow: '4px 0 28px rgba(0,0,0,0.95)',
-                    }}
-                  >
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage:
-                          'repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(255,255,255,0.018) 24px), ' +
-                          'repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(255,255,255,0.018) 24px)',
-                      }}
-                    />
-                    <div className="absolute inset-0 border border-cyan-500/15 rounded-r-xl" />
-
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
-                      <div className="text-center">
-                        <p style={{ ...PIXEL, fontSize: 11 }} className="text-cyan-400/60 tracking-[0.3em]">AERO GAMES</p>
-                        <div className="w-40 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent mx-auto my-4" />
-                        <p style={{ ...PIXEL, fontSize: 22 }} className="text-white tracking-[0.15em] leading-tight">COMPÊNDIO</p>
-                        <p style={{ ...PIXEL, fontSize: 22 }} className="text-white tracking-[0.15em] leading-tight mt-2">DOS GAMES</p>
-                        <div className="w-40 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent mx-auto mt-4" />
-                      </div>
-
-                      <Globe size={56} className="text-cyan-500/20" />
-
-                      {phase === 'centered' && (
-                        <div className="flex flex-col items-center gap-2 animate-pulse">
-                          <MousePointerClick size={20} className="text-cyan-400/60" />
-                          <p style={{ ...PIXEL, fontSize: 8 }} className="text-cyan-400/50 tracking-widest">
-                            CLIQUE PARA ABRIR
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Cover back */}
-                  <div
-                    className="absolute inset-0 rounded-r-xl"
-                    style={{
-                      background: '#060d1a',
-                      backfaceVisibility: 'hidden',
-                      transform: 'rotateY(180deg)',
-                      boxShadow: 'inset 4px 0 18px rgba(0,0,0,0.7)',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
+            className="absolute inset-x-0 top-0 flex flex-col items-center gap-1 p-5 pointer-events-none"
+            style={{ textAlign: 'center' }}
+          >
+            <h1 style={{ ...SORA, fontSize: 22, fontWeight: 800, color: '#F3D98B', letterSpacing: '-0.01em' }}>
+              Álbum de Figurinhas
+            </h1>
+            <p style={{ ...SORA, fontSize: 12, color: 'rgba(233,201,201,0.65)' }}>
+              Arraste para girar · use os botões para folhear
+            </p>
           </div>
-        </>
+
+          {/* ── HUD: close button ── */}
+          <button
+            onClick={closeAlbum}
+            className="absolute top-4 right-5 flex items-center gap-1.5 cursor-pointer"
+            style={{
+              ...SORA,
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'rgba(255,255,255,0.55)',
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.14)',
+              borderRadius: 8,
+              padding: '6px 12px',
+              transition: 'color .15s, background .15s',
+              zIndex: 10,
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.16)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.color = 'rgba(255,255,255,0.55)';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+            }}
+          >
+            <X size={14} strokeWidth={2.5} />
+            Fechar
+          </button>
+
+          {/* ── HUD: bottom navigation ── */}
+          <div
+            className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 p-5"
+            style={{ zIndex: 10 }}
+          >
+            <button
+              onClick={() => setFlipped(f => Math.max(f - 1, 0))}
+              disabled={flipped === 0}
+              className="flex items-center gap-1 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                ...SORA,
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#F3D98B',
+                background: 'rgba(0,0,0,0.45)',
+                border: '1px solid rgba(243,217,139,0.25)',
+                borderRadius: 40,
+                padding: '8px 20px',
+                transition: 'background .15s',
+              }}
+              onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = 'rgba(243,217,139,0.15)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.45)'; }}
+            >
+              <ChevronLeft size={16} /> Anterior
+            </button>
+
+            <div
+              style={{
+                ...SORA,
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#F3D98B',
+                background: 'rgba(0,0,0,0.45)',
+                borderRadius: 40,
+                padding: '8px 24px',
+                minWidth: 160,
+                textAlign: 'center',
+                letterSpacing: '0.03em',
+              }}
+            >
+              {pageLabel}
+            </div>
+
+            <button
+              onClick={() => setFlipped(f => Math.min(f + 1, TOTAL_FLIPS))}
+              disabled={flipped === TOTAL_FLIPS}
+              className="flex items-center gap-1 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                ...SORA,
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#F3D98B',
+                background: 'rgba(0,0,0,0.45)',
+                border: '1px solid rgba(243,217,139,0.25)',
+                borderRadius: 40,
+                padding: '8px 20px',
+                transition: 'background .15s',
+              }}
+              onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = 'rgba(243,217,139,0.15)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.45)'; }}
+            >
+              Próxima <ChevronRight size={16} />
+            </button>
+
+            <button
+              onClick={reset}
+              title="Voltar à capa"
+              className="flex items-center justify-center cursor-pointer"
+              style={{
+                color: 'rgba(243,217,139,0.5)',
+                background: 'rgba(0,0,0,0.45)',
+                border: '1px solid rgba(243,217,139,0.15)',
+                borderRadius: '50%',
+                width: 38,
+                height: 38,
+                transition: 'color .15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#F3D98B'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(243,217,139,0.5)'; }}
+            >
+              <RotateCcw size={15} />
+            </button>
+          </div>
+
+        </div>
       )}
     </>
   );
+
+  function reset() { setFlipped(0); }
 }

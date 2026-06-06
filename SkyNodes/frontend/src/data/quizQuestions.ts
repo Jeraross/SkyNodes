@@ -43,6 +43,7 @@ export function getQuestions(
   category: QuizCategory,
   difficulty: 'all' | QuizDifficulty,
   count: number,
+  excludeIds: string[] = [],
 ): QuizQuestion[] {
   let pool: QuizQuestion[];
   if (category === 'grafos') pool = QUESTIONS_GRAFOS;
@@ -53,6 +54,10 @@ export function getQuestions(
     pool = pool.filter(q => q.dificuldade === difficulty);
   }
 
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const available = pool.filter(q => !excludeIds.includes(q.id));
+  // fallback: if all questions already used, reset and pick from full pool
+  const source = available.length >= count ? available : pool;
+
+  const shuffled = [...source].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
