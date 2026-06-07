@@ -1,12 +1,12 @@
 import type { GameProgress } from '../types';
 
-const STORAGE_KEY = 'aerotale_progress_v1';
+const STORAGE_KEY = 'aerotale_progress_v2';
 
 export const INITIAL_PROGRESS: GameProgress = {
   currentAirportId: 'REC',
-  restoredRouteIds: ['REC-SSA', 'REC-NAT'],
+  restoredRouteIds: [],
   completedMissionIds: [],
-  activeMissionId: 'first-flight',
+  activeMissionId: 'visit-rec',
 };
 
 export function loadGameProgress(): GameProgress {

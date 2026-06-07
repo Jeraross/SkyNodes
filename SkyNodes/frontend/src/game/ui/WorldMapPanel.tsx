@@ -1,8 +1,9 @@
 import brazilMap from '@svg-maps/brazil';
-import type { GameAirport, GameMission, GameRoute, PlayerPosition } from '../types';
+import type { GameAirport, GameRoute, PlayerPosition } from '../types';
 import MapLegend from './MapLegend';
 
 const C = {
+  black: '#000000',
   green: '#00a800',
   greenDim: '#006c00',
   blue: '#2a4cff',
@@ -17,21 +18,52 @@ const C = {
 
 const SERTAO_IDS = new Set(['pi', 'ce', 'rn', 'pb', 'pe']);
 
-const MAP_POSITIONS: Record<string, { x: number; y: number }> = {
-  MAO: { x: 139, y: 141 },
-  BSB: { x: 409, y: 330 },
-  REC: { x: 561, y: 213 },
-  MCZ: { x: 583, y: 233 },
-  SSA: { x: 500, y: 293 },
-  GRU: { x: 396, y: 442 },
-  NAT: { x: 565, y: 186 },
-  CNF: { x: 438, y: 397 },
+export const MAP_POSITIONS: Record<string, { x: number; y: number }> = {
+  RBR: { x: 90, y: 240 },
+  PVH: { x: 168, y: 228 },
+  MAO: { x: 186, y: 142 },
+  BEL: { x: 404, y: 112 },
+  THE: { x: 500, y: 178 },
+  FOR: { x: 532, y: 158 },
+  NAT: { x: 600, y: 170 },
+  JPA: { x: 600, y: 190 },
+  REC: { x: 600, y: 210 },
+  SSA: { x: 525, y: 304 },
+  BSB: { x: 447, y: 332 },
+  GYN: { x: 428, y: 352 },
+  CNF: { x: 468, y: 397 },
+  VIX: { x: 498, y: 413 },
+  GIG: { x: 468, y: 432 },
+  GRU: { x: 424, y: 430 },
+  CGH: { x: 442, y: 438 },
+  CWB: { x: 392, y: 482 },
+  FLN: { x: 370, y: 520 },
+  POA: { x: 344, y: 558 },
+};
+
+export const MAP_LABEL_OFFSETS: Record<string, { x: number; y: number; anchor?: 'start' | 'middle' | 'end' }> = {
+  RBR: { x: -9, y: -10, anchor: 'end' },
+  PVH: { x: 0, y: -10 },
+  FOR: { x: 8, y: -9, anchor: 'start' },
+  NAT: { x: 9, y: -3, anchor: 'start' },
+  JPA: { x: 9, y: 5, anchor: 'start' },
+  REC: { x: 9, y: 12, anchor: 'start' },
+  SSA: { x: 0, y: -10 },
+  BSB: { x: 0, y: -10 },
+  GYN: { x: -8, y: -7, anchor: 'end' },
+  CNF: { x: 0, y: -10 },
+  VIX: { x: 9, y: -6, anchor: 'start' },
+  GIG: { x: 10, y: 8, anchor: 'start' },
+  GRU: { x: -9, y: -8, anchor: 'end' },
+  CGH: { x: -9, y: 8, anchor: 'end' },
+  CWB: { x: 0, y: -10 },
+  FLN: { x: 0, y: -10 },
+  POA: { x: 0, y: 16 },
 };
 
 interface WorldMapPanelProps {
   airports: GameAirport[];
   routes: GameRoute[];
-  activeMission: GameMission | null;
   nearbyAirport: GameAirport | null;
   playerPosition: PlayerPosition;
   setPlayerPosition: (position: PlayerPosition) => void;
@@ -41,7 +73,6 @@ interface WorldMapPanelProps {
 export default function WorldMapPanel({
   airports,
   routes,
-  activeMission,
   nearbyAirport,
   playerPosition,
   setPlayerPosition,
@@ -89,13 +120,14 @@ export default function WorldMapPanel({
         ))}
 
         {routes.map(route => {
+          if (route.state === 'locked') return null;
           const fromAirport = airports.find(airport => airport.id === route.from);
           const toAirport = airports.find(airport => airport.id === route.to);
           if (!fromAirport || !toAirport) return null;
           const from = getMapPosition(fromAirport);
           const to = getMapPosition(toAirport);
           const isBlocked = route.state === 'blocked';
-          const isSelected = route.state === 'restored' || activeMission?.requiredRouteId === route.id;
+          const isSelected = route.state === 'restored';
           const mx = (from.x + to.x) / 2;
           const my = (from.y + to.y) / 2;
 
@@ -126,7 +158,8 @@ export default function WorldMapPanel({
 
         {airports.map(airport => {
           const pos = getMapPosition(airport);
-          const active = airport.id === activeMission?.objectiveAirportId || airport.id === nearbyAirport?.id;
+          const label = getLabelPosition(airport, pos);
+          const active = isHighlightedAirport(airport, nearbyAirport);
           return (
             <g key={airport.id} className="cursor-pointer" onClick={() => {
               setPlayerPosition({ x: airport.x, y: airport.y });
@@ -141,7 +174,7 @@ export default function WorldMapPanel({
                 stroke={C.white}
                 strokeWidth="1"
               />
-              <text x={pos.x} y={pos.y - 11} fill={C.white} fontSize="14" fontFamily="monospace" textAnchor="middle">
+              <text x={label.x} y={label.y} fill={C.black} fontSize="14" fontFamily="monospace" textAnchor={label.anchor}>
                 {airport.code}
               </text>
             </g>
@@ -184,12 +217,28 @@ export default function WorldMapPanel({
   );
 }
 
+export function isHighlightedAirport(airport: GameAirport, nearbyAirport: GameAirport | null): boolean {
+  return airport.id === nearbyAirport?.id;
+}
+
 function getMapPosition(airport: GameAirport): { x: number; y: number } {
   return MAP_POSITIONS[airport.code] ?? MAP_POSITIONS[airport.id] ?? { x: airport.x / 2.65, y: airport.y / 1.55 };
 }
 
 function getOptionalMapPosition(airport: GameAirport | undefined): { x: number; y: number } | null {
   return airport ? getMapPosition(airport) : null;
+}
+
+function getLabelPosition(
+  airport: GameAirport,
+  position: { x: number; y: number },
+): { x: number; y: number; anchor: 'start' | 'middle' | 'end' } {
+  const offset = MAP_LABEL_OFFSETS[airport.code] ?? MAP_LABEL_OFFSETS[airport.id] ?? { x: 0, y: -11 };
+  return {
+    x: position.x + offset.x,
+    y: position.y + offset.y,
+    anchor: offset.anchor ?? 'middle',
+  };
 }
 
 function closestAirport(position: PlayerPosition, airports: GameAirport[]): GameAirport | null {
