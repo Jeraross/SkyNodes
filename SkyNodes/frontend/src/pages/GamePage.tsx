@@ -21,7 +21,6 @@ export default function GamePage() {
         onLand={game.landAtAirport}
         onReset={game.reset}
         onBack={() => navigate('/')}
-        onAlbum={() => navigate('/album')}
     />
   );
 }
