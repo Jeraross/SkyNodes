@@ -23,7 +23,7 @@ const MAESTRIA_GRAFOS_SVG = `data:image/svg+xml,${encodeURIComponent('<svg xmlns
 export const MASTERY_STICKER_IDS = ['maestro_dados', 'maestro_grafos'] as const;
 
 export const STICKERS: Sticker[] = [
-  // Figurinhas gamers (desbloqueadas pelo quiz antigo e pelo modo MIX)
+  // Figurinhas gamers preservadas para recompensas futuras do AeroTale.
   { id: 'eiffel_tower', name: 'FRANCA',          desc: 'Clair Obscur: Expedition 33 — RPG de turno nascido nas sombras da Torre Eiffel',  img: eiffelImg   },
   { id: 'bigben',       name: 'INGLATERRA',       desc: '007 — O agente mais famoso do MI6 sob o relogio do Big Ben',                      img: bigbenImg   },
   { id: 'greek',        name: 'GRECIA',           desc: 'God of War — Kratos destroi o Olimpo pedra por pedra',                            img: greekImg    },
@@ -32,7 +32,7 @@ export const STICKERS: Sticker[] = [
   { id: 'block',        name: 'SUECIA',           desc: 'Minecraft — O bloco de grama mais famoso nasceu nos fiordes suecos',              img: blockImg    },
   { id: 'peeper',       name: 'OCEANO PACIFICO',  desc: 'Subnautica — Sobreviva nas profundezas alienígenas do Pacifico',                  img: peepImg     },
   { id: 'd20',          name: 'BELGICA',          desc: "Baldur's Gate 3 — Role o D20 e decida o destino de Faerun",                       img: d20Img      },
-  // Figurinhas de maestria (desbloqueadas ao completar um caminho inteiro)
+  // Figurinhas de maestria preservadas para campanhas futuras.
   { id: 'maestro_dados',  name: 'MESTRE DOS DADOS',  desc: 'Completou o caminho AVD do Show do Grafão — mestre da visualização de dados.', img: MAESTRIA_DADOS_SVG,  mastery: true },
   { id: 'maestro_grafos', name: 'MESTRE DOS GRAFOS', desc: 'Completou o caminho Grafos do Show do Grafão — dominou a teoria dos grafos.',  img: MAESTRIA_GRAFOS_SVG, mastery: true },
 ];

@@ -73,10 +73,10 @@ export default function MapView({ highlightedRouteIds }: Props) {
         <ZoomableGroup zoom={1} minZoom={0.5} maxZoom={8}>
           {/* Geographic base */}
           <Geographies geography={GEO_URL}>
-            {({ geographies }) =>
+            {({ geographies }: { geographies: Array<any> }) =>
               geographies
-                .filter(geo => SOUTH_AMERICA_IDS.has(geo.id))
-                .map(geo => (
+                .filter((geo: any) => SOUTH_AMERICA_IDS.has(geo.id))
+                .map((geo: any) => (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
@@ -136,7 +136,7 @@ export default function MapView({ highlightedRouteIds }: Props) {
             <Marker
               key={a.id}
               coordinates={[a.lng, a.lat]}
-              onMouseEnter={e =>
+              onMouseEnter={(e: React.MouseEvent<SVGElement>) =>
                 setTooltip({ id: a.id, name: a.name, city: a.city, region: a.region, x: e.clientX, y: e.clientY })
               }
               onMouseLeave={() => setTooltip(null)}

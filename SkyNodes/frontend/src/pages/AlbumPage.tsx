@@ -1,7 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import gsap from 'gsap';
-import { useQuizGame } from '../router/QuizGameContext';
 import { STICKERS, MASTERY_STICKER_IDS } from '../data/stickers';
 import { Lock } from 'lucide-react';
 
@@ -50,7 +49,7 @@ function StickerCard({ sticker, unlocked, rotation }: { sticker: typeof STICKERS
 
 export default function AlbumPage() {
   const [, navigate] = useLocation();
-  const { unlockedStickerIds } = useQuizGame();
+  const unlockedStickerIds = readUnlockedStickerIds();
   const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,7 +59,7 @@ export default function AlbumPage() {
   const handleBack = () => {
     gsap.to(pageRef.current, {
       x: '100vw', opacity: 0, duration: 0.35, ease: 'power3.in',
-      onComplete: () => navigate('/quiz'),
+      onComplete: () => navigate('/game'),
     });
   };
 
@@ -120,4 +119,12 @@ export default function AlbumPage() {
       </div>
     </div>
   );
+}
+
+function readUnlockedStickerIds(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem('aerotale_unlocked_stickers') ?? '[]');
+  } catch {
+    return [];
+  }
 }

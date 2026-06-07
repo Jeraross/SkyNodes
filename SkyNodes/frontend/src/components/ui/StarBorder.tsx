@@ -22,28 +22,28 @@ const StarBorder = <T extends React.ElementType = 'button'>({
 }: StarBorderProps<T>) => {
   const Component = (as ?? 'button') as React.ElementType;
 
-  return (
-    <Component
-      className={`star-border-container ${className}`}
-      style={{ padding: `${thickness}px 0`, ...style }}
-      {...rest}
-    >
-      <div
-        className="border-gradient-bottom"
-        style={{
-          background: `radial-gradient(circle, ${color}, transparent 10%)`,
-          animationDuration: speed,
-        }}
-      />
-      <div
-        className="border-gradient-top"
-        style={{
-          background: `radial-gradient(circle, ${color}, transparent 10%)`,
-          animationDuration: speed,
-        }}
-      />
-      <div className="inner-content">{children}</div>
-    </Component>
+  return React.createElement(
+    Component,
+    {
+      className: `star-border-container ${className}`,
+      style: { padding: `${thickness}px 0`, ...style },
+      ...rest,
+    },
+    <div
+      className="border-gradient-bottom"
+      style={{
+        background: `radial-gradient(circle, ${color}, transparent 10%)`,
+        animationDuration: speed,
+      }}
+    />,
+    <div
+      className="border-gradient-top"
+      style={{
+        background: `radial-gradient(circle, ${color}, transparent 10%)`,
+        animationDuration: speed,
+      }}
+    />,
+    <div className="inner-content">{children}</div>,
   );
 };
 
