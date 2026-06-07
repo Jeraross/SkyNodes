@@ -43,6 +43,34 @@ export function useGameController() {
     setProgress(prev => completeMissionAtAirport(GAME_MISSIONS, prev, airport.id));
   }, []);
 
+  const confirmTravel = useCallback((airport: GameAirport, routeIds: string[], cost: number) => {
+    setProgress(prev => {
+      if (prev.credits < cost || prev.fuel < routeIds.length) return prev;
+      const landed = completeMissionAtAirport(GAME_MISSIONS, prev, airport.id);
+      return {
+        ...landed,
+        currentAirportId: airport.id,
+        restoredRouteIds: [...new Set([...landed.restoredRouteIds, ...routeIds])],
+        credits: landed.credits - cost,
+        fuel: Math.max(0, landed.fuel - routeIds.length),
+      };
+    });
+    setPlayerPosition({ x: airport.x, y: airport.y });
+    setTargetPosition(null);
+  }, []);
+
+  const earnCredits = useCallback((amount: number) => {
+    setProgress(prev => ({ ...prev, credits: prev.credits + amount }));
+  }, []);
+
+  const buyFuel = useCallback((amount: number, cost: number) => {
+    setProgress(prev => (
+      prev.credits >= cost
+        ? { ...prev, credits: prev.credits - cost, fuel: prev.fuel + amount }
+        : prev
+    ));
+  }, []);
+
   const reset = useCallback(() => {
     const fresh = resetGameProgress();
     const airport = GAME_AIRPORTS.find(item => item.id === fresh.currentAirportId) ?? GAME_AIRPORTS[0];
@@ -64,6 +92,9 @@ export function useGameController() {
     nearbyAirport,
     activeMission,
     landAtAirport,
+    confirmTravel,
+    earnCredits,
+    buyFuel,
     reset,
   };
 }

@@ -18,6 +18,7 @@ const mission: GameMission = {
   description: 'Pouse em Salvador para confirmar uma rota simples.',
   objectiveAirportId: 'SSA',
   unlocksRouteIds: ['SSA-BSB'],
+  anomalyRouteIds: ['SSA-BSB'],
   rewardText: 'Rota Salvador-Brasilia liberada.',
 };
 
@@ -29,6 +30,8 @@ describe('retro screen model', () => {
       completedCount: 1,
       totalMissions: 4,
       nearbyAirport: null,
+      credits: 1200,
+      fuel: 80,
     });
 
     expect(model.stats).toEqual([
@@ -41,7 +44,7 @@ describe('retro screen model', () => {
     expect(model.dialogueSpeaker).toBe('CONTROLADOR CARLOS:');
     expect(model.dialogueLines).toEqual([
       'POUSE EM SALVADOR PARA CONFIRMAR UMA ROTA SIMPLES.',
-      'OBJETIVO MARCADO NO MAPA: SSA.',
+      'ANOMALIA DETECTADA NO CAMINHO: VALIDE AS CONEXOES DA MALHA.',
       'USE AS SETAS OU CLIQUE NO MAPA PARA NAVEGAR.',
     ]);
   });
@@ -53,8 +56,24 @@ describe('retro screen model', () => {
       completedCount: 0,
       totalMissions: 4,
       nearbyAirport: rec,
+      credits: 1200,
+      fuel: 80,
     });
 
     expect(model.dialogueLines[2]).toBe('AEROPORTO REC AO ALCANCE. USE VIAJAR PARA POUSAR.');
+  });
+
+  it('mentions route anomalies when the active mission path is corrupted', () => {
+    const model = buildRetroScreenModel({
+      currentAirport: rec,
+      activeMission: mission,
+      completedCount: 0,
+      totalMissions: 4,
+      nearbyAirport: null,
+      credits: 1200,
+      fuel: 80,
+    });
+
+    expect(model.dialogueLines[1]).toBe('ANOMALIA DETECTADA NO CAMINHO: VALIDE AS CONEXOES DA MALHA.');
   });
 });

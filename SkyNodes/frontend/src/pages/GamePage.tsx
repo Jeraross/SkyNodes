@@ -15,10 +15,14 @@ export default function GamePage() {
         nearbyAirport={game.nearbyAirport}
         completedCount={game.progress.completedMissionIds.length}
         totalMissions={game.missions.length}
+        credits={game.progress.credits}
+        fuel={game.progress.fuel}
         playerPosition={game.playerPosition}
         setPlayerPosition={game.setPlayerPosition}
         setTargetPosition={game.setTargetPosition}
-        onLand={game.landAtAirport}
+        onConfirmTravel={game.confirmTravel}
+        onEarnCredits={game.earnCredits}
+        onBuyFuel={game.buyFuel}
         onReset={game.reset}
         onBack={() => navigate('/')}
     />

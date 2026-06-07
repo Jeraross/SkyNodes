@@ -9,6 +9,7 @@ const missions: GameMission[] = [
     description: 'Pouse em SSA.',
     objectiveAirportId: 'SSA',
     unlocksRouteIds: ['SSA-BSB'],
+    anomalyRouteIds: ['SSA-BSB'],
     rewardText: 'Rota liberada.',
   },
   {
@@ -18,6 +19,7 @@ const missions: GameMission[] = [
     objectiveAirportId: 'BSB',
     requiredRouteId: 'SSA-BSB',
     unlocksRouteIds: [],
+    anomalyRouteIds: [],
     rewardText: 'Hub ativo.',
   },
 ];
@@ -27,6 +29,8 @@ const progress: GameProgress = {
   restoredRouteIds: [],
   completedMissionIds: [],
   activeMissionId: 'first-flight',
+  credits: 1200,
+  fuel: 80,
 };
 
 describe('missions', () => {
