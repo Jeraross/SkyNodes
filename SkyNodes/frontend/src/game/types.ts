@@ -30,6 +30,7 @@ export interface GameMission {
   objectiveAirportId?: AirportId;
   requiredRouteId?: RouteId;
   unlocksRouteIds: RouteId[];
+  anomalyRouteIds: RouteId[];
   rewardText: string;
 }
 
@@ -38,6 +39,8 @@ export interface GameProgress {
   restoredRouteIds: RouteId[];
   completedMissionIds: MissionId[];
   activeMissionId: MissionId;
+  credits: number;
+  fuel: number;
 }
 
 export interface PlayerPosition {

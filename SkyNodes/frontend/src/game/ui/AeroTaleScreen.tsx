@@ -2,8 +2,10 @@ import { useMemo, useState } from 'react';
 import type { GameAirport, GameMission, GameRoute, PlayerPosition } from '../types';
 import { buildRetroScreenModel } from './retroScreen';
 import WorldMapPanel from './WorldMapPanel';
+import TravelPlannerPanel from './TravelPlannerPanel';
+import AirportMenuPanel from './AirportMenuPanel';
 
-const ACTIONS = ['MAPA', 'ANALISAR', 'VIAJAR', 'MISSOES', 'BIBLIOTECA', 'HANGAR'] as const;
+const ACTIONS = ['MAPA', 'ANALISAR', 'VIAJAR', 'MISSOES', 'ENTRAR NO AEROPORTO', 'HANGAR'] as const;
 type Action = (typeof ACTIONS)[number];
 
 interface AeroTaleScreenProps {
@@ -14,10 +16,14 @@ interface AeroTaleScreenProps {
   nearbyAirport: GameAirport | null;
   completedCount: number;
   totalMissions: number;
+  credits: number;
+  fuel: number;
   playerPosition: PlayerPosition;
   setPlayerPosition: (position: PlayerPosition) => void;
   setTargetPosition: (position: PlayerPosition | null) => void;
-  onLand: (airport: GameAirport) => void;
+  onConfirmTravel: (airport: GameAirport, routeIds: string[], cost: number) => void;
+  onEarnCredits: (amount: number) => void;
+  onBuyFuel: (amount: number, cost: number) => void;
   onReset: () => void;
   onBack: () => void;
 }
@@ -36,22 +42,25 @@ export default function AeroTaleScreen({
   nearbyAirport,
   completedCount,
   totalMissions,
+  credits,
+  fuel,
   playerPosition,
   setPlayerPosition,
   setTargetPosition,
-  onLand,
+  onConfirmTravel,
+  onEarnCredits,
+  onBuyFuel,
   onReset,
   onBack,
 }: AeroTaleScreenProps) {
   const [activeAction, setActiveAction] = useState<Action>('MAPA');
   const model = useMemo(
-    () => buildRetroScreenModel({ currentAirport, activeMission, completedCount, totalMissions, nearbyAirport }),
-    [activeMission, completedCount, currentAirport, nearbyAirport, totalMissions],
+    () => buildRetroScreenModel({ currentAirport, activeMission, completedCount, totalMissions, nearbyAirport, credits, fuel }),
+    [activeMission, completedCount, credits, currentAirport, fuel, nearbyAirport, totalMissions],
   );
 
   const handleAction = (action: Action) => {
     setActiveAction(action);
-    if (action === 'VIAJAR' && nearbyAirport) onLand(nearbyAirport);
   };
 
   return (
@@ -94,19 +103,39 @@ export default function AeroTaleScreen({
             </div>
           </section>
 
-          <section
-            className="min-h-0 flex-1"
-            aria-label="Mapa retro jogavel do Brasil com a malha aerea"
-          >
-            <WorldMapPanel
+          {activeAction === 'VIAJAR' ? (
+            <TravelPlannerPanel
               airports={airports}
               routes={routes}
-              nearbyAirport={nearbyAirport}
-              playerPosition={playerPosition}
-              setPlayerPosition={setPlayerPosition}
-              setTargetPosition={setTargetPosition}
+              currentAirport={currentAirport}
+              activeMission={activeMission}
+              credits={credits}
+              fuel={fuel}
+              onConfirm={onConfirmTravel}
             />
-          </section>
+          ) : activeAction === 'ENTRAR NO AEROPORTO' ? (
+            <AirportMenuPanel
+              airport={currentAirport}
+              credits={credits}
+              fuel={fuel}
+              onEarnCredits={onEarnCredits}
+              onBuyFuel={onBuyFuel}
+            />
+          ) : (
+            <section
+              className="min-h-0 flex-1"
+              aria-label="Mapa retro jogavel do Brasil com a malha aerea"
+            >
+              <WorldMapPanel
+                airports={airports}
+                routes={routes}
+                nearbyAirport={nearbyAirport}
+                playerPosition={playerPosition}
+                setPlayerPosition={setPlayerPosition}
+                setTargetPosition={setTargetPosition}
+              />
+            </section>
+          )}
 
           <section className="relative bg-black">
             <div className="absolute -top-2 left-6 h-3 w-3 rounded-full bg-[#ff8800]" aria-hidden="true" />
@@ -127,7 +156,7 @@ export default function AeroTaleScreen({
           <nav className="flex flex-wrap gap-1 border-2 border-[#ffd700] bg-black p-1.5" aria-label="Acoes do jogo">
             {ACTIONS.map(action => {
               const isActive = activeAction === action;
-              const disabled = action === 'VIAJAR' && !nearbyAirport;
+              const disabled = action === 'ENTRAR NO AEROPORTO' && !currentAirport;
               return (
                 <button
                   key={action}

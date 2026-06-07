@@ -7,6 +7,8 @@ export const INITIAL_PROGRESS: GameProgress = {
   restoredRouteIds: [],
   completedMissionIds: [],
   activeMissionId: 'visit-rec',
+  credits: 1200,
+  fuel: 80,
 };
 
 export function loadGameProgress(): GameProgress {
