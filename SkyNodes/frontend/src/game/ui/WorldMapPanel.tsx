@@ -181,17 +181,6 @@ export default function WorldMapPanel({
           );
         })}
 
-        <text
-          x={(MAP_POSITIONS.REC.x + MAP_POSITIONS.SSA.x) / 2}
-          y={(MAP_POSITIONS.REC.y + MAP_POSITIONS.SSA.y) / 2}
-          fill={C.magenta}
-          fontSize="22"
-          textAnchor="middle"
-          className="at-anomaly"
-        >
-          ◆
-        </text>
-
         {playerMapPosition && (
           <text
             x={playerMapPosition.x + 16}

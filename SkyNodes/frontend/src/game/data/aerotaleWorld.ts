@@ -66,6 +66,7 @@ export const GAME_MISSIONS: GameMission[] = AIRPORT_VISIT_ORDER.map((airportId, 
       : `Calcule uma rota possivel de ${from} ate ${airportId} e confirme a viagem para ${airport?.city ?? airportId}.`,
     objectiveAirportId: airportId,
     unlocksRouteIds: path?.routeIds ?? [],
+    anomalyRouteIds: path?.routeIds ?? [],
     rewardText: path
       ? `Caminho calculado: ${path.path.join(' -> ')}.`
       : `Nenhum caminho encontrado ate ${airportId}.`,

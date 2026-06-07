@@ -39,4 +39,15 @@ describe('aerotale world data', () => {
       expect(mission.unlocksRouteIds.every(routeId => routeIds.has(routeId))).toBe(true);
     }
   });
+
+  it('places anomalies on the calculated path to each next airport', () => {
+    const intro = GAME_MISSIONS[0];
+    expect(intro.objectiveAirportId).toBe('REC');
+    expect(intro.anomalyRouteIds).toEqual([]);
+
+    for (const mission of GAME_MISSIONS.slice(1)) {
+      expect(mission.anomalyRouteIds).toEqual(mission.unlocksRouteIds);
+      expect(mission.anomalyRouteIds.length).toBeGreaterThan(0);
+    }
+  });
 });
