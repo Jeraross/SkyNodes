@@ -1,9 +1,9 @@
-import type { QuizMode } from './quizPathData';
+export type LeaderboardMode = 'grafos' | 'avd' | 'mix';
 
 export interface LeaderboardEntry {
   rank: number;
   player: string;
-  mode: QuizMode;
+  mode: LeaderboardMode;
   score: number;
   total: number;
   date: string;

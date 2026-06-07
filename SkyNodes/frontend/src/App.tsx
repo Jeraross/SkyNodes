@@ -13,7 +13,6 @@ import SimulationSidebar from './components/navigation/SimulationSidebar';
 import TopControlNav from './components/navigation/TopControlNav';
 import DashboardModal from './components/dashboard/DashboardModal';
 import BenchmarkModal from './components/dashboard/BenchmarkModal';
-import QuizWidget from './components/quiz/QuizWidget';
 import { airports } from './data/airports';
 import { routes } from './data/routes';
 import { buildGraph } from './lib/graph/buildGraph';
@@ -97,6 +96,13 @@ export default function App() {
 
         {viewMode === 'globe' && mode === 'orbit' && <GlobeHeroOverlay onEnterBrazil={handleEnterBrazil} />}
         <TopControlNav viewMode={viewMode} onViewModeChange={setViewMode} />
+        <button
+          type="button"
+          onClick={() => navigate('/game')}
+          className="fixed right-4 bottom-36 z-40 border-2 border-[#071018] bg-[#d7f04a] px-5 py-3 font-mono text-sm font-black text-[#071018] shadow-[5px_5px_0_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-1"
+        >
+          AEROTALE
+        </button>
         {showSidebars && (
           <GlobeSidebar
             algorithmsOpen={algorithmsOpen}
@@ -134,7 +140,6 @@ export default function App() {
           onClose={() => setBenchmarkOpen(false)}
           onEiffelUnlock={() => setEiffelUnlocked(true)}
         />
-        <QuizWidget />
       </main>
     </ClickSpark>
     </>

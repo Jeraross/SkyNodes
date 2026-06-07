@@ -56,7 +56,7 @@ export default function DfsTreeChart() {
           Exploração em profundidade a partir de {startAirport?.city ?? startId} · cor = ordem de descoberta
         </CardDescription>
         <div className="pt-1 w-48">
-          <Select value={startId} onValueChange={setStartId}>
+          <Select value={startId} onValueChange={value => { if (value) setStartId(value); }}>
             <SelectTrigger className="border-slate-700 bg-slate-900 text-slate-200 text-xs h-7">
               <SelectValue />
             </SelectTrigger>

@@ -37,7 +37,7 @@ export default function BenchmarkGuidedComparison() {
       <div className="flex gap-3 flex-wrap">
         <div className="flex-1 min-w-[120px] space-y-1.5">
           <label className="text-xs text-slate-400">Origem</label>
-          <Select onValueChange={setOrigin}>
+          <Select onValueChange={value => { if (typeof value === 'string') setOrigin(value); }}>
             <SelectTrigger className="border-slate-700 bg-slate-900 text-slate-200 text-sm">
               <SelectValue placeholder="—" />
             </SelectTrigger>
@@ -53,7 +53,7 @@ export default function BenchmarkGuidedComparison() {
 
         <div className="flex-1 min-w-[120px] space-y-1.5">
           <label className="text-xs text-slate-400">Destino</label>
-          <Select onValueChange={setDestination}>
+          <Select onValueChange={value => { if (typeof value === 'string') setDestination(value); }}>
             <SelectTrigger className="border-slate-700 bg-slate-900 text-slate-200 text-sm">
               <SelectValue placeholder="—" />
             </SelectTrigger>

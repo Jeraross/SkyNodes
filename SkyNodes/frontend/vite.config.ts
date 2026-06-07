@@ -14,7 +14,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@reactbits': path.resolve(__dirname, './componentes'),
-      '@banco': path.resolve(__dirname, '../banco_questoes'),
     },
   },
   server: {

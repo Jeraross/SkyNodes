@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { REGION_COLOR } from '@/data/colors';
 import { airports } from '@/data/airports';
@@ -116,16 +116,16 @@ export default function EgoScatterChart({ egoByAirport, degreeByAirport }: Props
               }}
             />
             <Scatter data={data} shape={<CustomDot />} />
-            <Legend
-              payload={REGIONS.filter(r => activeRegions.has(r)).map(r => ({
-                value: r,
-                type: 'circle' as const,
-                color: REGION_COLOR[r],
-              }))}
-              wrapperStyle={{ color: '#94a3b8', fontSize: 10 }}
-            />
           </ScatterChart>
         </ResponsiveContainer>
+        <div className="mt-2 flex flex-wrap gap-3 text-[10px] text-slate-400">
+          {REGIONS.filter(r => activeRegions.has(r)).map(r => (
+            <span key={r} className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full" style={{ background: REGION_COLOR[r] }} />
+              {r}
+            </span>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
