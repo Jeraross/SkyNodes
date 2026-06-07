@@ -3,7 +3,7 @@ import type { GameAirport, GameMission, GameRoute, PlayerPosition } from '../typ
 import { buildRetroScreenModel } from './retroScreen';
 import WorldMapPanel from './WorldMapPanel';
 
-const ACTIONS = ['MAPA', 'ANALISAR', 'VIAJAR', 'MISSOES', 'ALBUM', 'HANGAR'] as const;
+const ACTIONS = ['MAPA', 'ANALISAR', 'VIAJAR', 'MISSOES', 'BIBLIOTECA', 'HANGAR'] as const;
 type Action = (typeof ACTIONS)[number];
 
 interface AeroTaleScreenProps {
@@ -20,7 +20,6 @@ interface AeroTaleScreenProps {
   onLand: (airport: GameAirport) => void;
   onReset: () => void;
   onBack: () => void;
-  onAlbum: () => void;
 }
 
 const STAT_COLORS = {
@@ -43,7 +42,6 @@ export default function AeroTaleScreen({
   onLand,
   onReset,
   onBack,
-  onAlbum,
 }: AeroTaleScreenProps) {
   const [activeAction, setActiveAction] = useState<Action>('MAPA');
   const model = useMemo(
@@ -54,7 +52,6 @@ export default function AeroTaleScreen({
   const handleAction = (action: Action) => {
     setActiveAction(action);
     if (action === 'VIAJAR' && nearbyAirport) onLand(nearbyAirport);
-    if (action === 'ALBUM') onAlbum();
   };
 
   return (
@@ -104,7 +101,6 @@ export default function AeroTaleScreen({
             <WorldMapPanel
               airports={airports}
               routes={routes}
-              activeMission={activeMission}
               nearbyAirport={nearbyAirport}
               playerPosition={playerPosition}
               setPlayerPosition={setPlayerPosition}

@@ -5,7 +5,7 @@ import { findNearbyAirport } from '../logic/navigation';
 import type { GameAirport, GameRoute, PlayerPosition } from '../types';
 import { INITIAL_PROGRESS, loadGameProgress, resetGameProgress, saveGameProgress } from './gameProgress';
 
-const LANDING_RADIUS = 38;
+const LANDING_RADIUS = 0.9;
 
 export function useGameController() {
   const startAirport = GAME_AIRPORTS.find(airport => airport.id === INITIAL_PROGRESS.currentAirportId) ?? GAME_AIRPORTS[0];

@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { Router, Route, Switch } from 'wouter';
 import './index.css';
 import App from './App.tsx';
-import AlbumPage       from './pages/AlbumPage.tsx';
 import LeaderboardPage from './pages/LeaderboardPage.tsx';
 import LoginPage       from './pages/LoginPage.tsx';
 import GamePage        from './pages/GamePage.tsx';
@@ -13,7 +12,6 @@ createRoot(document.getElementById('root')!).render(
     <Router>
       <Switch>
         <Route path="/game"        component={GamePage}        />
-        <Route path="/album"       component={AlbumPage}       />
         <Route path="/leaderboard" component={LeaderboardPage} />
         <Route path="/login"       component={LoginPage}       />
         <Route component={App} />
