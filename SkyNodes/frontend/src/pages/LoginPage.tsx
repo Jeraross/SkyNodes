@@ -1,14 +1,12 @@
 import { useRef, useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import gsap from 'gsap';
-import { useQuizGame } from '../router/QuizGameContext';
 
 const PIXEL = { fontFamily: "'Press Start 2P', monospace" };
 const MONO  = { fontFamily: 'ui-monospace, SFMono-Regular, monospace' };
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
-  const { sessionPlayer, setSessionPlayer } = useQuizGame();
   const [mode, setMode]     = useState<'login' | 'register'>('login');
   const [name, setName]     = useState('');
   const [password, setPassword] = useState('');
@@ -17,8 +15,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     gsap.fromTo(pageRef.current, { x: '100vw', opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out' });
-    if (sessionPlayer) navigate('/quiz');
-  }, []);
+    if (localStorage.getItem('aerotale_player')) navigate('/game');
+  }, [navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,17 +24,17 @@ export default function LoginPage() {
       setError('Preencha todos os campos.');
       return;
     }
-    setSessionPlayer(name.trim());
+    localStorage.setItem('aerotale_player', name.trim());
     gsap.to(pageRef.current, {
       x: '-100vw', opacity: 0, duration: 0.35, ease: 'power3.in',
-      onComplete: () => navigate('/quiz'),
+      onComplete: () => navigate('/game'),
     });
   };
 
   const handleBack = () => {
     gsap.to(pageRef.current, {
       x: '100vw', opacity: 0, duration: 0.35, ease: 'power3.in',
-      onComplete: () => navigate('/quiz'),
+      onComplete: () => navigate('/game'),
     });
   };
 

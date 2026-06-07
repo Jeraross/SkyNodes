@@ -35,6 +35,119 @@ body {
   font-family: var(--font-ui);
 }
 
+.aerotale-stage canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* AeroTale prototype screen */
+.font-pixel {
+  font-family: var(--font-pixel), "Courier New", monospace;
+}
+
+.font-term {
+  font-family: "Courier New", monospace;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.crt-scanlines {
+  position: relative;
+}
+
+.crt-scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.18) 3px,
+    rgba(0, 0, 0, 0.18) 4px
+  );
+}
+
+@keyframes at-blink {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  61%,
+  100% {
+    opacity: 0.35;
+  }
+}
+
+.at-blink {
+  animation: at-blink 0.9s steps(1) infinite;
+}
+
+@keyframes at-route-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.at-route-pulse {
+  animation: at-route-pulse 0.8s steps(2) infinite;
+}
+
+@keyframes at-anomaly {
+  0%,
+  100% {
+    fill: #ff00ff;
+    opacity: 1;
+  }
+  25% {
+    fill: #ff0000;
+    opacity: 0.7;
+  }
+  50% {
+    fill: #00ffff;
+    opacity: 1;
+  }
+  75% {
+    fill: #ff00ff;
+    opacity: 0.5;
+  }
+}
+
+.at-anomaly {
+  animation: at-anomaly 0.45s steps(2) infinite;
+}
+
+.at-top-button {
+  border: 1px solid #007000;
+  background: #000;
+  padding: 5px 8px;
+  font-family: var(--font-pixel), "Courier New", monospace;
+  font-size: 7px;
+  line-height: 1;
+  color: #b0b0b0;
+}
+
+.at-top-button:hover {
+  background: #002000;
+  color: #00ff00;
+}
+
+.at-top-button-danger {
+  border-color: #a80000;
+  color: #ff0000;
+}
+
 /* ── Hex-grid background ────────────────────────────────────────────────────── */
 .hex-bg {
   background-color: var(--bg-deep);
@@ -44,48 +157,6 @@ body {
 /* ── Spotlight radial ───────────────────────────────────────────────────────── */
 .spotlight {
   background: radial-gradient(ellipse 70% 55% at 50% 40%, rgba(255,209,102,0.07) 0%, transparent 70%);
-}
-
-/* ── Quiz answer button ─────────────────────────────────────────────────────── */
-.quiz-answer {
-  position: relative;
-  overflow: hidden;
-  background: var(--bg-card);
-  border: 1.5px solid rgba(255,255,255,0.07);
-  border-radius: 14px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-  cursor: pointer;
-}
-.quiz-answer:not(:disabled):hover {
-  transform: translateY(-2px) scale(1.01);
-  border-color: rgba(255,209,102,0.4);
-  background: var(--bg-card-hover);
-  box-shadow: 0 8px 30px rgba(255,209,102,0.12), 0 0 0 1px rgba(255,209,102,0.2);
-}
-.quiz-answer:not(:disabled):active {
-  transform: translateY(0) scale(0.99);
-}
-.quiz-answer.correct {
-  border-color: var(--success) !important;
-  background: rgba(74,222,128,0.1) !important;
-  box-shadow: 0 0 24px rgba(74,222,128,0.25) !important;
-}
-.quiz-answer.wrong {
-  border-color: var(--danger) !important;
-  background: rgba(255,71,87,0.1) !important;
-  animation: shake 0.4s ease;
-}
-.quiz-answer.reveal-correct {
-  border-color: var(--success) !important;
-  background: rgba(74,222,128,0.08) !important;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%       { transform: translateX(-6px); }
-  40%       { transform: translateX(6px); }
-  60%       { transform: translateX(-4px); }
-  80%       { transform: translateX(4px); }
 }
 
 /* ── Gold shimmer on btn ────────────────────────────────────────────────────── */

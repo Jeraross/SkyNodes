@@ -2,20 +2,19 @@ import { useRef, useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import gsap from 'gsap';
 import { LEADERBOARD_MOCK } from '../data/leaderboardMock';
-import { useQuizGame } from '../router/QuizGameContext';
-import type { QuizMode } from '../data/quizPathData';
+import type { LeaderboardMode } from '../data/leaderboardMock';
 
 const PIXEL = { fontFamily: "'Press Start 2P', monospace" };
 const MONO  = { fontFamily: 'ui-monospace, SFMono-Regular, monospace' };
 
-const MODE_LABELS: Record<QuizMode | 'all', string> = {
+const MODE_LABELS: Record<LeaderboardMode | 'all', string> = {
   all: 'TODOS', avd: 'DADOS', grafos: 'GRAFOS', mix: 'MIX',
 };
 
 export default function LeaderboardPage() {
   const [, navigate] = useLocation();
-  const { sessionPlayer } = useQuizGame();
-  const [filter, setFilter] = useState<QuizMode | 'all'>('all');
+  const sessionPlayer = localStorage.getItem('aerotale_player');
+  const [filter, setFilter] = useState<LeaderboardMode | 'all'>('all');
   const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,7 +24,7 @@ export default function LeaderboardPage() {
   const handleBack = () => {
     gsap.to(pageRef.current, {
       x: '100vw', opacity: 0, duration: 0.35, ease: 'power3.in',
-      onComplete: () => navigate('/quiz'),
+      onComplete: () => navigate('/game'),
     });
   };
 

@@ -56,7 +56,7 @@ export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes,
 
       <div className="space-y-1.5">
         <label className="text-xs text-slate-400">Algoritmo</label>
-        <Select defaultValue="dijkstra" onValueChange={setAlgorithm}>
+        <Select defaultValue="dijkstra" onValueChange={value => { if (value) setAlgorithm(value); }}>
           <SelectTrigger className="border-slate-700 bg-slate-900 text-slate-200 text-sm">
             <SelectValue />
           </SelectTrigger>
@@ -76,7 +76,7 @@ export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes,
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1.5">
           <label className="text-xs text-slate-400">Origem</label>
-          <Select onValueChange={setOrigin}>
+          <Select onValueChange={value => { if (typeof value === 'string') setOrigin(value); }}>
             <SelectTrigger className="border-slate-700 bg-slate-900 text-slate-200 text-xs">
               <SelectValue placeholder="—" />
             </SelectTrigger>
@@ -91,7 +91,7 @@ export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes,
         </div>
         <div className="space-y-1.5">
           <label className="text-xs text-slate-400">Destino</label>
-          <Select onValueChange={setDestination}>
+          <Select onValueChange={value => { if (typeof value === 'string') setDestination(value); }}>
             <SelectTrigger className="border-slate-700 bg-slate-900 text-slate-200 text-xs">
               <SelectValue placeholder="—" />
             </SelectTrigger>
