@@ -135,8 +135,8 @@ export default function WorldMapPanel({
             return (
               <g key={route.id}>
                 <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={C.redDark} strokeWidth="2" strokeDasharray="6 6" />
-                <text x={mx} y={my + 6} fill={C.red} fontSize="18" textAnchor="middle">
-                  x
+                <text x={mx} y={my + 5} fill={C.red} fontSize="18" fontFamily="monospace" textAnchor="middle">
+                  ~
                 </text>
               </g>
             );
@@ -160,11 +160,17 @@ export default function WorldMapPanel({
           const pos = getMapPosition(airport);
           const label = getLabelPosition(airport, pos);
           const active = isHighlightedAirport(airport, nearbyAirport);
+          const selectable = isAirportSelectable(airport, playerAirport, routes);
           return (
-            <g key={airport.id} className="cursor-pointer" onClick={() => {
-              setPlayerPosition({ x: airport.x, y: airport.y });
-              setTargetPosition(null);
-            }}>
+            <g
+              key={airport.id}
+              className={selectable ? 'cursor-pointer' : 'cursor-not-allowed opacity-65'}
+              onClick={() => {
+                if (!selectable) return;
+                setPlayerPosition({ x: airport.x, y: airport.y });
+                setTargetPosition(null);
+              }}
+            >
               <rect
                 x={pos.x - 6}
                 y={pos.y - 6}
@@ -208,6 +214,22 @@ export default function WorldMapPanel({
 
 export function isHighlightedAirport(airport: GameAirport, nearbyAirport: GameAirport | null): boolean {
   return airport.id === nearbyAirport?.id;
+}
+
+export function isAirportSelectable(
+  airport: GameAirport,
+  currentAirport: GameAirport | null,
+  routes: GameRoute[],
+): boolean {
+  if (airport.id === currentAirport?.id) return true;
+  if (!currentAirport) return false;
+
+  return routes.some(route => {
+    const connectsCurrent =
+      (route.from === currentAirport.id && route.to === airport.id) ||
+      (route.to === currentAirport.id && route.from === airport.id);
+    return connectsCurrent && (route.state === 'available' || route.state === 'restored');
+  });
 }
 
 function getMapPosition(airport: GameAirport): { x: number; y: number } {

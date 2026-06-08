@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { GAME_AIRPORTS, GAME_MISSIONS, GAME_ROUTES } from '../data/aerotaleWorld';
-import { completeMissionAtAirport, getActiveMission } from '../logic/missions';
+import { GAME_AIRPORTS, GAME_MISSIONS, GAME_ROUTES, buildRoutesForProgress } from '../data/aerotaleWorld';
+import { completeAirportTask, completeMissionAtAirport, getActiveMission } from '../logic/missions';
 import { findNearbyAirport } from '../logic/navigation';
 import type { GameAirport, GameRoute, PlayerPosition } from '../types';
 import { INITIAL_PROGRESS, loadGameProgress, resetGameProgress, saveGameProgress } from './gameProgress';
@@ -31,12 +31,8 @@ export function useGameController() {
   );
 
   const routes = useMemo<GameRoute[]>(
-    () => GAME_ROUTES.map(route => (
-      progress.restoredRouteIds.includes(route.id)
-        ? { ...route, state: 'restored' }
-        : route
-    )),
-    [progress.restoredRouteIds],
+    () => buildRoutesForProgress(GAME_ROUTES, progress),
+    [progress],
   );
 
   const landAtAirport = useCallback((airport: GameAirport) => {
@@ -61,6 +57,17 @@ export function useGameController() {
 
   const earnCredits = useCallback((amount: number) => {
     setProgress(prev => ({ ...prev, credits: prev.credits + amount }));
+  }, []);
+
+  const completeTask = useCallback((taskId: string, reward: number) => {
+    setProgress(prev => {
+      const taskAlreadyCompleted = prev.completedTaskIds.includes(taskId);
+      const taskProgress = completeAirportTask(GAME_MISSIONS, prev, taskId);
+      return {
+        ...taskProgress,
+        credits: taskAlreadyCompleted ? taskProgress.credits : taskProgress.credits + reward,
+      };
+    });
   }, []);
 
   const buyFuel = useCallback((amount: number, cost: number) => {
@@ -94,6 +101,7 @@ export function useGameController() {
     landAtAirport,
     confirmTravel,
     earnCredits,
+    completeTask,
     buyFuel,
     reset,
   };

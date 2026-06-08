@@ -74,18 +74,21 @@ export default function TravelPlannerPanel({
             {options.map(option => {
               const anomaly = anomalyRouteIds.includes(option.route.id);
               const storm = stormRouteIds.includes(option.route.id);
+              const blocked = option.route.state === 'blocked';
               return (
                 <button
                   key={option.route.id}
                   type="button"
+                  disabled={blocked}
                   onClick={() => addStop(option.airport.id)}
-                  className="border-2 border-[#007000] bg-[#001800] p-3 text-left hover:border-[#00ffff]"
+                  className="border-2 border-[#007000] bg-[#001800] p-3 text-left hover:border-[#00ffff] disabled:cursor-not-allowed disabled:border-[#ff0000] disabled:opacity-75"
                 >
                   <p className="font-pixel text-[8px] text-[#00ff00]">{origin} - {option.airport.id}</p>
                   <p className="mt-2 font-term text-xl text-[#ffd700]">{option.airport.city}</p>
                   <p className="font-term text-lg text-[#b0b0b0]">BASE {option.route.cost}</p>
-                  {anomaly && <p className="font-term text-lg text-[#ff00ff]">◆ ANOMALIA NA ARESTA</p>}
-                  {storm && <p className="font-term text-lg text-[#00ffff]">≈ TEMPESTADE</p>}
+                  {blocked && <p className="font-term text-lg text-[#ff0000]">BLOQUEADA POR ANOMALIA SOLAR</p>}
+                  {anomaly && !blocked && <p className="font-term text-lg text-[#ff00ff]">ANOMALIA NA ARESTA</p>}
+                  {storm && <p className="font-term text-lg text-[#00ffff]">TEMPESTADE</p>}
                 </button>
               );
             })}
