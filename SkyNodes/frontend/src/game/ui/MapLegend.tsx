@@ -2,7 +2,7 @@ const LEGEND = [
   { swatch: 'square', color: '#ff0000', label: 'AEROPORTO' },
   { swatch: 'line', color: '#ffd700', label: 'ROTA ATIVA' },
   { swatch: 'line', color: '#00ffff', label: 'ROTA REST.' },
-  { swatch: 'dash', color: '#a80000', label: 'BLOQUEADA' },
+  { swatch: 'heat', color: '#ff0000', label: 'ONDAS SOLARES' },
   { swatch: 'triangle', color: '#a80000', label: 'MONTANHAS' },
   { swatch: 'tree', color: '#006c00', label: 'FLORESTA' },
   { swatch: 'wave', color: '#2a4cff', label: 'OCEANO' },
@@ -32,6 +32,7 @@ export default function MapLegend() {
 function LegendSwatch({ type, color }: { type: string; color: string }) {
   if (type === 'line') return <span className="h-0.5 w-3" style={{ backgroundColor: color }} />;
   if (type === 'dash') return <span className="h-0.5 w-3 border-t-2 border-dashed" style={{ borderColor: color }} />;
+  if (type === 'heat') return <span className="font-term text-[14px] leading-none" style={{ color }}>~</span>;
   if (type === 'triangle') {
     return (
       <span

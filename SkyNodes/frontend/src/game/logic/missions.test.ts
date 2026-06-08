@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GameMission, GameProgress } from '../types';
-import { completeMissionAtAirport, getActiveMission, isRouteRestored } from './missions';
+import { completeAirportTask, completeMissionAtAirport, getActiveMission, isRouteRestored } from './missions';
 
 const missions: GameMission[] = [
   {
@@ -28,6 +28,7 @@ const progress: GameProgress = {
   currentAirportId: 'REC',
   restoredRouteIds: [],
   completedMissionIds: [],
+  completedTaskIds: [],
   activeMissionId: 'first-flight',
   credits: 1200,
   fuel: 80,
@@ -51,5 +52,39 @@ describe('missions', () => {
 
   it('checks route restoration', () => {
     expect(isRouteRestored({ ...progress, restoredRouteIds: ['SSA-BSB'] }, 'SSA-BSB')).toBe(true);
+  });
+
+  it('completes the Recife tutorial after restoring the local airport network', () => {
+    const tutorialMissions: GameMission[] = [
+      {
+        id: 'tutorial-rec',
+        title: 'Tutorial Em Recife',
+        description: 'Aprenda a mapear rotas em Recife.',
+        objectiveAirportId: 'REC',
+        unlocksRouteIds: [],
+        anomalyRouteIds: [],
+        rewardText: 'Rota para JPA liberada.',
+      },
+      {
+        id: 'visit-jpa',
+        title: 'Visitar Joao Pessoa',
+        description: 'Va para JPA.',
+        objectiveAirportId: 'JPA',
+        unlocksRouteIds: [],
+        anomalyRouteIds: [],
+        rewardText: 'JPA alcancada.',
+      },
+    ];
+    const tutorialProgress: GameProgress = {
+      ...progress,
+      completedTaskIds: [],
+      activeMissionId: 'tutorial-rec',
+    };
+
+    const next = completeAirportTask(tutorialMissions, tutorialProgress, 'rec-restore-network');
+
+    expect(next.completedTaskIds).toEqual(['rec-restore-network']);
+    expect(next.completedMissionIds).toEqual(['tutorial-rec']);
+    expect(next.activeMissionId).toBe('visit-jpa');
   });
 });

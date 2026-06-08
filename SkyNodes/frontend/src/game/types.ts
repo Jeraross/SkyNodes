@@ -21,6 +21,7 @@ export interface GameRoute {
   to: AirportId;
   cost: number;
   state: RouteState;
+  blockReason?: 'solar-anomaly';
 }
 
 export interface GameMission {
@@ -38,6 +39,7 @@ export interface GameProgress {
   currentAirportId: AirportId | null;
   restoredRouteIds: RouteId[];
   completedMissionIds: MissionId[];
+  completedTaskIds: string[];
   activeMissionId: MissionId;
   credits: number;
   fuel: number;

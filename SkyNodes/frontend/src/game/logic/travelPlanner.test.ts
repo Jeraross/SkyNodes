@@ -10,14 +10,27 @@ const airports: GameAirport[] = [
 ];
 
 const routes: GameRoute[] = [
-  { id: 'rec-jpa', from: 'REC', to: 'JPA', cost: 2, state: 'locked' },
-  { id: 'jpa-nat', from: 'JPA', to: 'NAT', cost: 2, state: 'locked' },
-  { id: 'rec-ssa', from: 'REC', to: 'SSA', cost: 8, state: 'locked' },
+  { id: 'rec-jpa', from: 'REC', to: 'JPA', cost: 2, state: 'available' },
+  { id: 'jpa-nat', from: 'JPA', to: 'NAT', cost: 2, state: 'available' },
+  { id: 'rec-ssa', from: 'REC', to: 'SSA', cost: 8, state: 'available' },
 ];
 
 describe('travel planner', () => {
   it('only offers airports connected by a direct route from the origin', () => {
     expect(buildTravelOptions('REC', airports, routes).map(option => option.airport.id)).toEqual(['JPA', 'SSA']);
+  });
+
+  it('hides locked routes but keeps blocked anomaly routes visible as unavailable options', () => {
+    const knownRoutes: GameRoute[] = [
+      { id: 'rec-jpa', from: 'REC', to: 'JPA', cost: 2, state: 'available' },
+      { id: 'rec-ssa', from: 'REC', to: 'SSA', cost: 8, state: 'blocked', blockReason: 'solar-anomaly' },
+      { id: 'rec-nat', from: 'REC', to: 'NAT', cost: 3, state: 'locked' },
+    ];
+
+    expect(buildTravelOptions('REC', airports, knownRoutes).map(option => [option.airport.id, option.route.state])).toEqual([
+      ['JPA', 'available'],
+      ['SSA', 'blocked'],
+    ]);
   });
 
   it('calculates a route plan with anomaly and storm costs on edges', () => {
@@ -41,5 +54,14 @@ describe('travel planner', () => {
 
   it('rejects plans that skip required connections', () => {
     expect(calculateTravelPlan({ airportIds: ['REC', 'NAT'], routes, anomalyRouteIds: [], stormRouteIds: [] }).valid).toBe(false);
+  });
+
+  it('rejects plans through blocked or locked routes', () => {
+    expect(calculateTravelPlan({
+      airportIds: ['REC', 'SSA'],
+      routes: [{ id: 'rec-ssa', from: 'REC', to: 'SSA', cost: 8, state: 'blocked', blockReason: 'solar-anomaly' }],
+      anomalyRouteIds: ['rec-ssa'],
+      stormRouteIds: [],
+    }).valid).toBe(false);
   });
 });

@@ -8,6 +8,10 @@ import AirportMenuPanel from './AirportMenuPanel';
 const ACTIONS = ['MAPA', 'ANALISAR', 'VIAJAR', 'MISSOES', 'ENTRAR NO AEROPORTO', 'HANGAR'] as const;
 type Action = (typeof ACTIONS)[number];
 
+export function shouldShowGlobalHud(action: Action) {
+  return action !== 'ENTRAR NO AEROPORTO';
+}
+
 interface AeroTaleScreenProps {
   airports: GameAirport[];
   routes: GameRoute[];
@@ -18,11 +22,12 @@ interface AeroTaleScreenProps {
   totalMissions: number;
   credits: number;
   fuel: number;
+  completedTaskIds: string[];
   playerPosition: PlayerPosition;
   setPlayerPosition: (position: PlayerPosition) => void;
   setTargetPosition: (position: PlayerPosition | null) => void;
   onConfirmTravel: (airport: GameAirport, routeIds: string[], cost: number) => void;
-  onEarnCredits: (amount: number) => void;
+  onCompleteTask: (taskId: string, reward: number) => void;
   onBuyFuel: (amount: number, cost: number) => void;
   onReset: () => void;
   onBack: () => void;
@@ -44,11 +49,12 @@ export default function AeroTaleScreen({
   totalMissions,
   credits,
   fuel,
+  completedTaskIds,
   playerPosition,
   setPlayerPosition,
   setTargetPosition,
   onConfirmTravel,
-  onEarnCredits,
+  onCompleteTask,
   onBuyFuel,
   onReset,
   onBack,
@@ -62,6 +68,7 @@ export default function AeroTaleScreen({
   const handleAction = (action: Action) => {
     setActiveAction(action);
   };
+  const showGlobalHud = shouldShowGlobalHud(activeAction);
 
   return (
     <main className="h-screen w-screen overflow-hidden bg-black">
@@ -116,10 +123,10 @@ export default function AeroTaleScreen({
           ) : activeAction === 'ENTRAR NO AEROPORTO' ? (
             <AirportMenuPanel
               airport={currentAirport}
-              credits={credits}
-              fuel={fuel}
-              onEarnCredits={onEarnCredits}
+              completedTaskIds={completedTaskIds}
+              onCompleteTask={onCompleteTask}
               onBuyFuel={onBuyFuel}
+              onLeaveAirport={() => setActiveAction('MAPA')}
             />
           ) : (
             <section
@@ -137,44 +144,48 @@ export default function AeroTaleScreen({
             </section>
           )}
 
-          <section className="relative bg-black">
-            <div className="absolute -top-2 left-6 h-3 w-3 rounded-full bg-[#ff8800]" aria-hidden="true" />
-            <div className="absolute -top-2 right-6 h-3 w-3 rounded-full bg-[#ff8800]" aria-hidden="true" />
-            <div className="border-2 border-[#ff8800] bg-black px-4 py-3">
-              <p className="font-pixel text-[8px] leading-none text-[#ffd700]">{model.dialogueSpeaker}</p>
-              <div className="mt-2 space-y-1.5">
-                {model.dialogueLines.map((line, index) => (
-                  <p key={line} className="font-term text-xl leading-tight text-[#ff0000]">
-                    {line}
-                    {index === model.dialogueLines.length - 1 && <span className="at-blink ml-1 text-[#e8e8e8]">_</span>}
-                  </p>
-                ))}
-              </div>
-            </div>
-          </section>
+          {showGlobalHud && (
+            <>
+              <section className="relative bg-black">
+                <div className="absolute -top-2 left-6 h-3 w-3 rounded-full bg-[#ff8800]" aria-hidden="true" />
+                <div className="absolute -top-2 right-6 h-3 w-3 rounded-full bg-[#ff8800]" aria-hidden="true" />
+                <div className="border-2 border-[#ff8800] bg-black px-4 py-3">
+                  <p className="font-pixel text-[8px] leading-none text-[#ffd700]">{model.dialogueSpeaker}</p>
+                  <div className="mt-2 space-y-1.5">
+                    {model.dialogueLines.map((line, index) => (
+                      <p key={line} className="font-term text-xl leading-tight text-[#ff0000]">
+                        {line}
+                        {index === model.dialogueLines.length - 1 && <span className="at-blink ml-1 text-[#e8e8e8]">_</span>}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </section>
 
-          <nav className="flex flex-wrap gap-1 border-2 border-[#ffd700] bg-black p-1.5" aria-label="Acoes do jogo">
-            {ACTIONS.map(action => {
-              const isActive = activeAction === action;
-              const disabled = action === 'ENTRAR NO AEROPORTO' && !currentAirport;
-              return (
-                <button
-                  key={action}
-                  type="button"
-                  onClick={() => handleAction(action)}
-                  disabled={disabled}
-                  className={`border-2 px-3 py-1.5 font-pixel text-[8px] leading-none transition-none disabled:cursor-not-allowed disabled:opacity-40 ${
-                    isActive
-                      ? 'border-[#00ffff] bg-[#006c00] text-[#00ff00]'
-                      : 'border-[#007000] bg-black text-[#b0b0b0] hover:bg-[#002000] hover:text-[#00ff00]'
-                  }`}
-                >
-                  {isActive ? '> ' : ''}
-                  {action}
-                </button>
-              );
-            })}
-          </nav>
+              <nav className="flex flex-wrap gap-1 border-2 border-[#ffd700] bg-black p-1.5" aria-label="Acoes do jogo">
+                {ACTIONS.map(action => {
+                  const isActive = activeAction === action;
+                  const disabled = action === 'ENTRAR NO AEROPORTO' && !currentAirport;
+                  return (
+                    <button
+                      key={action}
+                      type="button"
+                      onClick={() => handleAction(action)}
+                      disabled={disabled}
+                      className={`border-2 px-3 py-1.5 font-pixel text-[8px] leading-none transition-none disabled:cursor-not-allowed disabled:opacity-40 ${
+                        isActive
+                          ? 'border-[#00ffff] bg-[#006c00] text-[#00ff00]'
+                          : 'border-[#007000] bg-black text-[#b0b0b0] hover:bg-[#002000] hover:text-[#00ff00]'
+                      }`}
+                    >
+                      {isActive ? '> ' : ''}
+                      {action}
+                    </button>
+                  );
+                })}
+              </nav>
+            </>
+          )}
         </div>
       </div>
     </main>
