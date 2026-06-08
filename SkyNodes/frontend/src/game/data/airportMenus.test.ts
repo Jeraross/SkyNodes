@@ -10,6 +10,16 @@ describe('airport menus', () => {
     expect(getAirportMenu('MAO').tasks.some(task => task.kind === 'graph')).toBe(true);
   });
 
+  it('makes Recife a guided graph tutorial before route mapping opens', () => {
+    const rec = getAirportMenu('REC');
+
+    expect(rec.status).toContain('TUTORIAL');
+    expect(rec.npcs.find(npc => npc.id === 'carlos')?.role).toContain('Tutorial');
+    expect(rec.tasks.map(task => [task.id, task.kind])).toEqual([
+      ['rec-restore-network', 'restore-network'],
+    ]);
+  });
+
   it('provides Twine-like branching dialogue metadata for NPCs', () => {
     const carlos = getAirportMenu('REC').npcs.find(npc => npc.id === 'carlos');
 

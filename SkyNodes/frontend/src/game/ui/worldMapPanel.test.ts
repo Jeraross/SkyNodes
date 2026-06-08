@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { GameAirport } from '../types';
-import { isHighlightedAirport, MAP_LABEL_OFFSETS, MAP_POSITIONS } from './WorldMapPanel';
+import type { GameAirport, GameRoute } from '../types';
+import { isAirportSelectable, isHighlightedAirport, MAP_LABEL_OFFSETS, MAP_POSITIONS } from './WorldMapPanel';
 
 const rec: GameAirport = { id: 'REC', code: 'REC', name: 'Recife', city: 'Recife', region: 'Nordeste', x: 0, y: 0 };
 const jpa: GameAirport = { id: 'JPA', code: 'JPA', name: 'Joao Pessoa', city: 'Joao Pessoa', region: 'Nordeste', x: 1, y: 1 };
+const ssa: GameAirport = { id: 'SSA', code: 'SSA', name: 'Salvador', city: 'Salvador', region: 'Nordeste', x: 2, y: 2 };
 
 describe('WorldMapPanel map positions', () => {
   it('places Rio Branco in Acre, southwest of Porto Velho', () => {
@@ -28,4 +29,14 @@ describe('WorldMapPanel map positions', () => {
     expect(isHighlightedAirport(jpa, rec)).toBe(false);
   });
 
+  it('allows selecting only the current airport and airports reachable by available or restored routes', () => {
+    const routes: GameRoute[] = [
+      { id: 'rec-jpa', from: 'REC', to: 'JPA', cost: 2, state: 'available' },
+      { id: 'rec-ssa', from: 'REC', to: 'SSA', cost: 2, state: 'blocked', blockReason: 'solar-anomaly' },
+    ];
+
+    expect(isAirportSelectable(rec, rec, routes)).toBe(true);
+    expect(isAirportSelectable(jpa, rec, routes)).toBe(true);
+    expect(isAirportSelectable(ssa, rec, routes)).toBe(false);
+  });
 });

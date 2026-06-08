@@ -34,6 +34,7 @@ const STORM_COST = 2;
 
 export function buildTravelOptions(originAirportId: string, airports: GameAirport[], routes: GameRoute[]): TravelOption[] {
   return routes.flatMap(route => {
+    if (route.state === 'locked') return [];
     const destinationId = route.from === originAirportId ? route.to : route.to === originAirportId ? route.from : null;
     const airport = destinationId ? airports.find(item => item.id === destinationId) : null;
     return airport ? [{ airport, route }] : [];
@@ -53,7 +54,7 @@ export function calculateTravelPlan({
     const from = airportIds[index];
     const to = airportIds[index + 1];
     const route = routes.find(item => routeConnects(item, from, to));
-    if (!route) {
+    if (!route || route.state === 'locked' || route.state === 'blocked') {
       return { valid: false, routeIds: [], totalCost: 0, edges: [] };
     }
 

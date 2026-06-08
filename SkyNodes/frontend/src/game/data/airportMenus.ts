@@ -1,6 +1,6 @@
 import type { DialogueScript } from '../logic/dialogueEngine';
 
-export type AirportTaskKind = 'graph' | 'chart' | 'dialogue';
+export type AirportTaskKind = 'restore-network' | 'graph' | 'chart' | 'dialogue';
 
 export interface AirportNpc {
   id: string;
@@ -660,16 +660,16 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
   REC: {
     airportId: 'REC',
     title: 'AEROPORTO DO RECIFE',
-    status: 'COMUNICAÇÕES CAÍDAS — DIA 1',
+    status: 'TUTORIAL DA MALHA LOCAL - RECIFE ISOLADO',
     npcs: [
       {
         id: 'carlos',
         name: 'Controlador Carlos',
-        role: 'Controle de tráfego',
+        role: 'Tutorial da malha aerea',
         sprite: 'carlos',
         lines: [
-          'As comunicações com Salvador caíram ontem à noite. Fortaleza também.',
-          'Você é o único piloto aqui que voa sem sistema digital.',
+          'Antes de decolar, precisamos entender o que ainda existe na malha de Recife.',
+          'Valide os pontos e conexoes simples. Depois eu libero o mapeamento para Joao Pessoa.',
         ],
         dialogue: carlosRecDialogue,
       },
@@ -698,18 +698,11 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
     ],
     tasks: [
       {
-        id: 'rec-check-routes',
-        title: 'Verificar Rotas Ativas',
-        kind: 'graph',
-        reward: 120,
-        prompt: 'Identifique quais conexões de Recife ainda estão operacionais no mapa.',
-      },
-      {
-        id: 'rec-fuel-plan',
-        title: 'Planejar Abastecimento',
-        kind: 'dialogue',
-        reward: 80,
-        prompt: 'Calcule se o combustível atual é suficiente para chegar a João Pessoa.',
+        id: 'rec-restore-network',
+        title: 'Restabelecer Malha de Recife',
+        kind: 'restore-network',
+        reward: 280,
+        prompt: 'Monte no canvas um grafo conectado com todos os nos alcancaveis e todas as rotas possiveis do aeroporto atual.',
       },
     ],
     shop: defaultShop,

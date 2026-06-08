@@ -17,11 +17,12 @@ export default function GamePage() {
         totalMissions={game.missions.length}
         credits={game.progress.credits}
         fuel={game.progress.fuel}
+        completedTaskIds={game.progress.completedTaskIds}
         playerPosition={game.playerPosition}
         setPlayerPosition={game.setPlayerPosition}
         setTargetPosition={game.setTargetPosition}
         onConfirmTravel={game.confirmTravel}
-        onEarnCredits={game.earnCredits}
+        onCompleteTask={game.completeTask}
         onBuyFuel={game.buyFuel}
         onReset={game.reset}
         onBack={() => navigate('/')}
