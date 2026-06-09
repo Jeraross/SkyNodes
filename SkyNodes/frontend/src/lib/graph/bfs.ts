@@ -1,10 +1,5 @@
 import type { Graph } from './buildGraph';
-
-export interface PathResult {
-  path: string[];
-  routeIds: string[];
-  cost: number;
-}
+export type { PathResult } from './pathUtils';
 
 export function bfs(graph: Graph, origin: string, destination: string): PathResult | null {
   if (!graph[origin] || !graph[destination]) return null;
