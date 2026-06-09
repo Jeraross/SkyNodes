@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from api.dependencies import get_grafo
+from src.graphs.algorithms import dijkstra
 from src.graphs.graph import Grafo
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])
@@ -85,6 +86,22 @@ def region_metrics(grafo: Grafo = Depends(get_grafo)) -> list[dict]:
 @router.get("/ego")
 def ego_metrics(grafo: Grafo = Depends(get_grafo)) -> list[dict]:
     return _get_ego(grafo)
+
+
+@router.get("/distance-matrix")
+def distance_matrix(grafo: Grafo = Depends(get_grafo)) -> dict:
+    nos = list(grafo.nos())
+    matrix: dict[str, dict[str, float | None]] = {}
+    for origem in nos:
+        resultado = dijkstra(grafo, origem)
+        matrix[origem] = {}
+        for destino in nos:
+            if origem == destino:
+                matrix[origem][destino] = 0.0
+            else:
+                d = resultado["distancias"].get(destino, float("inf"))
+                matrix[origem][destino] = None if d == float("inf") else d
+    return {"matrix": matrix}
 
 
 @router.get("/rankings")
