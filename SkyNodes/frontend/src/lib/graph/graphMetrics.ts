@@ -1,8 +1,8 @@
+import { api } from '../api';
 import type { Airport, Region } from '../../data/airports';
 import type { Route } from '../../data/routes';
-import type { Graph } from './buildGraph';
-import type { PathResult } from './bfs';
-import { dijkstra } from './dijkstra';
+import type { PathResult } from './pathUtils';
+import { backendPathToResult } from './pathUtils';
 
 export interface RegionMetric {
   region: Region;
@@ -27,7 +27,7 @@ export interface GraphMetrics {
   distanceMatrix: Record<string, Record<string, number | null>>;
 }
 
-export function computeMetrics(airports: Airport[], routes: Route[], graph: Graph): GraphMetrics {
+export async function computeMetrics(airports: Airport[], routes: Route[]): Promise<GraphMetrics> {
   const n = airports.length;
   const degreeByAirport: Record<string, number> = {};
   for (const a of airports) degreeByAirport[a.id] = 0;
@@ -57,57 +57,28 @@ export function computeMetrics(airports: Airport[], routes: Route[], graph: Grap
   }
 
   const longestRoute = routes.reduce<Route | null>((acc, r) => (!acc || r.weight > acc.weight) ? r : acc, null);
-
   const regionMostConnected = Object.entries(routesByRegion).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
 
-  const recPoa = dijkstra(graph, 'REC', 'POA') ?? { path: [], routeIds: [], cost: 0 };
-  const maoGru = dijkstra(graph, 'MAO', 'GRU') ?? { path: [], routeIds: [], cost: 0 };
+  const [recPoaRaw, maoGruRaw, egoData, regionData, distMatrixResp] = await Promise.all([
+    api.dijkstra('REC', 'POA'),
+    api.dijkstra('MAO', 'GRU'),
+    api.egoMetrics(),
+    api.regionMetrics(),
+    api.distanceMatrix(),
+  ]);
 
-  const neighborMap: Record<string, Set<string>> = {};
-  for (const id of Object.keys(graph)) neighborMap[id] = new Set();
-  for (const r of routes) {
-    neighborMap[r.from]?.add(r.to);
-    neighborMap[r.to]?.add(r.from);
-  }
+  const recPoa = backendPathToResult(recPoaRaw.caminho, recPoaRaw.custo, routes);
+  const maoGru = backendPathToResult(maoGruRaw.caminho, maoGruRaw.custo, routes);
+
   const egoByAirport: Record<string, number> = {};
-  for (const id of Object.keys(graph)) {
-    const neighbors = [...(neighborMap[id] ?? [])];
-    const k = neighbors.length;
-    if (k < 2) { egoByAirport[id] = 0; continue; }
-    let internalEdges = 0;
-    for (let i = 0; i < neighbors.length; i++) {
-      for (let j = i + 1; j < neighbors.length; j++) {
-        if (neighborMap[neighbors[i]]?.has(neighbors[j])) internalEdges++;
-      }
-    }
-    egoByAirport[id] = internalEdges / (k * (k - 1) / 2);
-  }
+  for (const e of egoData) egoByAirport[e.aeroporto] = e.densidade_ego;
 
-  const regionAirports: Record<string, string[]> = {};
-  for (const a of airports) {
-    if (!regionAirports[a.region]) regionAirports[a.region] = [];
-    regionAirports[a.region].push(a.id);
-  }
-  const regionMetrics: RegionMetric[] = (Object.keys(regionAirports) as Region[]).map(region => {
-    const ids = new Set(regionAirports[region]);
-    const order = ids.size;
-    const regionRoutes = routes.filter(r => ids.has(r.from) && ids.has(r.to));
-    const size = regionRoutes.length;
-    const maxPossible = order * (order - 1) / 2;
-    const density = maxPossible > 0 ? size / maxPossible : 0;
-    return { region, order, size, density };
-  });
-
-  const allIds = airports.map(a => a.id);
-  const distanceMatrix: Record<string, Record<string, number | null>> = {};
-  for (const id of allIds) {
-    distanceMatrix[id] = {};
-    for (const other of allIds) {
-      if (id === other) { distanceMatrix[id][other] = 0; continue; }
-      const result = dijkstra(graph, id, other);
-      distanceMatrix[id][other] = result ? result.cost : null;
-    }
-  }
+  const regionMetrics: RegionMetric[] = regionData.map(r => ({
+    region: r.regiao as Region,
+    order: r.ordem,
+    size: r.tamanho,
+    density: r.densidade,
+  }));
 
   return {
     totalAirports: n,
@@ -117,11 +88,13 @@ export function computeMetrics(airports: Airport[], routes: Route[], graph: Grap
     graphDensity,
     routesByRegion,
     routesByType,
-    longestRoute: longestRoute ? { id: longestRoute.id, from: longestRoute.from, to: longestRoute.to, weight: longestRoute.weight } : null,
+    longestRoute: longestRoute
+      ? { id: longestRoute.id, from: longestRoute.from, to: longestRoute.to, weight: longestRoute.weight }
+      : null,
     regionMostConnected,
     dijkstraPaths: { recPoa, maoGru },
     egoByAirport,
     regionMetrics,
-    distanceMatrix,
+    distanceMatrix: distMatrixResp.matrix,
   };
 }

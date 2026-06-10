@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import ClickSpark from '@reactbits/ClickSpark/ClickSpark';
 import Particles from '@reactbits/Particles/Particles';
@@ -17,17 +17,19 @@ import DashboardModal from './components/dashboard/DashboardModal';
 import BenchmarkModal from './components/dashboard/BenchmarkModal';
 import { airports } from './data/airports';
 import { routes } from './data/routes';
-import { buildGraph } from './lib/graph/buildGraph';
 import { computeMetrics } from './lib/graph/graphMetrics';
+import type { GraphMetrics } from './lib/graph/graphMetrics';
 import { useFlightSimulation } from './hooks/useFlightSimulation';
 import type { GlobeMode, ModalType, ViewMode } from './types';
 
-const graph = buildGraph(airports, routes);
-const metrics = computeMetrics(airports, routes, graph);
-
 export default function App() {
   const [, navigate] = useLocation();
+  const [metrics, setMetrics] = useState<GraphMetrics | null>(null);
   const [showIntro, setShowIntro] = useState(true);
+
+  useEffect(() => {
+    computeMetrics(airports, routes).then(setMetrics).catch(console.error);
+  }, []);
   const [mode, setMode] = useState<GlobeMode>('orbit');
   const [viewMode, setViewMode] = useState<ViewMode>('globe');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
@@ -87,7 +89,7 @@ export default function App() {
             />
           </div>
         )}
-        {viewMode === 'graph' && (
+        {viewMode === 'graph' && metrics && (
           <GraphView
             highlightedRouteIds={highlightedRouteIds}
             dijkstraPaths={metrics.dijkstraPaths}
@@ -147,11 +149,13 @@ export default function App() {
           />
         )}
 
-        <DashboardModal
-          activeModal={activeModal}
-          onClose={() => setActiveModal(null)}
-          metrics={metrics}
-        />
+        {metrics && (
+          <DashboardModal
+            activeModal={activeModal}
+            onClose={() => setActiveModal(null)}
+            metrics={metrics}
+          />
+        )}
         <BenchmarkModal
           open={benchmarkOpen}
           onClose={() => setBenchmarkOpen(false)}
