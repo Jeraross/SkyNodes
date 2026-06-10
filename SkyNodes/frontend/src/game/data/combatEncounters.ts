@@ -1,6 +1,8 @@
 // AeroTale — Combat Encounter Definitions
 // Each encounter represents a corrupted network node that must be repaired or defeated.
 
+import type { AtariSpriteId } from '../sprites/atariSprites';
+
 export type BulletShape = 'square' | 'diamond' | 'line-h' | 'line-v';
 
 export interface SpawnWave {
@@ -37,7 +39,8 @@ export interface CombatEncounter {
   subtitle: string;
   flavorText: string;
   maxHp: number;
-  spriteLines: string[];
+  spriteId: AtariSpriteId;
+  spriteLines?: string[];
   attackMoves: AttackMove[];
   actOptions: ActOption[];
   mercyLabel: string;
@@ -48,15 +51,15 @@ export interface CombatEncounter {
   storyReveal?: string;
 }
 
-// ─── NODO-REC-01 — Tutorial ────────────────────────────────────────────────────
+// ─── GLITCH FRAGMENTO — Tutorial ──────────────────────────────────────────────────
 const NODO_REC: CombatEncounter = {
   id: 'nodo-rec-01',
   airportId: 'REC',
-  name: 'NODO-REC-01',
-  subtitle: '* Nó de roteamento corrompido — Recife',
-  flavorText:
-    'O painel de controle pulsa vermelho. O nó principal de Recife foi infectado pela descarga eletromagnética. Ele está emitindo sinais caóticos na malha.',
+  name: 'GLITCH FRAGMENTO',
+  subtitle: '* Fragmento digital corrompido pela tempestade solar',
+  flavorText: 'ORDEM: DIVIDIR. APAGAR. ISOLAR.\nCONEXÃO INVÁLIDA DETECTADA.',
   maxHp: 80,
+  spriteId: 'nodo-rec',
   spriteLines: [
     '  ╔══╗  ',
     '  ║??║  ',
@@ -107,13 +110,11 @@ const NODO_REC: CombatEncounter = {
       unlocksMercy: true,
     },
   ],
-  mercyLabel: 'POUPAR',
-  spareRequirement: 'reiniciar',
-  cantSpareText: '* O nó ainda está emitindo sinais corrompidos. Analise e reinicie primeiro.',
-  defeatText:
-    'A descarga elétrica atingiu seus instrumentos. Antônio recua. Vai precisar de um backup antes de tentar de novo.',
-  victoryText:
-    '* NODO-REC-01 reiniciado com sucesso.\n* Rota Recife → João Pessoa desbloqueada.\n* Carlos: "Sabia que conseguia. Essa é a primeira de muitas, Antônio."',
+  mercyLabel: 'IGNORAR',
+  spareRequirement: 'Reconecte o sistema',
+  cantSpareText: '* O fragmento ainda resiste à conectividade.',
+  defeatText: '* O glitch fragmentou as conexões novamente.',
+  victoryText: '* CONECTIVIDADE... RESTAURADA... ERRO...',
   storyReveal:
     'Carlos examina o log do nó. Seu rosto muda por um instante — como se reconhecesse algo no padrão de corrupção. Ele fecha o terminal antes que Antônio possa ver.',
 };
@@ -127,6 +128,7 @@ const ONDA_FOR: CombatEncounter = {
   flavorText:
     'A anomalia em Fortaleza é diferente. Não é só corrupção — ela está se REPLICANDO. Cada nó que você repara, ela tenta reconquistar. É mais agressiva que o esperado.',
   maxHp: 120,
+  spriteId: 'onda-for',
   spriteLines: [
     ' ~~ONDA~~ ',
     '≈≈≈≈≈≈≈≈≈ ',
@@ -221,6 +223,7 @@ const ANOMALIA_SSA: CombatEncounter = {
   flavorText:
     'Em Salvador, a situação é grave. A anomalia não está corrompendo o nó — ela TOMOU CONTA DELE. Fala em loops. Repete fragmentos de código como se fosse uma memória. Quem programou isso?',
   maxHp: 160,
+  spriteId: 'anomalia-ssa',
   spriteLines: [
     '╔═══════╗',
     '║PROTO-M║',
@@ -316,6 +319,7 @@ const ANAC_BSB: CombatEncounter = {
   flavorText:
     'O coração de tudo. O SISTEMA-ANAC rodou o Protocolo-M de Carlos para "proteger" a malha. Agora está sozinho, com medo, mantendo tudo bloqueado porque acha que o perigo ainda existe. Não é um inimigo. É um sistema que perdeu o controle.',
   maxHp: 200,
+  spriteId: 'sistema-anac',
   spriteLines: [
     '╔═══════════╗',
     '║  ANAC-IA  ║',
