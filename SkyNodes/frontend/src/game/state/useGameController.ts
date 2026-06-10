@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { GAME_AIRPORTS, GAME_MISSIONS, GAME_ROUTES, buildRoutesForProgress } from '../data/aerotaleWorld';
 import { completeAirportTask, completeMissionAtAirport, getActiveMission } from '../logic/missions';
 import { findNearbyAirport } from '../logic/navigation';
-import type { GameAirport, GameRoute, PlayerPosition } from '../types';
+import type { DialogueSequence, GameAirport, GameRoute, PlayerPosition } from '../types';
 import { INITIAL_PROGRESS, loadGameProgress, resetGameProgress, saveGameProgress } from './gameProgress';
 
 const INTRO_SEEN_KEY = 'aerotale-intro-seen-v1';
@@ -20,6 +20,9 @@ export function useGameController() {
     try { return JSON.parse(localStorage.getItem(CLEARED_COMBAT_KEY) ?? '[]'); }
     catch { return []; }
   });
+  const [dialogueQueue, setDialogueQueue] = useState<DialogueSequence[]>([]);
+  const [buildMode, setBuildMode] = useState(false);
+  const [puzzleActive, setPuzzleActive] = useState(false);
 
   useEffect(() => saveGameProgress(progress), [progress]);
 
@@ -99,6 +102,27 @@ export function useGameController() {
     });
   }, []);
 
+  const pushDialogue = useCallback((seq: DialogueSequence) => {
+    setDialogueQueue(prev => [...prev, seq]);
+  }, []);
+
+  const advanceDialogue = useCallback(() => {
+    setDialogueQueue(prev => prev.slice(1));
+  }, []);
+
+  const activateBuildMode = useCallback(() => setBuildMode(true), []);
+  const deactivateBuildMode = useCallback(() => setBuildMode(false), []);
+  const openPuzzle = useCallback(() => setPuzzleActive(true), []);
+  const closePuzzle = useCallback(() => setPuzzleActive(false), []);
+
+  const activateRoute = useCallback((routeId: string) => {
+    setProgress(prev => ({
+      ...prev,
+      restoredRouteIds: [...new Set([...prev.restoredRouteIds, routeId])],
+    }));
+    setBuildMode(false);
+  }, []);
+
   const reset = useCallback(() => {
     const fresh = resetGameProgress();
     const airport = GAME_AIRPORTS.find(item => item.id === fresh.currentAirportId) ?? GAME_AIRPORTS[0];
@@ -109,6 +133,9 @@ export function useGameController() {
     localStorage.removeItem(CLEARED_COMBAT_KEY);
     setIntroSeen(false);
     setClearedCombatIds([]);
+    setDialogueQueue([]);
+    setBuildMode(false);
+    setPuzzleActive(false);
   }, []);
 
   return {
@@ -133,5 +160,15 @@ export function useGameController() {
     completeTask,
     buyFuel,
     reset,
+    dialogueQueue,
+    pushDialogue,
+    advanceDialogue,
+    buildMode,
+    activateBuildMode,
+    deactivateBuildMode,
+    activateRoute,
+    puzzleActive,
+    openPuzzle,
+    closePuzzle,
   };
 }
