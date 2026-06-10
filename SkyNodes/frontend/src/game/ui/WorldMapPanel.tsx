@@ -61,6 +61,14 @@ export const MAP_LABEL_OFFSETS: Record<string, { x: number; y: number; anchor?: 
   POA: { x: 0, y: 16 },
 };
 
+function distToSegment(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+  const dx = x2 - x1, dy = y2 - y1;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+  const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lenSq));
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
 interface WorldMapPanelProps {
   airports: GameAirport[];
   routes: GameRoute[];
@@ -68,6 +76,8 @@ interface WorldMapPanelProps {
   playerPosition: PlayerPosition;
   setPlayerPosition: (position: PlayerPosition) => void;
   setTargetPosition: (position: PlayerPosition | null) => void;
+  buildMode?: boolean;
+  onRouteActivated?: (routeId: string) => void;
 }
 
 export default function WorldMapPanel({
@@ -77,10 +87,35 @@ export default function WorldMapPanel({
   playerPosition,
   setPlayerPosition,
   setTargetPosition,
+  buildMode,
+  onRouteActivated,
 }: WorldMapPanelProps) {
   const symbols = terrainSymbols();
   const playerAirport = closestAirport(playerPosition, airports);
   const playerMapPosition = playerAirport ? getMapPosition(playerAirport) : getOptionalMapPosition(airports[0]);
+
+  function handleSvgClick(e: React.MouseEvent<SVGSVGElement>) {
+    if (!buildMode || !onRouteActivated) return;
+    const svg = e.currentTarget;
+    const rect = svg.getBoundingClientRect();
+    const vbParts = (brazilMap.viewBox as string).split(' ').map(Number);
+    const vbWidth = vbParts[2] ?? 613;
+    const vbHeight = vbParts[3] ?? 639;
+    const svgX = ((e.clientX - rect.left) / rect.width) * vbWidth;
+    const svgY = ((e.clientY - rect.top) / rect.height) * vbHeight;
+    for (const route of routes) {
+      if (route.state !== 'available') continue;
+      const fromAirport = airports.find(a => a.id === route.from);
+      const toAirport = airports.find(a => a.id === route.to);
+      if (!fromAirport || !toAirport) continue;
+      const from = getMapPosition(fromAirport);
+      const to = getMapPosition(toAirport);
+      if (distToSegment(svgX, svgY, from.x, from.y, to.x, to.y) < 40) {
+        onRouteActivated(route.id);
+        return;
+      }
+    }
+  }
 
   return (
     <div className="relative h-full w-full overflow-hidden border-2 border-[#006c00]" style={{ backgroundColor: C.blue }}>
@@ -90,6 +125,7 @@ export default function WorldMapPanel({
         preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label="Mapa retro do Brasil com a malha aerea"
+        onClick={handleSvgClick}
       >
         <rect x="0" y="0" width="613" height="639" fill={C.blue} />
 
@@ -139,6 +175,24 @@ export default function WorldMapPanel({
                   ~
                 </text>
               </g>
+            );
+          }
+
+          const isAvailable = route.state === 'available';
+          if (buildMode && isAvailable) {
+            return (
+              <line
+                key={route.id}
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                stroke={C.yellow}
+                strokeWidth="2"
+                strokeDasharray="8 6"
+                opacity="0.9"
+                className="cursor-pointer"
+              />
             );
           }
 
