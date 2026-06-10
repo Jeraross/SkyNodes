@@ -13,6 +13,8 @@ export type AirportStatus =
   | 'connected'
   | 'completed';
 
+// Linear dialogue sequences for cutscene/narrative overlays.
+// See dialogueEngine.ts for the graph-based branching system.
 export interface DialogueLine {
   speaker: string;
   text: string;
