@@ -8,10 +8,10 @@ const BOOT_LINES = [
   { text: '> AEROTALE v1.0',               color: 'text-green-400' },
   { text: '> INICIALIZANDO SISTEMA...',     color: 'text-green-400' },
   { text: '> VERIFICANDO HARDWARE...',      color: 'text-green-400' },
-  { text: '> RESOLUCAO INSUFICIENTE.',      color: 'text-red-400'   },
-  { text: '> MODO MOBILE DETECTADO.',       color: 'text-red-400'   },
-  { text: '> [ERRO] COCKPIT NAO SUPORTADO.',color: 'text-red-400'   },
-  { text: '> USE UM DESKTOP PARA DECOLAR.', color: 'text-yellow-400'},
+  { text: '> LINK REMOTO INSTAVEL.',        color: 'text-red-400'   },
+  { text: '> COCKPIT COMPACTO DETECTADO.',  color: 'text-red-400'   },
+  { text: '> CANAL DE VOO BLOQUEADO.',      color: 'text-red-400'   },
+  { text: '> ABRA EM UM DESKTOP PARA DECOLAR.', color: 'text-yellow-400'},
 ];
 
 function DesktopOnly({ onBack }: { onBack: () => void }) {
@@ -65,10 +65,10 @@ function DesktopOnly({ onBack }: { onBack: () => void }) {
           {done && (
             <div className="mt-5 rounded border border-cyan-500/25 bg-cyan-950/30 p-3">
               <p className="font-pixel text-[8px] text-cyan-400 leading-relaxed">
-                AEROTALE FOI PROJETADO PARA TELAS GRANDES.
+                O COCKPIT PRECISA DE UMA TELA MAIOR.
               </p>
               <p className="mt-1.5 font-pixel text-[7px] text-cyan-600 leading-relaxed">
-                ACESSE EM UM COMPUTADOR PARA UMA EXPERIENCIA COMPLETA DE VOO.
+                ACESSE EM UM COMPUTADOR PARA ASSUMIR A TORRE.
               </p>
             </div>
           )}
@@ -112,6 +112,15 @@ function GameContent({ onBack }: { onBack: () => void }) {
       onIntroFinish={game.markIntroSeen}
       clearedCombatIds={game.clearedCombatIds}
       onCombatVictory={game.clearCombat}
+      dialogueQueue={game.dialogueQueue}
+      onAdvanceDialogue={game.advanceDialogue}
+      pushDialogue={game.pushDialogue}
+      buildMode={game.buildMode}
+      onRouteActivated={game.activateRoute}
+      puzzleActive={game.puzzleActive}
+      onPuzzleSolved={game.closePuzzle}
+      onPuzzleBack={game.closePuzzle}
+      openPuzzle={game.openPuzzle}
     />
   );
 }

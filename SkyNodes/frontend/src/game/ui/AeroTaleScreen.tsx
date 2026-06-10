@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import type { GameAirport, GameMission, GameRoute, PlayerPosition } from '../types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { DialogueSequence, GameAirport, GameMission, GameRoute, PlayerPosition } from '../types';
 import { buildRetroScreenModel } from './retroScreen';
 import WorldMapPanel from './WorldMapPanel';
 import TravelPlannerPanel from './TravelPlannerPanel';
@@ -7,13 +7,18 @@ import AirportMenuPanel from './AirportMenuPanel';
 import AeroTaleIntro from './AeroTaleIntro';
 import CombatScreen from './CombatScreen';
 import { getEncounterForAirport } from '../data/combatEncounters';
-
-const ACTIONS = ['MAPA', 'ANALISAR', 'VIAJAR', 'MISSOES', 'ENTRAR NO AEROPORTO', 'HANGAR'] as const;
-type Action = (typeof ACTIONS)[number];
-
-export function shouldShowGlobalHud(action: Action) {
-  return action !== 'ENTRAR NO AEROPORTO';
-}
+import { AEROTALE_ACTIONS as ACTIONS, type AeroTaleAction as Action, shouldShowGlobalHud } from './aeroTaleHud';
+import { AIRPORT_PUZZLES } from '../data/airportPuzzles';
+import {
+  RECIFE_CHEGADA,
+  RECIFE_TUTORIAL_VERTICES,
+  RECIFE_TUTORIAL_ARESTAS,
+  RECIFE_GLITCH_APARECE,
+  RECIFE_PRE_PUZZLE,
+  RECIFE_ENCERRAMENTO,
+} from '../data/recifeDialogues';
+import DialogueOverlay from './DialogueOverlay';
+import AirportPuzzlePanel from './AirportPuzzlePanel';
 
 interface AeroTaleScreenProps {
   airports: GameAirport[];
@@ -39,6 +44,18 @@ interface AeroTaleScreenProps {
   onIntroFinish: () => void;
   clearedCombatIds: string[];
   onCombatVictory: (encounterId: string) => void;
+  // Dialogue
+  dialogueQueue: DialogueSequence[];
+  onAdvanceDialogue: () => void;
+  pushDialogue: (seq: DialogueSequence) => void;
+  // Build mode
+  buildMode: boolean;
+  onRouteActivated: (routeId: string) => void;
+  // Puzzle
+  puzzleActive: boolean;
+  onPuzzleSolved: () => void;
+  onPuzzleBack: () => void;
+  openPuzzle: () => void;
 }
 
 const STAT_COLORS = {
@@ -70,21 +87,74 @@ export default function AeroTaleScreen({
   onIntroFinish,
   clearedCombatIds,
   onCombatVictory,
+  dialogueQueue,
+  onAdvanceDialogue,
+  pushDialogue,
+  buildMode,
+  onRouteActivated,
+  puzzleActive,
+  onPuzzleSolved,
+  onPuzzleBack,
+  openPuzzle,
 }: AeroTaleScreenProps) {
   const [activeAction, setActiveAction] = useState<Action>('MAPA');
   const [combatActive, setCombatActive] = useState(false);
+  const [recifeStarted, setRecifeStarted] = useState(false);
 
   const model = useMemo(
     () => buildRetroScreenModel({ currentAirport, activeMission, completedCount, totalMissions, nearbyAirport, credits, fuel }),
     [activeMission, completedCount, credits, currentAirport, fuel, nearbyAirport, totalMissions],
   );
 
+  // Auto-trigger Recife arrival dialogue on first map load
+  useEffect(() => {
+    if (!introSeen || recifeStarted || dialogueQueue.length > 0) return;
+    setRecifeStarted(true);
+    pushDialogue({
+      ...RECIFE_CHEGADA,
+      onComplete: () => pushDialogue({ ...RECIFE_TUTORIAL_VERTICES }),
+    });
+  }, [introSeen, recifeStarted, dialogueQueue.length, pushDialogue]);
+
+  const handleRouteActivated = useCallback((routeId: string) => {
+    onRouteActivated(routeId);
+    pushDialogue({ ...RECIFE_TUTORIAL_ARESTAS });
+  }, [onRouteActivated, pushDialogue]);
+
+  const handleCombatVictory = useCallback((encounterId: string) => {
+    onCombatVictory(encounterId);
+    setCombatActive(false);
+    pushDialogue({
+      ...RECIFE_PRE_PUZZLE,
+      onComplete: () => openPuzzle(),
+    });
+  }, [onCombatVictory, openPuzzle, pushDialogue]);
+
+  const handlePuzzleSolved = useCallback(() => {
+    onPuzzleSolved();
+    pushDialogue({
+      ...RECIFE_ENCERRAMENTO,
+      onComplete: () => {
+        // Mark Recife task as complete — use the airport id as task id
+        onCompleteTask('recife_completed', 0);
+      },
+    });
+  }, [onCompleteTask, onPuzzleSolved, pushDialogue]);
+
   const handleAction = (action: Action) => {
     if (action === 'ENTRAR NO AEROPORTO' && currentAirport) {
       const encounter = getEncounterForAirport(currentAirport.id);
       if (encounter && !clearedCombatIds.includes(encounter.id)) {
-        setCombatActive(true);
+        // Intercept: show glitch dialogue before starting combat
+        pushDialogue({
+          ...RECIFE_GLITCH_APARECE,
+          onComplete: () => setCombatActive(true),
+        });
         return;
+      }
+      // Combat cleared — check if puzzle exists and not yet active
+      if (AIRPORT_PUZZLES[currentAirport.id]) {
+        // Show airport menu as normal (puzzle opened via handleCombatVictory flow)
       }
     }
     setActiveAction(action);
@@ -103,9 +173,22 @@ export default function AeroTaleScreen({
       <CombatScreen
         encounter={activeEncounter}
         clearedActIds={[]}
-        onVictory={id => { onCombatVictory(id); setCombatActive(false); }}
+        onVictory={handleCombatVictory}
         onDefeat={() => setCombatActive(false)}
       />
+    );
+  }
+
+  // Puzzle full-screen
+  if (puzzleActive && currentAirport && AIRPORT_PUZZLES[currentAirport.id]) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
+        <AirportPuzzlePanel
+          puzzle={AIRPORT_PUZZLES[currentAirport.id]}
+          onSolved={handlePuzzleSolved}
+          onBack={onPuzzleBack}
+        />
+      </div>
     );
   }
 
@@ -179,6 +262,8 @@ export default function AeroTaleScreen({
                 playerPosition={playerPosition}
                 setPlayerPosition={setPlayerPosition}
                 setTargetPosition={setTargetPosition}
+                buildMode={buildMode}
+                onRouteActivated={handleRouteActivated}
               />
             </section>
           )}
@@ -238,6 +323,14 @@ export default function AeroTaleScreen({
           )}
         </div>
       </div>
+
+      {/* DialogueOverlay — z-30, above everything including map */}
+      {dialogueQueue.length > 0 && (
+        <DialogueOverlay
+          queue={dialogueQueue}
+          onAdvance={onAdvanceDialogue}
+        />
+      )}
     </main>
   );
 }
