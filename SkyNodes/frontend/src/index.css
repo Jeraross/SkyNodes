@@ -222,6 +222,24 @@ body {
   transform: translateY(-1px);
 }
 
+/* ── Mobile bottom dock overrides ───────────────────────────────────────────── */
+.mobile-dock-wrapper .dock-panel {
+  background-color: rgba(2, 6, 23, 0.88);
+  border-color: rgba(34, 211, 238, 0.22);
+  backdrop-filter: blur(12px);
+}
+.mobile-dock-wrapper .dock-item {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(34, 211, 238, 0.15);
+  color: #67e8f9;
+}
+.mobile-dock-wrapper .dock-item--active,
+.mobile-dock-wrapper .dock-item:hover {
+  background: rgba(34, 211, 238, 0.12);
+  border-color: rgba(34, 211, 238, 0.4);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
+}
+
 /* ── Scroll bar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-deep); }

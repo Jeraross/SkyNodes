@@ -1,0 +1,8 @@
+FROM node:22-slim
+
+WORKDIR /app
+
+COPY SkyNodes/frontend/package*.json SkyNodes/frontend/.npmrc ./
+RUN npm install
+
+CMD ["npm", "run", "dev", "--", "--host"]
