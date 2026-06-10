@@ -4,6 +4,9 @@ import { buildRetroScreenModel } from './retroScreen';
 import WorldMapPanel from './WorldMapPanel';
 import TravelPlannerPanel from './TravelPlannerPanel';
 import AirportMenuPanel from './AirportMenuPanel';
+import AeroTaleIntro from './AeroTaleIntro';
+import CombatScreen from './CombatScreen';
+import { getEncounterForAirport } from '../data/combatEncounters';
 
 const ACTIONS = ['MAPA', 'ANALISAR', 'VIAJAR', 'MISSOES', 'ENTRAR NO AEROPORTO', 'HANGAR'] as const;
 type Action = (typeof ACTIONS)[number];
@@ -31,6 +34,11 @@ interface AeroTaleScreenProps {
   onBuyFuel: (amount: number, cost: number) => void;
   onReset: () => void;
   onBack: () => void;
+  // Intro + combat
+  introSeen: boolean;
+  onIntroFinish: () => void;
+  clearedCombatIds: string[];
+  onCombatVictory: (encounterId: string) => void;
 }
 
 const STAT_COLORS = {
@@ -58,17 +66,48 @@ export default function AeroTaleScreen({
   onBuyFuel,
   onReset,
   onBack,
+  introSeen,
+  onIntroFinish,
+  clearedCombatIds,
+  onCombatVictory,
 }: AeroTaleScreenProps) {
   const [activeAction, setActiveAction] = useState<Action>('MAPA');
+  const [combatActive, setCombatActive] = useState(false);
+
   const model = useMemo(
     () => buildRetroScreenModel({ currentAirport, activeMission, completedCount, totalMissions, nearbyAirport, credits, fuel }),
     [activeMission, completedCount, credits, currentAirport, fuel, nearbyAirport, totalMissions],
   );
 
   const handleAction = (action: Action) => {
+    if (action === 'ENTRAR NO AEROPORTO' && currentAirport) {
+      const encounter = getEncounterForAirport(currentAirport.id);
+      if (encounter && !clearedCombatIds.includes(encounter.id)) {
+        setCombatActive(true);
+        return;
+      }
+    }
     setActiveAction(action);
   };
   const showGlobalHud = shouldShowGlobalHud(activeAction);
+
+  // Show intro cinematic first time — after all hooks
+  if (!introSeen) {
+    return <AeroTaleIntro onFinish={onIntroFinish} />;
+  }
+
+  // Active combat encounter check
+  const activeEncounter = combatActive ? getEncounterForAirport(currentAirport?.id) : null;
+  if (activeEncounter && !clearedCombatIds.includes(activeEncounter.id)) {
+    return (
+      <CombatScreen
+        encounter={activeEncounter}
+        clearedActIds={[]}
+        onVictory={id => { onCombatVictory(id); setCombatActive(false); }}
+        onDefeat={() => setCombatActive(false)}
+      />
+    );
+  }
 
   return (
     <main className="h-screen w-screen overflow-hidden bg-black">
@@ -166,20 +205,31 @@ export default function AeroTaleScreen({
                 {ACTIONS.map(action => {
                   const isActive = activeAction === action;
                   const disabled = action === 'ENTRAR NO AEROPORTO' && !currentAirport;
+                  const hasPendingCombat = action === 'ENTRAR NO AEROPORTO' && currentAirport
+                    ? (() => {
+                        const enc = getEncounterForAirport(currentAirport.id);
+                        return enc ? !clearedCombatIds.includes(enc.id) : false;
+                      })()
+                    : false;
                   return (
                     <button
                       key={action}
                       type="button"
                       onClick={() => handleAction(action)}
                       disabled={disabled}
-                      className={`border-2 px-3 py-1.5 font-pixel text-[8px] leading-none transition-none disabled:cursor-not-allowed disabled:opacity-40 ${
-                        isActive
-                          ? 'border-[#00ffff] bg-[#006c00] text-[#00ff00]'
-                          : 'border-[#007000] bg-black text-[#b0b0b0] hover:bg-[#002000] hover:text-[#00ff00]'
+                      className={`relative border-2 px-3 py-1.5 font-pixel text-[8px] leading-none transition-none disabled:cursor-not-allowed disabled:opacity-40 ${
+                        hasPendingCombat
+                          ? 'border-[#ff0000] bg-[#1a0000] text-[#ff4400] animate-pulse'
+                          : isActive
+                            ? 'border-[#00ffff] bg-[#006c00] text-[#00ff00]'
+                            : 'border-[#007000] bg-black text-[#b0b0b0] hover:bg-[#002000] hover:text-[#00ff00]'
                       }`}
                     >
-                      {isActive ? '> ' : ''}
+                      {hasPendingCombat ? '⚔ ' : isActive ? '> ' : ''}
                       {action}
+                      {hasPendingCombat && (
+                        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#ff0000] at-blink" />
+                      )}
                     </button>
                   );
                 })}
