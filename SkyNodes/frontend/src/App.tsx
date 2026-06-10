@@ -8,9 +8,11 @@ import GlobeHeroOverlay from './components/globe/GlobeHeroOverlay';
 import GraphView from './components/views/GraphView';
 import MapView from './components/views/MapView';
 import GlobeSidebar from './components/navigation/GlobeSidebar';
+import MobileBottomDock from './components/navigation/MobileBottomDock';
 import AlgorithmsSidebar from './components/navigation/AlgorithmsSidebar';
 import SimulationSidebar from './components/navigation/SimulationSidebar';
 import TopControlNav from './components/navigation/TopControlNav';
+import { useIsMobile } from './hooks/useIsMobile';
 import DashboardModal from './components/dashboard/DashboardModal';
 import BenchmarkModal from './components/dashboard/BenchmarkModal';
 import { airports } from './data/airports';
@@ -36,6 +38,7 @@ export default function App() {
 
   const { simulation, planePosition, setReady, start, pause, resume, restart, clear, setSpeed } =
     useFlightSimulation();
+  const isMobile = useIsMobile();
 
   const handleEnterBrazil = () => setMode('brazil-locked');
 
@@ -95,16 +98,29 @@ export default function App() {
         {viewMode === 'map' && <MapView highlightedRouteIds={highlightedRouteIds} />}
 
         {viewMode === 'globe' && mode === 'orbit' && <GlobeHeroOverlay onEnterBrazil={handleEnterBrazil} />}
-        <TopControlNav viewMode={viewMode} onViewModeChange={setViewMode} />
-        <button
-          type="button"
-          onClick={() => navigate('/game')}
-          className="fixed right-4 bottom-36 z-40 border-2 border-[#071018] bg-[#d7f04a] px-5 py-3 font-mono text-sm font-black text-[#071018] shadow-[5px_5px_0_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-1"
-        >
-          AEROTALE
-        </button>
-        {showSidebars && (
+        {!(viewMode === 'globe' && mode === 'orbit') && <TopControlNav viewMode={viewMode} onViewModeChange={setViewMode} />}
+        {!(viewMode === 'globe' && mode === 'orbit') && (
+          <button
+            type="button"
+            onClick={() => navigate('/game')}
+            className={`fixed z-40 border-2 border-[#071018] bg-[#d7f04a] px-5 py-3 font-mono text-sm font-black text-[#071018] shadow-[5px_5px_0_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-1 ${
+              isMobile ? 'top-4 right-4' : 'bottom-36 right-4'
+            }`}
+          >
+            AEROTALE
+          </button>
+        )}
+        {showSidebars && !isMobile && (
           <GlobeSidebar
+            algorithmsOpen={algorithmsOpen}
+            benchmarkOpen={benchmarkOpen}
+            onOpenModal={setActiveModal}
+            onToggleAlgorithms={() => setAlgorithmsOpen(o => !o)}
+            onToggleBenchmark={() => setBenchmarkOpen(o => !o)}
+          />
+        )}
+        {showSidebars && isMobile && (
+          <MobileBottomDock
             algorithmsOpen={algorithmsOpen}
             benchmarkOpen={benchmarkOpen}
             onOpenModal={setActiveModal}
@@ -117,6 +133,7 @@ export default function App() {
           simulation={simulation}
           onHighlightRoutes={handleHighlightRoutes}
           onSetReady={handleSetReady}
+          onClose={() => setAlgorithmsOpen(false)}
         />
         {showSidebars && (
           <SimulationSidebar

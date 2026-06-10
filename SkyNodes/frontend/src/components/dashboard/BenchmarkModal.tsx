@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import { Maximize2, Minimize2, X } from 'lucide-react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
 import EiffelSticker from './EiffelSticker';
 import BenchmarkGeneralStats from './BenchmarkGeneralStats';
@@ -25,6 +26,7 @@ interface Props {
 
 export default function BenchmarkModal({ open, onClose, onEiffelUnlock }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const isMobile = useIsMobile();
   const [phase, setPhase] = useState<'loading' | 'ready'>('loading');
   const [progress, setProgress] = useState(0);
   const [visibleLines, setVisibleLines] = useState(0);
@@ -86,25 +88,35 @@ export default function BenchmarkModal({ open, onClose, onEiffelUnlock }: Props)
             layout
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className={`group ${
-              expanded
-                ? 'fixed inset-4 flex flex-col'
+              expanded || isMobile
+                ? 'fixed inset-2 sm:inset-4 flex flex-col'
                 : 'w-[920px] max-w-[calc(100vw-2rem)] h-[700px] max-h-[calc(100vh-2rem)] flex flex-col'
             }`}
           >
             <ContainerScroll
               titleComponent={
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-3 w-full">
                   <p style={PIXEL} className="text-cyan-400 text-[11px] tracking-widest mb-1">
                     BENCHMARK
                   </p>
-                  <button
-                    onClick={() => setExpanded(e => !e)}
-                    style={PIXEL}
-                    className="mb-1 text-zinc-500 hover:text-cyan-400 transition-colors lg:opacity-0 lg:group-hover:opacity-100"
-                    title={expanded ? 'Restaurar' : 'Expandir'}
-                  >
-                    {expanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-                  </button>
+                  {isMobile ? (
+                    <button
+                      onClick={onClose}
+                      className="mb-1 p-1 rounded-md text-zinc-500 hover:text-cyan-400 hover:bg-white/5 transition-colors"
+                      title="Fechar"
+                    >
+                      <X size={16} />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setExpanded(e => !e)}
+                      style={PIXEL}
+                      className="mb-1 text-zinc-500 hover:text-cyan-400 transition-colors lg:opacity-0 lg:group-hover:opacity-100"
+                      title={expanded ? 'Restaurar' : 'Expandir'}
+                    >
+                      {expanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                    </button>
+                  )}
                 </div>
               }
               sticker={<EiffelSticker onUnlock={onEiffelUnlock} />}

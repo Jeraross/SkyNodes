@@ -40,12 +40,19 @@ export default function TopControlNav({ viewMode, onViewModeChange }: Props) {
 
   return (
     <div className="pointer-events-auto absolute left-1/2 top-4 z-40 -translate-x-1/2 w-[min(90vw,800px)]">
-      <CardNav
-        items={items}
-        baseColor="rgba(2, 6, 23, 0.72)"
-        menuColor="#67e8f9"
-        ctaNode={<ViewModeToggle value={viewMode} onChange={onViewModeChange} />}
-      />
+      {/* Desktop: CardNav completo */}
+      <div className="hidden md:block">
+        <CardNav
+          items={items}
+          baseColor="rgba(2, 6, 23, 0.72)"
+          menuColor="#67e8f9"
+          ctaNode={<ViewModeToggle value={viewMode} onChange={onViewModeChange} />}
+        />
+      </div>
+      {/* Mobile: só o toggle de modo */}
+      <div className="flex md:hidden justify-center">
+        <ViewModeToggle value={viewMode} onChange={onViewModeChange} />
+      </div>
     </div>
   );
 }
