@@ -1,4 +1,4 @@
-import type { GameAirport, GameMission, GameRoute } from '../types';
+import type { AirportStatus, GameAirport, GameMission, GameRoute } from '../types';
 import { airports } from '../../data/airports';
 import { routes } from '../../data/routes';
 import { buildGraph } from '../../lib/graph/buildGraph';
@@ -31,15 +31,21 @@ export const AIRPORT_VISIT_ORDER = [
   'RBR',
 ] as const;
 
-export const GAME_AIRPORTS: GameAirport[] = airports.map(airport => ({
-  id: airport.id,
-  code: airport.id,
-  name: airport.name,
-  city: airport.city,
-  region: airport.region,
-  x: airport.lng,
-  y: airport.lat,
-}));
+export const GAME_AIRPORTS: GameAirport[] = airports.map(airport => {
+  let status: AirportStatus = 'unknown';
+  if (airport.id === 'REC') status = 'connected';
+  if (airport.id === 'JPA') status = 'detected';
+  return {
+    id: airport.id,
+    code: airport.id,
+    name: airport.name,
+    city: airport.city,
+    region: airport.region,
+    x: airport.lng,
+    y: airport.lat,
+    status,
+  };
+});
 
 export const GAME_ROUTES: GameRoute[] = routes.map(route => ({
   id: route.id,
