@@ -74,3 +74,20 @@ describe('aerotale world data', () => {
     }
   });
 });
+
+describe('GAME_AIRPORTS status', () => {
+  it('Recife starts as connected', () => {
+    const rec = GAME_AIRPORTS.find(a => a.id === 'REC');
+    expect(rec?.status).toBe('connected');
+  });
+
+  it('João Pessoa starts as detected', () => {
+    const jpa = GAME_AIRPORTS.find(a => a.id === 'JPA');
+    expect(jpa?.status).toBe('detected');
+  });
+
+  it('all other airports start as unknown', () => {
+    const others = GAME_AIRPORTS.filter(a => a.id !== 'REC' && a.id !== 'JPA');
+    expect(others.every(a => a.status === 'unknown')).toBe(true);
+  });
+});
