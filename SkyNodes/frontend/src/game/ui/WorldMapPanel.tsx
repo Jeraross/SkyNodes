@@ -196,6 +196,22 @@ export default function WorldMapPanel({
             );
           }
 
+          if (isAvailable) {
+            return (
+              <line
+                key={route.id}
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                stroke="#334433"
+                strokeWidth="2"
+                strokeDasharray="8 6"
+                opacity="0.4"
+              />
+            );
+          }
+
           return (
             <line
               key={route.id}
