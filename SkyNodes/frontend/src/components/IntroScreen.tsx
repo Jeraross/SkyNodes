@@ -42,15 +42,6 @@ export default function IntroScreen({ onDone }: Props) {
             subtitle="Malha Aérea Brasileira"
           />
 
-          {/* "click to enter" hint fades in after animation */}
-          <motion.p
-            className="absolute bottom-12 font-mono text-xs uppercase tracking-[0.25em] text-cyan-500/60"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 3.5, duration: 1 }}
-          >
-            clique para entrar
-          </motion.p>
         </motion.div>
       )}
     </AnimatePresence>

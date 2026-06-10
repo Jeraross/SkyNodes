@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { airports } from '../../data/airports';
@@ -10,6 +12,7 @@ import { dijkstra } from '../../lib/graph/dijkstra';
 import { bellmanFord } from '../../lib/graph/bellmanFord';
 import type { PathResult } from '../../lib/graph/bfs';
 import type { FlightSimulation } from '../../types';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const graph = buildGraph(airports, routes);
 
@@ -18,14 +21,16 @@ interface Props {
   simulation: FlightSimulation;
   onHighlightRoutes: (ids: string[]) => void;
   onSetReady: (path: string[], routeIds: string[], cost?: number) => void;
+  onClose?: () => void;
 }
 
-export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes, onSetReady }: Props) {
+export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes, onSetReady, onClose }: Props) {
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [algorithm, setAlgorithm] = useState('dijkstra');
   const [result, setResult] = useState<PathResult | null>(null);
   const [error, setError] = useState('');
+  const isMobile = useIsMobile();
 
   const run = () => {
     setError(''); setResult(null);
@@ -45,14 +50,16 @@ export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes,
     onSetReady(res.path, res.routeIds, res.cost);
   };
 
-  return (
-    <div
-      className={`fixed top-1/2 z-40 w-[272px] -translate-y-1/2 rounded-xl border border-cyan-400/20 bg-slate-950/90 p-4 backdrop-blur-xl transition-all duration-200 flex flex-col gap-4 ${
-        open ? 'opacity-100 translate-x-0' : 'pointer-events-none -translate-x-3 opacity-0'
-      }`}
-      style={{ left: 94 }}
-    >
-      <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Algoritmos de Grafo</p>
+  const content = (
+    <>
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Algoritmos de Grafo</p>
+        {isMobile && onClose && (
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 transition-colors">
+            <X size={16} />
+          </button>
+        )}
+      </div>
 
       <div className="space-y-1.5">
         <label className="text-xs text-slate-400">Algoritmo</label>
@@ -137,6 +144,35 @@ export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes,
           <p className="text-xs text-slate-400">Simulação ativa</p>
         </div>
       )}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="fixed bottom-[70px] left-0 right-0 z-50 rounded-t-2xl border-t border-cyan-400/20 bg-slate-950/95 p-4 backdrop-blur-xl flex flex-col gap-4 max-h-[70vh] overflow-y-auto"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+          >
+            {content}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  return (
+    <div
+      className={`fixed top-1/2 z-40 w-[272px] -translate-y-1/2 rounded-xl border border-cyan-400/20 bg-slate-950/90 p-4 backdrop-blur-xl transition-all duration-200 flex flex-col gap-4 ${
+        open ? 'opacity-100 translate-x-0' : 'pointer-events-none -translate-x-3 opacity-0'
+      }`}
+      style={{ left: 94 }}
+    >
+      {content}
     </div>
   );
 }
