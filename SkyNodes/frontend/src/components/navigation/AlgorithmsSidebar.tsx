@@ -5,16 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { airports } from '../../data/airports';
 import { routes } from '../../data/routes';
-import { buildGraph } from '../../lib/graph/buildGraph';
-import { bfs } from '../../lib/graph/bfs';
-import { dfs } from '../../lib/graph/dfs';
-import { dijkstra } from '../../lib/graph/dijkstra';
-import { bellmanFord } from '../../lib/graph/bellmanFord';
-import type { PathResult } from '../../lib/graph/bfs';
+import { api } from '../../lib/api';
+import { backendPathToResult } from '../../lib/graph/pathUtils';
+import type { PathResult } from '../../lib/graph/pathUtils';
 import type { FlightSimulation } from '../../types';
 import { useIsMobile } from '../../hooks/useIsMobile';
-
-const graph = buildGraph(airports, routes);
 
 interface Props {
   open: boolean;
@@ -30,24 +25,49 @@ export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes,
   const [algorithm, setAlgorithm] = useState('dijkstra');
   const [result, setResult] = useState<PathResult | null>(null);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const isMobile = useIsMobile();
 
-  const run = () => {
+  const run = async () => {
     setError(''); setResult(null);
     if (!origin || !destination || origin === destination) {
       setError('Selecione origem e destino diferentes.'); return;
     }
-    let res: PathResult | null = null;
-    switch (algorithm) {
-      case 'bfs': res = bfs(graph, origin, destination); break;
-      case 'dfs': res = dfs(graph, origin, destination); break;
-      case 'dijkstra': res = dijkstra(graph, origin, destination); break;
-      case 'bellman-ford': res = bellmanFord(airports, routes, origin, destination); break;
+    setLoading(true);
+    try {
+      let raw: { caminho: string[]; custo: number | null } | null = null;
+      switch (algorithm) {
+        case 'bfs': {
+          const r = await api.bfs(origin, destination);
+          raw = r.caminho ? { caminho: r.caminho, custo: r.custo ?? null } : null;
+          break;
+        }
+        case 'dfs': {
+          const r = await api.dfs(origin, destination);
+          raw = r.caminho ? { caminho: r.caminho, custo: r.custo ?? null } : null;
+          break;
+        }
+        case 'dijkstra': {
+          const r = await api.dijkstra(origin, destination);
+          raw = r.caminho.length > 0 ? { caminho: r.caminho, custo: r.custo } : null;
+          break;
+        }
+        case 'bellman-ford': {
+          const r = await api.bellmanFord(origin, destination);
+          raw = r.caminho.length > 0 ? { caminho: r.caminho, custo: r.custo } : null;
+          break;
+        }
+      }
+      if (!raw) { setError('Nenhum caminho encontrado.'); return; }
+      const res = backendPathToResult(raw.caminho, raw.custo, routes);
+      setResult(res);
+      onHighlightRoutes(res.routeIds);
+      onSetReady(res.path, res.routeIds, res.cost);
+    } catch {
+      setError('Erro ao comunicar com o servidor. Verifique se o backend está rodando.');
+    } finally {
+      setLoading(false);
     }
-    if (!res) { setError('Nenhum caminho encontrado.'); return; }
-    setResult(res);
-    onHighlightRoutes(res.routeIds);
-    onSetReady(res.path, res.routeIds, res.cost);
   };
 
   const content = (
@@ -115,9 +135,10 @@ export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes,
 
       <Button
         onClick={run}
-        className="w-full bg-cyan-600/30 border border-cyan-500/50 text-cyan-200 hover:bg-cyan-600/50 text-sm"
+        disabled={loading}
+        className="w-full bg-cyan-600/30 border border-cyan-500/50 text-cyan-200 hover:bg-cyan-600/50 text-sm disabled:opacity-50"
       >
-        Calcular rota
+        {loading ? 'Calculando...' : 'Calcular rota'}
       </Button>
 
       {error && <p className="text-xs text-red-400">{error}</p>}
