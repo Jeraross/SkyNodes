@@ -5,6 +5,26 @@ export type MissionId = string;
 export type RouteState = 'locked' | 'available' | 'restored' | 'blocked';
 export type MissionState = 'locked' | 'active' | 'completed';
 
+export type AirportStatus =
+  | 'unknown'
+  | 'detected'
+  | 'corrupted'
+  | 'disconnected'
+  | 'connected'
+  | 'completed';
+
+export interface DialogueLine {
+  speaker: string;
+  text: string;
+  glitch?: boolean;
+}
+
+export interface DialogueSequence {
+  id: string;
+  lines: DialogueLine[];
+  onComplete?: () => void;
+}
+
 export interface GameAirport {
   id: AirportId;
   code: string;
@@ -13,6 +33,7 @@ export interface GameAirport {
   region: string;
   x: number;
   y: number;
+  status?: AirportStatus;
 }
 
 export interface GameRoute {
