@@ -108,6 +108,10 @@ function GameContent({ onBack }: { onBack: () => void }) {
       onBuyFuel={game.buyFuel}
       onReset={game.reset}
       onBack={onBack}
+      introSeen={game.introSeen}
+      onIntroFinish={game.markIntroSeen}
+      clearedCombatIds={game.clearedCombatIds}
+      onCombatVictory={game.clearCombat}
     />
   );
 }

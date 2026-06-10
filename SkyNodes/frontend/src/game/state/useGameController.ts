@@ -5,6 +5,9 @@ import { findNearbyAirport } from '../logic/navigation';
 import type { GameAirport, GameRoute, PlayerPosition } from '../types';
 import { INITIAL_PROGRESS, loadGameProgress, resetGameProgress, saveGameProgress } from './gameProgress';
 
+const INTRO_SEEN_KEY = 'aerotale-intro-seen-v1';
+const CLEARED_COMBAT_KEY = 'aerotale-cleared-combat-v1';
+
 const LANDING_RADIUS = 0.9;
 
 export function useGameController() {
@@ -12,6 +15,11 @@ export function useGameController() {
   const [progress, setProgress] = useState(loadGameProgress);
   const [playerPosition, setPlayerPosition] = useState<PlayerPosition>({ x: startAirport.x, y: startAirport.y });
   const [targetPosition, setTargetPosition] = useState<PlayerPosition | null>(null);
+  const [introSeen, setIntroSeen] = useState(() => localStorage.getItem(INTRO_SEEN_KEY) === '1');
+  const [clearedCombatIds, setClearedCombatIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(CLEARED_COMBAT_KEY) ?? '[]'); }
+    catch { return []; }
+  });
 
   useEffect(() => saveGameProgress(progress), [progress]);
 
@@ -78,12 +86,29 @@ export function useGameController() {
     ));
   }, []);
 
+  const markIntroSeen = useCallback(() => {
+    localStorage.setItem(INTRO_SEEN_KEY, '1');
+    setIntroSeen(true);
+  }, []);
+
+  const clearCombat = useCallback((encounterId: string) => {
+    setClearedCombatIds(prev => {
+      const next = [...new Set([...prev, encounterId])];
+      localStorage.setItem(CLEARED_COMBAT_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const reset = useCallback(() => {
     const fresh = resetGameProgress();
     const airport = GAME_AIRPORTS.find(item => item.id === fresh.currentAirportId) ?? GAME_AIRPORTS[0];
     setProgress(fresh);
     setPlayerPosition({ x: airport.x, y: airport.y });
     setTargetPosition(null);
+    localStorage.removeItem(INTRO_SEEN_KEY);
+    localStorage.removeItem(CLEARED_COMBAT_KEY);
+    setIntroSeen(false);
+    setClearedCombatIds([]);
   }, []);
 
   return {
@@ -98,6 +123,10 @@ export function useGameController() {
     setTargetPosition,
     nearbyAirport,
     activeMission,
+    introSeen,
+    markIntroSeen,
+    clearedCombatIds,
+    clearCombat,
     landAtAirport,
     confirmTravel,
     earnCredits,

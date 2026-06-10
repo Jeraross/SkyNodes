@@ -760,6 +760,255 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
     },
   },
 
+  FOR: {
+    airportId: 'FOR',
+    title: 'AEROPORTO DE FORTALEZA',
+    status: 'ANOMALIA DETECTADA — SISTEMAS INSTÁVEIS',
+    npcs: [
+      {
+        id: 'controladora-for',
+        name: 'Controladora Marta',
+        role: 'Controle de tráfego',
+        sprite: 'controller',
+        lines: [
+          'A anomalia aqui se comporta diferente. Ela reage quando você tenta se aproximar.',
+          'Os pilotos mais velhos dizem que parece inteligente. Eu não sei o que pensar.',
+        ],
+        dialogue: {
+          start: 'abertura',
+          nodes: {
+            abertura: {
+              speakerId: 'controller',
+              text: 'ANTÔNIO LIMA? CARLOS NOS AVISOU QUE VOCÊ ESTAVA VINDO. A SITUAÇÃO AQUI ESTÁ DIFERENTE.',
+              next: 'antonio-diferente',
+            },
+            'antonio-diferente': {
+              speakerId: 'antonio',
+              text: 'DIFERENTE COMO?',
+              next: 'marta-reage',
+            },
+            'marta-reage': {
+              speakerId: 'controller',
+              text: 'A ANOMALIA REAGE AOS AVIÕES. QUANDO OS INSTRUMENTOS DETECTAM UMA AERONAVE, ELA... MUDA. ORIENTA OS PULSOS EM DIREÇÃO AO AVIÃO.',
+              choices: [
+                { label: 'Isso é impossível.', next: 'marta-eu-sei' },
+                { label: 'Você tem logs disso?', next: 'marta-logs' },
+              ],
+            },
+            'marta-eu-sei': {
+              speakerId: 'controller',
+              text: 'EU SEI COMO SONA. MAS OS DADOS ESTÃO LÁ. TIVEMOS QUATRO AVIÕES SOBREVOANDO. OS QUATRO FORAM INTERCEPTADOS PELOS PULSOS.',
+              next: 'antonio-nao-e-natural',
+            },
+            'antonio-nao-e-natural': {
+              speakerId: 'antonio',
+              text: 'ISSO NÃO É COMPORTAMENTO NATURAL DE UMA TEMPESTADE SOLAR.',
+              next: 'marta-eu-tambem',
+            },
+            'marta-eu-tambem': {
+              speakerId: 'controller',
+              text: 'EU TAMBÉM NÃO ACHO.',
+            },
+            'marta-logs': {
+              speakerId: 'controller',
+              text: 'TENHO. E O QUE ME PREOCUPA MAIS É O TIMESTAMP DO PRIMEIRO PULSO.',
+              next: 'antonio-que-hora',
+            },
+            'antonio-que-hora': {
+              speakerId: 'antonio',
+              text: 'QUE HORAS?',
+              next: 'marta-antes',
+            },
+            'marta-antes': {
+              speakerId: 'controller',
+              text: '03:52. O INPE REGISTROU A ONDA SOLAR CHEGANDO ÀS 03:47. CINCO MINUTOS ANTES DA ONDA, A ANOMALIA JÁ ESTAVA ATIVA AQUI.',
+              next: 'antonio-espera',
+            },
+            'antonio-espera': {
+              speakerId: 'antonio',
+              text: 'ESPERA. ISSO SIGNIFICA QUE ELA COMEÇOU ANTES DA TEMPESTADE SOLAR.',
+              next: 'marta-exatamente',
+            },
+            'marta-exatamente': {
+              speakerId: 'controller',
+              text: 'EXATAMENTE. NÃO SEI O QUE É. MAS ALGUÉM ATIVOU ALGO ANTES DA ONDA CHEGAR.',
+            },
+          },
+        },
+      },
+      {
+        id: 'mecanico-for',
+        name: 'Mecânico Dirceu',
+        role: 'Manutenção de aeronaves',
+        sprite: 'ana',
+        lines: [
+          'Tentei voar ontem. Os instrumentos enlouqueceram a 15km do aeroporto.',
+          'Geometria perfeita. Isso não é natural.',
+        ],
+        dialogue: {
+          start: 'abertura',
+          nodes: {
+            abertura: {
+              speakerId: 'ana',
+              text: 'VOCÊ VIU A ANOMALIA DE PERTO? EU VIM DE VOLTA COM OS CONTROLES QUEIMADOS.',
+              next: 'antonio-o-que-viu',
+            },
+            'antonio-o-que-viu': {
+              speakerId: 'antonio',
+              text: 'O QUE VOCÊ VIU?',
+              next: 'dirceu-forma',
+            },
+            'dirceu-forma': {
+              speakerId: 'ana',
+              text: 'UMA FORMA. COMO UMA GRADE. PERFEITA. CADA LINHA A EXATAMENTE A MESMA DISTÂNCIA. NADA NA NATUREZA FAZ ISSO.',
+              next: 'antonio-confirma',
+            },
+            'antonio-confirma': {
+              speakerId: 'antonio',
+              text: 'OUTRO PILOTO ME DISSE A MESMA COISA. POLIGONAL. GEOMÉTRICA.',
+              next: 'dirceu-codigo',
+            },
+            'dirceu-codigo': {
+              speakerId: 'ana',
+              text: 'E QUANDO EU ME APROXIMEI, OS PULSOS VIERAM EM DIREÇÃO A MIM. COMO SE SOUBESSE QUE EU ESTAVA LÁ.',
+            },
+          },
+        },
+      },
+    ],
+    tasks: [
+      {
+        id: 'for-analyze-pulses',
+        title: 'Analisar Padrão dos Pulsos',
+        kind: 'graph',
+        reward: 150,
+        prompt: 'Os pulsos seguem um padrão de grafo. Mapeie as conexões entre os focos de interferência.',
+      },
+    ],
+    shop: defaultShop,
+  },
+
+  SSA: {
+    airportId: 'SSA',
+    title: 'AEROPORTO DE SALVADOR',
+    status: 'PROTOCOLO DESCONHECIDO — CÓDIGO FRAGMENTADO',
+    npcs: [
+      {
+        id: 'engenheiro-ssa',
+        name: 'Engenheira Paula',
+        role: 'Sistemas ANAC / Salvador',
+        sprite: 'controller',
+        lines: [
+          'Encontrei fragmentos de código no nó corrompido. Não é código de emergência padrão.',
+          'Assinatura no código: ANAC LABS. Isso é interno da ANAC.',
+        ],
+        dialogue: {
+          start: 'abertura',
+          nodes: {
+            abertura: {
+              speakerId: 'controller',
+              text: 'ANTÔNIO. VOCÊ PRECISAVA VER ISSO. ENCONTREI NO LOG DO NÓ CENTRAL ANTES DE ELE CORROMPER TOTALMENTE.',
+              next: 'antonio-o-que-e',
+            },
+            'antonio-o-que-e': {
+              speakerId: 'antonio',
+              text: 'O QUE É?',
+              next: 'paula-codigo',
+            },
+            'paula-codigo': {
+              speakerId: 'controller',
+              text: 'FRAGMENTO DE CÓDIGO. NÃO É EMERGÊNCIA. NÃO É SISTEMA PADRÃO. TEM UMA TAG NO INÍCIO: PROTO-M v0.9.1. ANAC LABS.',
+              choices: [
+                { label: 'PROTO-M? Nunca ouvi falar.', next: 'paula-eu-tambem' },
+                { label: 'Isso significa que é experimental.', next: 'paula-exato' },
+              ],
+            },
+            'paula-eu-tambem': {
+              speakerId: 'controller',
+              text: 'EU TAMBÉM NÃO. PEDI PARA O CARLOS VER. ELE FICOU QUIETO POR TEMPO DEMAIS ANTES DE DIZER QUE NÃO CONHECIA.',
+              next: 'antonio-tempo-demais',
+            },
+            'antonio-tempo-demais': {
+              speakerId: 'antonio',
+              text: 'TEMPO DEMAIS.',
+              next: 'paula-exato',
+            },
+            'paula-exato': {
+              speakerId: 'controller',
+              text: 'EXPERIMENTAL. NÃO DOCUMENTADO. ACESSO RESTRITO. QUEM FEZ ISSO ESTAVA TESTANDO ALGO SEM AUTORIZAÇÃO FORMAL.',
+              next: 'antonio-vai-perguntar',
+            },
+            'antonio-vai-perguntar': {
+              speakerId: 'antonio',
+              text: 'VOU PERGUNTAR PARA CARLOS DIRETAMENTE QUANDO CHEGAR EM BRASÍLIA.',
+            },
+          },
+        },
+      },
+      {
+        id: 'passageiro-ssa',
+        name: 'Passageiro Felipe',
+        role: 'Jornalista investigativo',
+        sprite: 'passenger',
+        lines: [
+          'Estou tentando cobrir isso. Os relatos não fecham com uma tempestade solar comum.',
+          'Alguém sabia que a onda ia chegar. Ou pior: alguém ajudou.',
+        ],
+        dialogue: {
+          start: 'abertura',
+          nodes: {
+            abertura: {
+              speakerId: 'passenger',
+              text: 'VOCÊ É O ENGENHEIRO DA INFRAERO? TENHO PERGUNTAS.',
+              next: 'antonio-jornalista',
+            },
+            'antonio-jornalista': {
+              speakerId: 'antonio',
+              text: 'DEPENDE DAS PERGUNTAS.',
+              next: 'felipe-anomalia',
+            },
+            'felipe-anomalia': {
+              speakerId: 'passenger',
+              text: 'A ANOMALIA EM SALVADOR. ELA NÃO CHEGOU COM A TEMPESTADE. ELA JÁ ESTAVA ANTES. EU TENHO TESTEMUNHOS.',
+              choices: [
+                { label: 'Você tem evidências?', next: 'felipe-evidencias' },
+                { label: 'Não tenho como confirmar isso.', next: 'felipe-nao-confirma' },
+              ],
+            },
+            'felipe-evidencias': {
+              speakerId: 'passenger',
+              text: 'TRÊS PILOTOS VIRAM A GRADE ELETROMAGNÉTICA NO CÉU ANTES DO INPE REGISTRAR A ONDA SOLAR. HORAS ANTES.',
+              next: 'antonio-esse-dado',
+            },
+            'antonio-esse-dado': {
+              speakerId: 'antonio',
+              text: 'ESSE DADO É IMPORTANTE. PODE ME PASSAR OS CONTATOS DELES?',
+              next: 'felipe-passa',
+            },
+            'felipe-passa': {
+              speakerId: 'passenger',
+              text: 'PASSO. E SE VOCÊ DESCOBRIR ALGUMA COISA EM BRASÍLIA, ME CONTA. O PAÍS PRECISA SABER O QUE ACONTECEU.',
+            },
+            'felipe-nao-confirma': {
+              speakerId: 'passenger',
+              text: 'VOCÊ NÃO PRECISA. MAS OS DADOS EXISTEM. ALGUÉM LIGOU ALGO ANTES DA ONDA CHEGAR. ISSO NÃO É OPINIÃO.',
+            },
+          },
+        },
+      },
+    ],
+    tasks: [
+      {
+        id: 'ssa-read-protocol-fragments',
+        title: 'Ler Fragmentos do Protocolo-M',
+        kind: 'restore-network',
+        reward: 200,
+        prompt: 'Reconstrua o grafo fragmentado do Protocolo-M para entender sua lógica de funcionamento.',
+      },
+    ],
+    shop: defaultShop,
+  },
+
   BSB: {
     airportId: 'BSB',
     title: 'HUB BRASÍLIA',
