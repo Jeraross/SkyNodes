@@ -117,6 +117,7 @@ function GameContent({ onBack }: { onBack: () => void }) {
       pushDialogue={game.pushDialogue}
       buildMode={game.buildMode}
       onRouteActivated={game.activateRoute}
+      activateBuildMode={game.activateBuildMode}
       puzzleActive={game.puzzleActive}
       onPuzzleSolved={game.closePuzzle}
       onPuzzleBack={game.closePuzzle}

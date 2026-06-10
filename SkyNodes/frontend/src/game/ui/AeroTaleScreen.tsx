@@ -51,6 +51,7 @@ interface AeroTaleScreenProps {
   // Build mode
   buildMode: boolean;
   onRouteActivated: (routeId: string) => void;
+  activateBuildMode: () => void;
   // Puzzle
   puzzleActive: boolean;
   onPuzzleSolved: () => void;
@@ -92,6 +93,7 @@ export default function AeroTaleScreen({
   pushDialogue,
   buildMode,
   onRouteActivated,
+  activateBuildMode,
   puzzleActive,
   onPuzzleSolved,
   onPuzzleBack,
@@ -113,9 +115,12 @@ export default function AeroTaleScreen({
     setRecifeStarted(true);
     pushDialogue({
       ...RECIFE_CHEGADA,
-      onComplete: () => pushDialogue({ ...RECIFE_TUTORIAL_VERTICES }),
+      onComplete: () => pushDialogue({
+        ...RECIFE_TUTORIAL_VERTICES,
+        onComplete: () => activateBuildMode(),
+      }),
     });
-  }, [introSeen, recifeStarted, dialogueQueue.length, pushDialogue, currentAirport]);
+  }, [introSeen, recifeStarted, dialogueQueue.length, pushDialogue, currentAirport, activateBuildMode]);
 
   const arestasDialogueFiredRef = useRef(false);
 
