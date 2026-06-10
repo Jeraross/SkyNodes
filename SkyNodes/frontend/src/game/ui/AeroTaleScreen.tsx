@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DialogueSequence, GameAirport, GameMission, GameRoute, PlayerPosition } from '../types';
 import { buildRetroScreenModel } from './retroScreen';
 import WorldMapPanel from './WorldMapPanel';
@@ -109,16 +109,22 @@ export default function AeroTaleScreen({
   // Auto-trigger Recife arrival dialogue on first map load
   useEffect(() => {
     if (!introSeen || recifeStarted || dialogueQueue.length > 0) return;
+    if (currentAirport?.id !== 'REC') return;
     setRecifeStarted(true);
     pushDialogue({
       ...RECIFE_CHEGADA,
       onComplete: () => pushDialogue({ ...RECIFE_TUTORIAL_VERTICES }),
     });
-  }, [introSeen, recifeStarted, dialogueQueue.length, pushDialogue]);
+  }, [introSeen, recifeStarted, dialogueQueue.length, pushDialogue, currentAirport]);
+
+  const arestasDialogueFiredRef = useRef(false);
 
   const handleRouteActivated = useCallback((routeId: string) => {
     onRouteActivated(routeId);
-    pushDialogue({ ...RECIFE_TUTORIAL_ARESTAS });
+    if (!arestasDialogueFiredRef.current) {
+      arestasDialogueFiredRef.current = true;
+      pushDialogue({ ...RECIFE_TUTORIAL_ARESTAS });
+    }
   }, [onRouteActivated, pushDialogue]);
 
   const handleCombatVictory = useCallback((encounterId: string) => {
@@ -152,10 +158,6 @@ export default function AeroTaleScreen({
         });
         return;
       }
-      // Combat cleared — check if puzzle exists and not yet active
-      if (AIRPORT_PUZZLES[currentAirport.id]) {
-        // Show airport menu as normal (puzzle opened via handleCombatVictory flow)
-      }
     }
     setActiveAction(action);
   };
@@ -182,13 +184,11 @@ export default function AeroTaleScreen({
   // Puzzle full-screen
   if (puzzleActive && currentAirport && AIRPORT_PUZZLES[currentAirport.id]) {
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
-        <AirportPuzzlePanel
-          puzzle={AIRPORT_PUZZLES[currentAirport.id]}
-          onSolved={handlePuzzleSolved}
-          onBack={onPuzzleBack}
-        />
-      </div>
+      <AirportPuzzlePanel
+        puzzle={AIRPORT_PUZZLES[currentAirport.id]}
+        onSolved={handlePuzzleSolved}
+        onBack={onPuzzleBack}
+      />
     );
   }
 
