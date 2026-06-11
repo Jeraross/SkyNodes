@@ -211,7 +211,6 @@ __marimo__/
 # Project specific
 .claude/
 docs/
-componentes/
 contexto/
 
 /jogo-gdd
