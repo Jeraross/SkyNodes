@@ -76,3 +76,46 @@ export function calculateTravelPlan({
 function routeConnects(route: GameRoute, from: string, to: string): boolean {
   return (route.from === from && route.to === to) || (route.from === to && route.to === from);
 }
+
+export interface ShortestPath {
+  airportIds: string[];
+  routeIds: string[];
+}
+
+export function findShortestPath(
+  fromId: string,
+  toId: string,
+  airports: GameAirport[],
+  routes: GameRoute[],
+): ShortestPath | null {
+  if (fromId === toId) return null;
+
+  const airportSet = new Set(airports.map(a => a.id));
+  const visited = new Set<string>([fromId]);
+  const queue: Array<{ airportId: string; path: string[]; routeIds: string[] }> = [
+    { airportId: fromId, path: [fromId], routeIds: [] },
+  ];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const traversable = routes.filter(r => {
+      if (r.state === 'locked' || r.state === 'blocked') return false;
+      return (r.from === current.airportId && airportSet.has(r.to)) ||
+             (r.to === current.airportId && airportSet.has(r.from));
+    });
+
+    for (const route of traversable) {
+      const neighborId = route.from === current.airportId ? route.to : route.from;
+      if (visited.has(neighborId)) continue;
+      visited.add(neighborId);
+      const newPath = [...current.path, neighborId];
+      const newRouteIds = [...current.routeIds, route.id];
+      if (neighborId === toId) {
+        return { airportIds: newPath, routeIds: newRouteIds };
+      }
+      queue.push({ airportId: neighborId, path: newPath, routeIds: newRouteIds });
+    }
+  }
+
+  return null;
+}

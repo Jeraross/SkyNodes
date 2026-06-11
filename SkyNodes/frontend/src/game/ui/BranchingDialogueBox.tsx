@@ -44,16 +44,19 @@ export default function BranchingDialogueBox({ script, speakers, onClose }: Bran
   };
 
   return (
-    <div className="absolute inset-0 z-40 flex items-end bg-black/65 p-4">
-      <div className="grid w-full grid-cols-[140px_1fr] gap-3 border-2 border-[#ff8800] bg-black p-3">
-        <div className="border-2 border-[#007000] bg-[#001800] p-3">
+    <div className="fixed inset-0 z-[200] flex items-end bg-black/75 p-4 pb-8">
+      <div className="w-full max-w-4xl mx-auto grid grid-cols-[120px_1fr] gap-0 border-2 border-[#ff8800] bg-black shadow-[0_0_40px_rgba(255,136,0,0.3)]">
+        {/* Speaker portrait */}
+        <div className="flex flex-col items-center justify-end border-r-2 border-[#ff8800] bg-[#080400] px-3 pb-3 pt-4">
           <DialogueSprite sprite={speaker.sprite} />
-          <p className="mt-3 text-center font-pixel text-[8px] text-[#ffd700]">{speaker.name.toUpperCase()}</p>
+          <p className="mt-2 text-center font-pixel text-[8px] text-[#ffd700]">{speaker.name.toUpperCase()}</p>
         </div>
-        <button type="button" onClick={advance} className="min-h-36 border-2 border-[#ffd700] bg-black p-4 text-left">
-          <p className="font-term text-2xl leading-tight text-[#ff0000]">{node.text}</p>
+        {/* Dialogue text + choices */}
+        <button type="button" onClick={advance} className="min-h-40 bg-black p-5 text-left focus:outline-none">
+          <p className="font-pixel text-[7px] text-[#ff8800] mb-2 uppercase">{speaker.name}</p>
+          <p className="font-term text-2xl leading-tight text-[#e8e8e8]">{node.text}</p>
           {node.choices?.length ? (
-            <div className="mt-4 grid gap-2">
+            <div className="mt-5 grid gap-2">
               {node.choices.map((choice, index) => (
                 <button
                   key={choice.label}
@@ -62,14 +65,14 @@ export default function BranchingDialogueBox({ script, speakers, onClose }: Bran
                     event.stopPropagation();
                     setNodeId(chooseDialogueOption(script, nodeId, index));
                   }}
-                  className="border border-[#007000] bg-[#001800] px-3 py-2 text-left font-pixel text-[8px] text-[#00ff00] hover:border-[#00ffff]"
+                  className="border border-[#007000] bg-[#001800] px-4 py-2 text-left font-pixel text-[8px] text-[#00ff00] hover:border-[#00ffff] hover:text-[#00ffff]"
                 >
-                  &gt; {choice.label}
+                  ▶ {choice.label}
                 </button>
               ))}
             </div>
           ) : (
-            <p className="mt-4 font-pixel text-[7px] text-[#b0b0b0]">CLIQUE PARA AVANCAR</p>
+            <p className="mt-5 font-pixel text-[7px] text-[#555]">▶ CLIQUE PARA CONTINUAR</p>
           )}
         </button>
       </div>

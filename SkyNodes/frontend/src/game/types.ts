@@ -66,6 +66,8 @@ export interface GameProgress {
   activeMissionId: MissionId;
   credits: number;
   fuel: number;
+  anomalyDefeatedRouteIds: RouteId[];
+  anomalyBonusTrips: number;
 }
 
 export interface PlayerPosition {
