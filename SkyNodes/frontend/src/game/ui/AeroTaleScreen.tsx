@@ -17,8 +17,15 @@ import {
   RECIFE_PRE_PUZZLE,
   RECIFE_ENCERRAMENTO,
 } from '../data/recifeDialogues';
+import {
+  buildArrivalDialogue,
+  buildGlitchDialogue,
+  buildPrePuzzleDialogue,
+  buildEncerramentoDialogue,
+} from '../data/airportDialogues';
 import DialogueOverlay from './DialogueOverlay';
 import AirportPuzzlePanel from './AirportPuzzlePanel';
+import VictoryScreen from './VictoryScreen';
 
 interface AeroTaleScreenProps {
   airports: GameAirport[];
@@ -102,6 +109,8 @@ export default function AeroTaleScreen({
   const [activeAction, setActiveAction] = useState<Action>('MAPA');
   const [combatActive, setCombatActive] = useState(false);
   const [recifeStarted, setRecifeStarted] = useState(false);
+  const [victoryActive, setVictoryActive] = useState(false);
+  const arrivedAirportIdsRef = useRef<Set<string>>(new Set(['REC']));
 
   const model = useMemo(
     () => buildRetroScreenModel({ currentAirport, activeMission, completedCount, totalMissions, nearbyAirport, credits, fuel }),
@@ -122,6 +131,15 @@ export default function AeroTaleScreen({
     });
   }, [introSeen, recifeStarted, dialogueQueue.length, pushDialogue, currentAirport, activateBuildMode]);
 
+  // Arrival dialogue for non-REC airports
+  useEffect(() => {
+    if (!introSeen || dialogueQueue.length > 0) return;
+    const airport = currentAirport;
+    if (!airport || airport.id === 'REC' || arrivedAirportIdsRef.current.has(airport.id)) return;
+    arrivedAirportIdsRef.current.add(airport.id);
+    pushDialogue(buildArrivalDialogue(airport));
+  }, [introSeen, dialogueQueue.length, pushDialogue, currentAirport]);
+
   const arestasDialogueFiredRef = useRef(false);
 
   const handleRouteActivated = useCallback((routeId: string) => {
@@ -135,26 +153,35 @@ export default function AeroTaleScreen({
   const handleCombatVictory = useCallback((encounterId: string) => {
     onCombatVictory(encounterId);
     setCombatActive(false);
-    pushDialogue({
-      ...RECIFE_PRE_PUZZLE,
-      onComplete: () => openPuzzle(),
-    });
-  }, [onCombatVictory, openPuzzle, pushDialogue]);
+    const prePuzzle = currentAirport?.id === 'REC'
+      ? RECIFE_PRE_PUZZLE
+      : currentAirport ? buildPrePuzzleDialogue(currentAirport) : RECIFE_PRE_PUZZLE;
+    pushDialogue({ ...prePuzzle, onComplete: () => openPuzzle() });
+  }, [onCombatVictory, openPuzzle, pushDialogue, currentAirport]);
 
   const handlePuzzleSolved = useCallback(() => {
     onPuzzleSolved();
+    const airportId = currentAirport?.id ?? 'unknown';
+    const isRec = airportId === 'REC';
+    const isRbr = airportId === 'RBR';
+    const encerramentoSeq = isRec
+      ? RECIFE_ENCERRAMENTO
+      : currentAirport ? buildEncerramentoDialogue(currentAirport) : RECIFE_ENCERRAMENTO;
+    const taskId = isRec ? 'recife_completed' : `${airportId.toLowerCase()}_completed`;
     pushDialogue({
-      ...RECIFE_ENCERRAMENTO,
+      ...encerramentoSeq,
       onComplete: () => {
-        // Mark Recife task as complete — use the airport id as task id
-        onCompleteTask('recife_completed', 0);
+        onCompleteTask(taskId, 0);
+        if (isRbr) setVictoryActive(true);
       },
     });
-  }, [onCompleteTask, onPuzzleSolved, pushDialogue]);
+  }, [onCompleteTask, onPuzzleSolved, pushDialogue, currentAirport]);
 
   const handleReset = useCallback(() => {
     setRecifeStarted(false);
     arestasDialogueFiredRef.current = false;
+    arrivedAirportIdsRef.current = new Set(['REC']);
+    setVictoryActive(false);
     onReset();
   }, [onReset]);
 
@@ -162,11 +189,10 @@ export default function AeroTaleScreen({
     if (action === 'ENTRAR NO AEROPORTO' && currentAirport) {
       const encounter = getEncounterForAirport(currentAirport.id);
       if (encounter && !clearedCombatIds.includes(encounter.id)) {
-        // Intercept: show glitch dialogue before starting combat
-        pushDialogue({
-          ...RECIFE_GLITCH_APARECE,
-          onComplete: () => setCombatActive(true),
-        });
+        const glitchSeq = currentAirport.id === 'REC'
+          ? RECIFE_GLITCH_APARECE
+          : buildGlitchDialogue(currentAirport);
+        pushDialogue({ ...glitchSeq, onComplete: () => setCombatActive(true) });
         return;
       }
     }
@@ -177,6 +203,17 @@ export default function AeroTaleScreen({
   // Show intro cinematic first time — after all hooks
   if (!introSeen) {
     return <AeroTaleIntro onFinish={onIntroFinish} />;
+  }
+
+  if (victoryActive) {
+    return (
+      <VictoryScreen
+        completedCount={completedCount}
+        totalMissions={totalMissions}
+        credits={credits}
+        onReset={handleReset}
+      />
+    );
   }
 
   // Active combat encounter check

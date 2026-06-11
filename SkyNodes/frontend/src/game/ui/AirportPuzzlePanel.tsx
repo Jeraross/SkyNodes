@@ -161,7 +161,7 @@ export default function AirportPuzzlePanel({ puzzle, onSolved, onBack }: Airport
       {/* header */}
       <div className="flex items-center justify-between border-b-2 border-[#00aa00] px-4 py-2" style={{ zIndex: 20 }}>
         <span className="font-pixel text-[8px] text-[#ffd700]">
-          AEROPORTO RECIFE — SUBGRAFO LOCAL
+          AEROPORTO {puzzle.label ?? puzzle.airportId} — SUBGRAFO LOCAL
         </span>
         <button
           type="button"
