@@ -1,0 +1,113 @@
+<h2>Puzzle de Grafo — Interior do Aeroporto de Recife</h2>
+<p class="subtitle">Como o jogador vê e interage com os nós do subgrafo local? Escolha o layout que melhor combina com a estética Atari 2600 do GDD.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="A" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#020617;padding:12px;border:2px solid #ffd700;font-family:monospace;min-height:160px;position:relative;">
+        <div style="color:#ffd700;font-size:9px;margin-bottom:8px;letter-spacing:2px;">AEROPORTO RECIFE — SUBGRAFO</div>
+        <!-- Nodes as labeled boxes connected by lines -->
+        <svg width="100%" height="120" viewBox="0 0 260 120">
+          <!-- edges -->
+          <line x1="50" y1="30" x2="130" y2="30" stroke="#555" stroke-width="2" stroke-dasharray="4"/>
+          <line x1="130" y1="30" x2="210" y2="30" stroke="#555" stroke-width="2" stroke-dasharray="4"/>
+          <line x1="50" y1="30" x2="50" y2="90" stroke="#555" stroke-width="2" stroke-dasharray="4"/>
+          <line x1="130" y1="30" x2="130" y2="90" stroke="#555" stroke-width="2" stroke-dasharray="4"/>
+          <!-- active edge example -->
+          <line x1="50" y1="90" x2="130" y2="90" stroke="#00ff00" stroke-width="2"/>
+          <!-- nodes -->
+          <rect x="20" y="15" width="60" height="30" fill="#001a00" stroke="#00ff00" stroke-width="2" rx="2"/>
+          <text x="50" y="34" fill="#00ff00" font-size="8" text-anchor="middle" font-family="monospace">TORRE</text>
+          <rect x="100" y="15" width="60" height="30" fill="#001a00" stroke="#ffd700" stroke-width="2" rx="2"/>
+          <text x="130" y="34" fill="#ffd700" font-size="8" text-anchor="middle" font-family="monospace">TERMINAL</text>
+          <rect x="180" y="15" width="60" height="30" fill="#1a0000" stroke="#ff4400" stroke-width="2" rx="2"/>
+          <text x="210" y="34" fill="#ff4400" font-size="8" text-anchor="middle" font-family="monospace">RADAR</text>
+          <rect x="20" y="75" width="60" height="30" fill="#001a00" stroke="#00ff00" stroke-width="2" rx="2"/>
+          <text x="50" y="94" fill="#00ff00" font-size="8" text-anchor="middle" font-family="monospace">PISTA</text>
+          <rect x="100" y="75" width="60" height="30" fill="#1a0000" stroke="#555" stroke-width="2" rx="2"/>
+          <text x="130" y="94" fill="#555555" font-size="8" text-anchor="middle" font-family="monospace">GERADOR</text>
+        </svg>
+        <div style="color:#b0b0b0;font-size:7px;margin-top:4px;">► Arraste para criar arestas entre os nós</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Nós como caixas rotuladas</h3>
+      <p>Vértices são retângulos com nome do setor. Conexões são linhas entre eles. Clique num nó e arraste para o outro para criar aresta. Verde = conectado, vermelho = corrompido, cinza = inativo.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="B" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#020617;padding:12px;border:2px solid #ffd700;font-family:monospace;min-height:160px;position:relative;">
+        <div style="color:#ffd700;font-size:9px;margin-bottom:8px;letter-spacing:2px;">AEROPORTO RECIFE — SUBGRAFO</div>
+        <svg width="100%" height="120" viewBox="0 0 260 120">
+          <!-- edges dashed = not connected -->
+          <line x1="50" y1="30" x2="130" y2="60" stroke="#555" stroke-width="1.5" stroke-dasharray="3"/>
+          <line x1="210" y1="30" x2="130" y2="60" stroke="#555" stroke-width="1.5" stroke-dasharray="3"/>
+          <line x1="50" y1="90" x2="130" y2="60" stroke="#00ff00" stroke-width="2"/>
+          <line x1="210" y1="90" x2="130" y2="60" stroke="#555" stroke-width="1.5" stroke-dasharray="3"/>
+          <!-- center hub -->
+          <circle cx="130" cy="60" r="14" fill="#001a00" stroke="#ffd700" stroke-width="2"/>
+          <text x="130" y="64" fill="#ffd700" font-size="7" text-anchor="middle" font-family="monospace">TORRE</text>
+          <!-- peripheral nodes -->
+          <circle cx="50" cy="30" r="12" fill="#001a00" stroke="#00ff00" stroke-width="2"/>
+          <text x="50" y="34" fill="#00ff00" font-size="6" text-anchor="middle" font-family="monospace">TERM</text>
+          <circle cx="210" cy="30" r="12" fill="#1a0000" stroke="#ff4400" stroke-width="2"/>
+          <text x="210" y="34" fill="#ff4400" font-size="6" text-anchor="middle" font-family="monospace">RADAR</text>
+          <circle cx="50" cy="90" r="12" fill="#001a00" stroke="#00ff00" stroke-width="2"/>
+          <text x="50" y="94" fill="#00ff00" font-size="6" text-anchor="middle" font-family="monospace">PISTA</text>
+          <circle cx="210" cy="90" r="12" fill="#001500" stroke="#555" stroke-width="2"/>
+          <text x="210" y="94" fill="#555" font-size="6" text-anchor="middle" font-family="monospace">GERADOR</text>
+        </svg>
+        <div style="color:#b0b0b0;font-size:7px;margin-top:4px;">► Clique em dois nós para conectá-los</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Nós como círculos (clássico de grafo)</h3>
+      <p>Vértices são círculos dispostos radialmente, hub central mais visível. Visual mais próximo de diagramas de grafos tradicionais. Clique em dois círculos para criar aresta. Mais didático para o conceito de teoria dos grafos.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="C" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#020617;padding:12px;border:2px solid #ffd700;font-family:monospace;min-height:160px;position:relative;">
+        <div style="color:#ffd700;font-size:9px;margin-bottom:8px;letter-spacing:2px;">AEROPORTO RECIFE — SUBGRAFO</div>
+        <svg width="100%" height="120" viewBox="0 0 260 120">
+          <!-- grid-like layout with pixel art icons -->
+          <line x1="60" y1="30" x2="130" y2="30" stroke="#00ff00" stroke-width="2"/>
+          <line x1="130" y1="30" x2="200" y2="30" stroke="#555" stroke-width="1.5" stroke-dasharray="3"/>
+          <line x1="60" y1="30" x2="60" y2="90" stroke="#555" stroke-width="1.5" stroke-dasharray="3"/>
+          <line x1="130" y1="30" x2="130" y2="90" stroke="#555" stroke-width="1.5" stroke-dasharray="3"/>
+          <!-- pixel art style nodes (squares) -->
+          <!-- Torre -->
+          <rect x="45" y="15" width="30" height="30" fill="#001a00" stroke="#00ff00" stroke-width="2"/>
+          <text x="60" y="26" fill="#00ff00" font-size="5" text-anchor="middle" font-family="monospace">📡</text>
+          <text x="60" y="38" fill="#00ff00" font-size="5" text-anchor="middle" font-family="monospace">TORRE</text>
+          <!-- Terminal -->
+          <rect x="115" y="15" width="30" height="30" fill="#001a00" stroke="#ffd700" stroke-width="2"/>
+          <text x="130" y="26" fill="#ffd700" font-size="5" text-anchor="middle" font-family="monospace">🏢</text>
+          <text x="130" y="38" fill="#ffd700" font-size="5" text-anchor="middle" font-family="monospace">TERM</text>
+          <!-- Radar (corrupted) -->
+          <rect x="185" y="15" width="30" height="30" fill="#1a0000" stroke="#ff4400" stroke-width="2"/>
+          <text x="200" y="26" fill="#ff4400" font-size="5" text-anchor="middle" font-family="monospace">⚠</text>
+          <text x="200" y="38" fill="#ff4400" font-size="5" text-anchor="middle" font-family="monospace">RADAR</text>
+          <!-- Pista -->
+          <rect x="45" y="75" width="30" height="30" fill="#0a1a00" stroke="#555" stroke-width="2"/>
+          <text x="60" y="86" fill="#555" font-size="5" text-anchor="middle" font-family="monospace">✈</text>
+          <text x="60" y="98" fill="#555" font-size="5" text-anchor="middle" font-family="monospace">PISTA</text>
+          <!-- Gerador -->
+          <rect x="115" y="75" width="30" height="30" fill="#0a1a00" stroke="#555" stroke-width="2"/>
+          <text x="130" y="86" fill="#555" font-size="5" text-anchor="middle" font-family="monospace">⚡</text>
+          <text x="130" y="98" fill="#555" font-size="5" text-anchor="middle" font-family="monospace">ENERG</text>
+        </svg>
+        <div style="color:#b0b0b0;font-size:7px;margin-top:4px;">► Clique num nó depois em outro para conectar</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Nós como ícones de setor (pixel art)</h3>
+      <p>Cada setor tem um ícone representativo além do nome. Mais imersivo e narrativo. Visualmente mais rico mas potencialmente mais poluído. Boa âncora para o jogador entender o que cada nó representa na história.</p>
+    </div>
+  </div>
+
+</div>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { chooseDialogueOption, getDialogueNode, type DialogueScript } from '../logic/dialogueEngine';
-import antonioSprite from '../sprites/character_sprites/Antonio.png';
-import carlosSprite from '../sprites/character_sprites/Carlos.png';
+import agenteJSprite from '../sprites/character_sprites/Antonio.png';
+import liaSprite from '../sprites/character_sprites/a9.png';
 import anaSprite from '../sprites/character_sprites/a2.png';
 import controllerSprite from '../sprites/character_sprites/a4.png';
 import passengerSprite from '../sprites/character_sprites/a7.png';
@@ -9,7 +9,7 @@ import passengerSprite from '../sprites/character_sprites/a7.png';
 interface DialogueSpeaker {
   id: string;
   name: string;
-  sprite: 'antonio' | 'carlos' | 'ana' | 'controller' | 'passenger';
+  sprite: 'agente-j' | 'lia' | 'ana' | 'controller' | 'passenger';
 }
 
 interface BranchingDialogueBoxProps {
@@ -19,8 +19,8 @@ interface BranchingDialogueBoxProps {
 }
 
 const SPRITE_ASSETS: Record<DialogueSpeaker['sprite'], string> = {
-  antonio: antonioSprite,
-  carlos: carlosSprite,
+  'agente-j': agenteJSprite,
+  lia: liaSprite,
   ana: anaSprite,
   controller: controllerSprite,
   passenger: passengerSprite,

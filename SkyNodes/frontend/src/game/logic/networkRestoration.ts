@@ -33,24 +33,34 @@ const PUZZLES: Record<string, NetworkRestorationPuzzle> = {
     id: 'rec-restore-network',
     airportId: 'REC',
     title: 'RESTABELECER MALHA DE RECIFE',
-    canvas: { width: 520, height: 280 },
+    canvas: { width: 640, height: 380 },
+    // Positions follow geographic layout: north=up, east=right
     nodes: [
-      { id: 'REC', label: 'REC', x: 90, y: 140 },
-      { id: 'JPA', label: 'JPA', x: 250, y: 95 },
-      { id: 'SSA', label: 'SSA', x: 400, y: 195 },
-      { id: 'FOR', label: 'FOR', x: 380, y: 70 },
+      { id: 'THE', label: 'THE', x: 75,  y: 95  }, // Teresina — northwest
+      { id: 'FOR', label: 'FOR', x: 300, y: 40  }, // Fortaleza — north
+      { id: 'NAT', label: 'NAT', x: 515, y: 75  }, // Natal — northeast
+      { id: 'BSB', label: 'BSB', x: 65,  y: 260 }, // Brasília — west
+      { id: 'REC', label: 'REC', x: 265, y: 195 }, // Recife — center hub
+      { id: 'JPA', label: 'JPA', x: 430, y: 140 }, // João Pessoa — northeast (safe)
+      { id: 'SSA', label: 'SSA', x: 410, y: 310 }, // Salvador — south
+      { id: 'GRU', label: 'GRU', x: 195, y: 340 }, // Guarulhos — far southwest
     ],
+    // All 7 routes connected to REC in the dataset; REC-JPA is the only operational one
     candidateRoutes: [
-      { id: 'route-3', from: 'REC', to: 'JPA' },
-      { id: 'route-0', from: 'REC', to: 'SSA', blocked: true },
-      { id: 'route-1', from: 'REC', to: 'FOR', blocked: true },
+      { id: 'route-3',  from: 'REC', to: 'JPA' },
+      { id: 'route-0',  from: 'REC', to: 'SSA', blocked: true },
+      { id: 'route-1',  from: 'REC', to: 'FOR', blocked: true },
+      { id: 'route-2',  from: 'REC', to: 'NAT', blocked: true },
+      { id: 'route-4',  from: 'REC', to: 'THE', blocked: true },
+      { id: 'route-37', from: 'REC', to: 'GRU', blocked: true },
+      { id: 'route-47', from: 'BSB', to: 'REC', blocked: true },
     ],
-    requiredNodeIds: ['REC', 'JPA'],
-    requiredRouteIds: ['route-3'],
+    requiredNodeIds: ['REC', 'JPA', 'SSA', 'FOR', 'NAT', 'THE', 'GRU', 'BSB'],
+    requiredRouteIds: ['route-3', 'route-0', 'route-1', 'route-2', 'route-4', 'route-37', 'route-47'],
     guidePages: [
-      'Todo aeroporto e um no. Recife deve ficar como ponto de partida da malha local.',
-      'Uma rota e uma aresta. Arestas com ondas solares nao podem ser usadas agora.',
-      'Conecte todos os nos alcancaveis usando todas as rotas possiveis do aeroporto atual.',
+      'Todo aeroporto e um no. Recife (REC) e o hub da malha nordestina — 7 rotas partem daqui.',
+      'Mapeie TODAS as arestas: operacionais e danificadas. Rotas com onda solar (~) estao bloqueadas pelo PROTOCOLO-M mas ainda fazem parte do grafo.',
+      'Clique em dois nos para registrar a aresta entre eles. Conecte todas as 7 rotas para completar o mapeamento.',
     ],
   },
 };
@@ -83,7 +93,7 @@ export function connectNetworkRoute(
   to: AirportId,
 ): RouteId[] {
   const route = puzzle.candidateRoutes.find(candidate => routeConnects(candidate, from, to));
-  if (!route || route.blocked) return selectedRouteIds;
+  if (!route) return selectedRouteIds;
 
   return selectedRouteIds.includes(route.id)
     ? selectedRouteIds.filter(routeId => routeId !== route.id)

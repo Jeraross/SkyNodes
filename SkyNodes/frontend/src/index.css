@@ -57,6 +57,56 @@ body {
   image-rendering: crisp-edges;
 }
 
+.atari-sprite-canvas {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.atari-sprite-canvas canvas,
+.pixelated canvas {
+  display: block;
+  max-width: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.intro-pixi-scene {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+
+.intro-pixi-scene canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  object-fit: cover;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.combat-battle-box {
+  width: 320px;
+  height: 200px;
+  max-width: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.combat-battle-box canvas {
+  width: 320px !important;
+  height: 200px !important;
+  max-width: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
 .crt-scanlines {
   position: relative;
 }

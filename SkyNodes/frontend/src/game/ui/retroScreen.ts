@@ -42,22 +42,25 @@ export function buildRetroScreenModel({
   const routeStatus = activeMission?.anomalyRouteIds.length
     ? 'ANOMALIA DETECTADA NO CAMINHO: VALIDE AS CONEXOES DA MALHA.'
     : objective;
+  const currentAirportPrompt = currentAirport && nearbyAirport?.id === currentAirport.id
+    ? `${location} ESTA COM O NODO CORROMPIDO. ENTRE NO AEROPORTO E RESTAURE A TORRE.`
+    : null;
 
   return {
     stats: [
       { label: 'LOCAL', value: location, tone: 'green' },
       { label: 'COMBUSTIVEL', value: String(fuel), tone: 'yellow' },
       { label: 'CREDITOS', value: String(credits), tone: 'yellow' },
-      { label: 'REPUTACAO', value: `${completedCount}/${totalMissions}`, tone: 'cyan' },
+      { label: 'MALHA', value: `${completedCount}/${totalMissions}`, tone: 'cyan' },
     ],
-    missionLine: `MISSAO: ${missionTitle}`,
-    dialogueSpeaker: 'CONTROLADOR CARLOS:',
+    missionLine: `PROTOCOLO-M: ${missionTitle}`,
+    dialogueSpeaker: 'LIA:',
     dialogueLines: [
-      (activeMission?.description ?? 'A malha aerea brasileira voltou a responder.').toUpperCase(),
+      'PROTOCOLO-M ATIVO. MALHA AEREA BRASILEIRA COMPROMETIDA.',
       routeStatus,
-      nearbyAirport
-        ? `AEROPORTO ${nearbyAirport.code} AO ALCANCE. USE VIAJAR PARA POUSAR.`
-        : 'USE AS SETAS OU CLIQUE NO MAPA PARA NAVEGAR.',
+      currentAirportPrompt ?? (nearbyAirport && nearbyAirport.id !== currentAirport?.id
+        ? `${nearbyAirport.code} DETECTADO. USE VIAJAR PARA POUSAR.`
+        : 'MOVA-SE PELO MAPA PARA EXPLORAR NOVOS AEROPORTOS.'),
     ],
   };
 }
