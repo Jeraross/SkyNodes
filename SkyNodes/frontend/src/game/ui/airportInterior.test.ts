@@ -19,7 +19,7 @@ describe('airport interior rooms', () => {
     expect(getDefaultAirportRoom('REC')).toBe('tower');
     const tower = AIRPORT_INTERIOR_ROOMS.find(room => room.id === 'tower');
 
-    expect(tower?.npcIds).toContain('carlos');
+    expect(tower?.npcIds).toContain('lia');
     expect(tower?.detail).toBe('npcs');
   });
 

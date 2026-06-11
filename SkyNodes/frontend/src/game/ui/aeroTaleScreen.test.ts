@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { shouldShowGlobalHud } from './AeroTaleScreen';
+import { shouldShowGlobalHud } from './aeroTaleHud';
 
 describe('AeroTaleScreen hud visibility', () => {
   it('hides the global dialogue and action bar inside the airport', () => {
