@@ -42,7 +42,7 @@ export function useGameController() {
   );
 
   const routes = useMemo<GameRoute[]>(
-    () => buildRoutesForProgress(GAME_ROUTES, progress),
+    () => buildRoutesForProgress(GAME_ROUTES, progress, GAME_MISSIONS),
     [progress],
   );
 
