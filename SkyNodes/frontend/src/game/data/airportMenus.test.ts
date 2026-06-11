@@ -3,30 +3,33 @@ import { AIRPORT_MENUS, getAirportMenu } from './airportMenus';
 
 describe('airport menus', () => {
   it('provides distinct NPCs and tasks for key airports', () => {
-    expect(getAirportMenu('REC').npcs.map(npc => npc.name)).toContain('Controlador Carlos');
+    expect(getAirportMenu('REC').npcs.map(npc => npc.name)).toContain('Lia');
     expect(getAirportMenu('JPA').npcs.map(npc => npc.id)).toContain('prefeito');
     expect(getAirportMenu('BSB').npcs.map(npc => npc.id)).toContain('helena');
     expect(getAirportMenu('GRU').tasks.some(task => task.kind === 'chart')).toBe(true);
     expect(getAirportMenu('MAO').tasks.some(task => task.kind === 'graph')).toBe(true);
   });
 
-  it('makes Recife a guided graph tutorial before route mapping opens', () => {
+  it('makes Recife a guided tutorial with Lia as the guide NPC', () => {
     const rec = getAirportMenu('REC');
 
     expect(rec.status).toContain('TUTORIAL');
-    expect(rec.npcs.find(npc => npc.id === 'carlos')?.role).toContain('Tutorial');
+    expect(rec.npcs.find(npc => npc.id === 'lia')?.role).toContain('Operadora');
     expect(rec.tasks.map(task => [task.id, task.kind])).toEqual([
       ['rec-restore-network', 'restore-network'],
+      ['rec-calibrate-systems', 'chart'],
+      ['rec-route-weights',    'chart'],
+      ['rec-frequency-scan',  'chart'],
     ]);
   });
 
   it('provides Twine-like branching dialogue metadata for NPCs', () => {
-    const carlos = getAirportMenu('REC').npcs.find(npc => npc.id === 'carlos');
+    const lia = getAirportMenu('REC').npcs.find(npc => npc.id === 'lia');
 
-    expect(carlos?.sprite).toBe('carlos');
-    expect(carlos?.dialogue.start).toBe('abertura');
-    expect(carlos?.dialogue.nodes['antonio-acabei'].speakerId).toBe('antonio');
-    expect(carlos?.dialogue.nodes['antonio-acabei'].choices?.length).toBeGreaterThan(1);
+    expect(lia?.sprite).toBe('lia');
+    expect(lia?.dialogue.start).toBe('abertura');
+    expect(lia?.dialogue.nodes['agente-j-entendido'].speakerId).toBe('agente-j');
+    expect(lia?.dialogue.nodes['agente-j-entendido'].choices?.length).toBeGreaterThan(1);
   });
 
   it('falls back to a generic regional airport menu', () => {

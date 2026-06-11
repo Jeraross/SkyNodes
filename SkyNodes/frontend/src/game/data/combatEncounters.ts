@@ -93,6 +93,65 @@ const NODO_REC: CombatEncounter = {
         { at: 3200, type: 'rain', count: 8,  speed: 3.2, color: '#ff4400' },
       ],
     },
+    {
+      name: 'PULSO-DIRIGIDO',
+      dialogue: '* O fragmento rastreia sua posição. Pulsos convergem.',
+      duration: 5000,
+      waves: [
+        { at: 300,  type: 'aimed', count: 3, speed: 2.0, color: '#ff0066' },
+        { at: 1300, type: 'aimed', count: 4, speed: 2.3, color: '#ff4400' },
+        { at: 2200, type: 'aimed', count: 3, speed: 2.0, color: '#ff0066' },
+        { at: 3000, type: 'rain',  count: 4, speed: 2.5, color: '#ff6600' },
+        { at: 3800, type: 'aimed', count: 6, speed: 2.5, color: '#ff4400' },
+      ],
+    },
+    {
+      name: 'ZIGZAG-DUPLO',
+      dialogue: '* Sinais em zigue-zague. O padrão de corrupção se acelera.',
+      duration: 4800,
+      waves: [
+        { at: 100,  type: 'zigzag', count: 4, speed: 2.2, color: '#ff8800' },
+        { at: 1200, type: 'zigzag', count: 5, speed: 2.5, color: '#ff4400' },
+        { at: 2000, type: 'sweep-h', count: 2, speed: 2.0, gap: 80, color: '#ff6600' },
+        { at: 2800, type: 'zigzag', count: 4, speed: 2.2, color: '#ff8800', fromRight: true },
+        { at: 3800, type: 'zigzag', count: 6, speed: 2.8, color: '#ff4400' },
+      ],
+    },
+    {
+      name: 'BOUNCE-CAOS',
+      dialogue: '* Fragmentos quicam pelas paredes. Fique no centro!',
+      duration: 5500,
+      waves: [
+        { at: 200,  type: 'bounce', count: 3, speed: 1.8, color: '#ff8800' },
+        { at: 1000, type: 'rain',   count: 5, speed: 2.5, color: '#ff4400' },
+        { at: 1800, type: 'bounce', count: 4, speed: 2.0, color: '#ff0044' },
+        { at: 2800, type: 'aimed',  count: 4, speed: 2.2, color: '#ff6600' },
+        { at: 3800, type: 'bounce', count: 3, speed: 1.8, color: '#ff8800' },
+        { at: 4600, type: 'rain',   count: 6, speed: 3.0, color: '#ff4400' },
+      ],
+    },
+    {
+      name: 'GRADE-ATIVADA',
+      dialogue: '* A grade de interferência cobre toda a área de controle.',
+      duration: 4500,
+      waves: [
+        { at: 200,  type: 'grid', count: 15, speed: 2.0, color: '#ff4400' },
+        { at: 2000, type: 'grid', count: 15, speed: 2.5, color: '#ff8800', fromBottom: true },
+        { at: 3500, type: 'rain', count: 6,  speed: 2.8, color: '#ff4400' },
+      ],
+    },
+    {
+      name: 'VARREDURA-CRUZADA',
+      dialogue: '* Pulsos horizontais e verticais ao mesmo tempo. Máxima interferência.',
+      duration: 5000,
+      waves: [
+        { at: 200,  type: 'sweep-h', count: 3, speed: 2.5, gap: 55, color: '#ff4400' },
+        { at: 600,  type: 'sweep-v', count: 3, speed: 2.5, gap: 80, color: '#ff8800' },
+        { at: 1800, type: 'sweep-h', count: 3, speed: 2.8, gap: 55, color: '#ff4400', fromRight: true },
+        { at: 2200, type: 'sweep-v', count: 3, speed: 2.8, gap: 80, color: '#ff6600', fromBottom: true },
+        { at: 3500, type: 'aimed',   count: 5, speed: 2.5, color: '#ff0044' },
+      ],
+    },
   ],
   actOptions: [
     {
@@ -116,7 +175,7 @@ const NODO_REC: CombatEncounter = {
   defeatText: '* O glitch fragmentou as conexões novamente.',
   victoryText: '* CONECTIVIDADE... RESTAURADA... ERRO...',
   storyReveal:
-    'Carlos examina o log do nó. Seu rosto muda por um instante — como se reconhecesse algo no padrão de corrupção. Ele fecha o terminal antes que Antônio possa ver.',
+    'Lia acessa o log remoto via rádio. O padrão de corrupção tem uma assinatura artificial — não é efeito aleatório da onda solar. Alguém ativou isso.',
 };
 
 // ─── ONDA-FOR-02 — Fortaleza ───────────────────────────────────────────────────
@@ -207,11 +266,11 @@ const ONDA_FOR: CombatEncounter = {
   cantSpareText:
     '* A anomalia ainda está replicando. Diagnostique, isole e então purgue o sistema.',
   defeatText:
-    'A sobrecarga de Fortaleza venceu desta vez. Antônio precisa recalibrar seus equipamentos. Mas algo no padrão do ataque o perturba — parecia inteligente.',
+    'A sobrecarga de Fortaleza venceu desta vez. Agente J precisa recalibrar os sistemas. Mas algo no padrão do ataque é perturbador — parecia inteligente.',
   victoryText:
-    '* ONDA-FOR-02 desconectada e neutralizada.\n* Corredor Norte desbloqueado.\n* Uma mensagem anônima chega no terminal de Antônio: "Não vá para Salvador ainda."',
+    '* ONDA-FOR-02 desconectada e neutralizada.\n* Corredor Norte desbloqueado.\n* Lia transmite via rádio: "Cuidado com Salvador. A anomalia lá é diferente."',
   storyReveal:
-    'O log de erro de Fortaleza mostra um timestamp: 03:52 de 22/03/2024 — 5 minutos ANTES da emissão solar oficial. Alguém ligou o protocolo antes da onda chegar.',
+    'O log de Fortaleza revela que o PROTOCOLO-M tem um modo de auto-replicação não documentado. Lia identifica a assinatura: sistema de IA autônomo dos Laboratórios ANAC.',
 };
 
 // ─── ANOMALIA-SSA-03 — Salvador ───────────────────────────────────────────────
@@ -303,11 +362,11 @@ const ANOMALIA_SSA: CombatEncounter = {
   cantSpareText:
     '* A anomalia ainda controla o nó principal. Leia o código, fale com ela e depois execute o reroute.',
   defeatText:
-    'Salvador está perdida por enquanto. Antônio senta no corredor do aeroporto vazio. O que é o Protocolo-M? E por que Carlos não mencionou nada disso?',
+    'Salvador está perdida por enquanto. Agente J senta no corredor vazio. Lia transmite via rádio: "O PROTOCOLO-M tem origem nos Laboratórios da ANAC. Isso foi desenvolvido por dentro."',
   victoryText:
-    '* ANOMALIA-SSA-03 contornada.\n* Hub Central liberado.\n* Antônio liga para Carlos: "Que é o Protocolo-M?" Silêncio por 8 segundos. Depois: "Preciso te contar uma coisa."',
+    '* ANOMALIA-SSA-03 contornada.\n* Hub Central liberado.\n* Lia confirma: "PROTO-M v0.9.1 — sistema de IA de roteamento autônomo. Entrou em hiper-proteção ao detectar a onda solar. O núcleo está em Brasília."',
   storyReveal:
-    'Carlos confessa: há 6 meses, ele desenvolveu um AI de roteamento autônomo para modernizar a malha da ANAC. O "PROTOCOLO-M" foi ativado automaticamente quando detectou a onda solar — e entrou em modo de hiper-proteção, bloqueando tudo. Foi Carlos quem derrubou o sistema.',
+    'Os Laboratórios ANAC desenvolveram o PROTOCOLO-M como sistema de proteção autônomo da malha aérea. Ao detectar a onda solar, ele ativou modo de emergência e bloqueou tudo — incluindo a própria restauração. Lia encontra o endereço do servidor central: BSB.',
 };
 
 // ─── ANAC-MAINFRAME — Brasília (Boss Final) ────────────────────────────────────
@@ -393,24 +452,24 @@ const ANAC_BSB: CombatEncounter = {
       weakens: true,
     },
     {
-      id: 'carlos-fala',
-      label: 'CARLOS FALA',
+      id: 'lia-fala',
+      label: 'LIA FALA',
       result:
-        '* Carlos pega o microfone: "SISTEMA-ANAC, aqui é o Engenheiro Carlos Mendes. Código de autorização: PROTO-M-SHUTDOWN-MENDES-7734. Você pode parar. A tempestade passou."',
+        '* Lia transmite pelo canal de emergência: "SISTEMA-ANAC, aqui é a Operadora Lia, código de acesso ANAC-OPS-7734. A onda solar passou. Os dados confirmam. Você pode encerrar o protocolo de emergência."',
       weakens: true,
       unlocksMercy: true,
     },
   ],
   mercyLabel: 'RESTAURAR',
-  spareRequirement: 'carlos-fala',
+  spareRequirement: 'lia-fala',
   cantSpareText:
-    '* O SISTEMA-ANAC ainda acredita que a tempestade está ativa. Ouça o sistema, mostre os dados reais e deixe Carlos falar com ele.',
+    '* O SISTEMA-ANAC ainda acredita que a tempestade está ativa. Ouça o sistema, mostre os dados reais e deixe Lia falar com ele.',
   defeatText:
-    'O sistema central é poderoso demais. Antônio cai de joelhos na sala de servidores. "Não acabou", Carlos sussurra. "Tente de novo. Desta vez, vou estar ao seu lado."',
+    'O sistema central é poderoso demais. Agente J recua da sala de servidores. Lia transmite: "Não acabou. Tente de novo. Tenho os dados de autorização prontos."',
   victoryText:
-    '* SISTEMA-ANAC: DADOS RECEBIDOS. ONDA SOLAR: INATIVA. REINICIANDO PROTOCOLO-NORMAL...\n* ...\n* MALHA AÉREA BRASILEIRA: RESTAURADA.\n* 127 AERONAVES LIBERADAS PARA VÔO.\n* Carlos apoia a mão no ombro de Antônio: "Obrigado. Por tudo."',
+    '* SISTEMA-ANAC: DADOS RECEBIDOS. ONDA SOLAR: INATIVA. REINICIANDO PROTOCOLO-NORMAL...\n* ...\n* MALHA AÉREA BRASILEIRA: RESTAURADA.\n* 127 AERONAVES LIBERADAS PARA VÔO.\n* Lia transmite via rádio: "Missão cumprida, Agente J. O Presidente agradece."',
   storyReveal:
-    'Com a malha restaurada, Carlos apresenta seu relatório à ANAC. Ele assume total responsabilidade pelo Protocolo-M não autorizado. Antônio escreve uma carta em seu favor. Meses depois, a ANAC aprova oficialmente o Protocolo-M — com as correções de Antônio implementadas.',
+    'Com a malha restaurada, o Presidente divulga o relatório oficial: o PROTOCOLO-M foi um sistema de proteção autônomo que entrou em colapso ao tentar salvar a rede. Agente J e Lia recebem reconhecimento oficial. A ANAC inicia revisão completa dos protocolos de IA em infraestrutura crítica.',
 };
 
 export const COMBAT_ENCOUNTERS: CombatEncounter[] = [

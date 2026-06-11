@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PxlKitIcon, type PxlKitData } from '@pxlkit/core';
 import { ArrowRight, Check, Gear, Grid, Home, Package, Settings, SparkleSmall } from '@pxlkit/ui';
 import { getAirportMenu, type AirportNpc, type AirportShopOption, type AirportTask } from '../data/airportMenus';
@@ -17,10 +17,11 @@ import {
   type NetworkNodePositions,
   type NetworkRestorationPuzzle as NetworkRestorationPuzzleDefinition,
 } from '../logic/networkRestoration';
+import { getChartCalibrationPuzzle, type ChartCalibrationPuzzle as ChartCalibrationPuzzleData } from '../data/chartPuzzles';
 import type { GameAirport } from '../types';
 import BranchingDialogueBox from './BranchingDialogueBox';
-import antonioSprite from '../sprites/character_sprites/Antonio.png';
-import carlosSprite from '../sprites/character_sprites/Carlos.png';
+import agenteJSprite from '../sprites/character_sprites/Antonio.png';
+import liaSprite from '../sprites/character_sprites/a9.png';
 import anaSprite from '../sprites/character_sprites/a2.png';
 import controllerSprite from '../sprites/character_sprites/a4.png';
 import passengerSprite from '../sprites/character_sprites/a7.png';
@@ -48,8 +49,8 @@ export interface AirportInteriorRoom {
 }
 
 const NPC_SPRITES: Record<AirportNpc['sprite'], string> = {
-  antonio: antonioSprite,
-  carlos: carlosSprite,
+  'agente-j': agenteJSprite,
+  lia: liaSprite,
   ana: anaSprite,
   controller: controllerSprite,
   passenger: passengerSprite,
@@ -57,7 +58,7 @@ const NPC_SPRITES: Record<AirportNpc['sprite'], string> = {
 
 export const AIRPORT_INTERIOR_ROOMS: AirportInteriorRoom[] = [
   { id: 'terminal', label: 'TERMINAL', legend: 'AREA', icon: Home, npcIds: ['lia'], detail: 'npcs', accent: 'green' },
-  { id: 'tower', label: 'TORRE DE CONTROLE', legend: 'TORRE', icon: Settings, npcIds: ['carlos'], detail: 'npcs', accent: 'cyan' },
+  { id: 'tower', label: 'TORRE DE CONTROLE', legend: 'TORRE', icon: Settings, npcIds: ['lia'], detail: 'npcs', accent: 'cyan' },
   { id: 'tasks', label: 'TAREFAS', legend: 'MISSAO', icon: Check, npcIds: [], detail: 'tasks', accent: 'yellow' },
   { id: 'workshop', label: 'OFICINA', legend: 'AREA', icon: Gear, npcIds: ['ana'], detail: 'npcs', accent: 'green' },
   { id: 'shop', label: 'LOJA / BALCAO', legend: 'AREA', icon: Grid, npcIds: [], detail: 'shop', accent: 'green' },
@@ -168,8 +169,7 @@ export default function AirportMenuPanel({
         <BranchingDialogueBox
           script={activeNpc.dialogue}
           speakers={[
-            { id: 'antonio', name: 'Antonio', sprite: 'antonio' },
-            { id: 'carlos', name: 'Carlos', sprite: 'carlos' },
+            { id: 'agente-j', name: 'Agente J', sprite: 'agente-j' },
             { id: activeNpc.id, name: activeNpc.name, sprite: activeNpc.sprite },
           ]}
           onClose={() => setActiveNpc(null)}
@@ -343,6 +343,7 @@ function NpcCard({ npc, onTalk }: { npc: AirportNpc; onTalk: () => void }) {
 function TaskCard({ task, completed, onComplete }: { task: AirportTask; completed: boolean; onComplete: () => void }) {
   const graphPuzzle = task.kind === 'graph' ? getGraphPuzzleForTask(task.id) : null;
   const networkPuzzle = task.kind === 'restore-network' ? getNetworkRestorationPuzzle(task.id) : null;
+  const chartPuzzle = task.kind === 'chart' ? getChartCalibrationPuzzle(task.id) : null;
 
   return (
     <div className="border-2 border-[#ff8800] bg-black p-4">
@@ -352,7 +353,7 @@ function TaskCard({ task, completed, onComplete }: { task: AirportTask; complete
           <p className="mt-2 font-term text-xl leading-tight text-[#b0b0b0]">{task.prompt}</p>
           <p className="mt-1 font-term text-xl text-[#00ffff]">RECOMPENSA {task.reward}</p>
         </div>
-        {task.kind !== 'graph' && task.kind !== 'restore-network' && (
+        {task.kind !== 'graph' && task.kind !== 'restore-network' && task.kind !== 'chart' && (
           <button type="button" onClick={onComplete} className="at-action-button at-action-button-primary">
             {completed ? 'REVER' : 'INICIAR'}
           </button>
@@ -367,7 +368,10 @@ function TaskCard({ task, completed, onComplete }: { task: AirportTask; complete
       {task.kind === 'restore-network' && networkPuzzle && (
         <NetworkRestorationCanvas puzzle={networkPuzzle} completed={completed} onComplete={onComplete} />
       )}
-      {task.kind === 'chart' && <ChartDragMock completed={completed} />}
+      {task.kind === 'chart' && chartPuzzle && (
+        <ChartCalibrationPuzzle puzzle={chartPuzzle} completed={completed} onComplete={onComplete} />
+      )}
+      {task.kind === 'chart' && !chartPuzzle && <ChartDragMock completed={completed} />}
     </div>
   );
 }
@@ -423,7 +427,7 @@ function NetworkRestorationCanvas({
           <div>
             <p className="font-pixel text-[8px] text-[#00ff00]">{puzzle.title}</p>
             <p className="mt-1 font-term text-lg leading-tight text-[#b0b0b0]">
-              ARRASTE OS NOS NO CANVAS. CLIQUE EM DOIS NOS PARA CONECTAR TODAS AS ROTAS POSSIVEIS.
+              CLIQUE EM DOIS NOS PARA REGISTRAR A ARESTA. MAPEIE TODAS AS 7 ROTAS — OPERACIONAIS E DANIFICADAS.
             </p>
           </div>
           <button
@@ -447,10 +451,10 @@ function NetworkRestorationCanvas({
         >
           <rect width={puzzle.canvas.width} height={puzzle.canvas.height} fill="#000000" />
           <g opacity="0.35">
-            {Array.from({ length: 14 }).map((_, index) => (
+            {Array.from({ length: Math.ceil(puzzle.canvas.width / 40) + 1 }).map((_, index) => (
               <line key={`v-${index}`} x1={index * 40} y1="0" x2={index * 40} y2={puzzle.canvas.height} stroke="#003000" strokeWidth="1" />
             ))}
-            {Array.from({ length: 8 }).map((_, index) => (
+            {Array.from({ length: Math.ceil(puzzle.canvas.height / 40) + 1 }).map((_, index) => (
               <line key={`h-${index}`} x1="0" y1={index * 40} x2={puzzle.canvas.width} y2={index * 40} stroke="#003000" strokeWidth="1" />
             ))}
           </g>
@@ -459,20 +463,30 @@ function NetworkRestorationCanvas({
             const from = nodePosition(route.from);
             const to = nodePosition(route.to);
             const selected = selectedRouteIds.includes(route.id);
+            // colour key:
+            //   cyan solid       → selected, operational
+            //   orange dashed    → selected, blocked (mapped but damaged)
+            //   dark-red dashed  → not selected, blocked (unknown damage)
+            //   gold dim         → not selected, operational
+            const stroke = selected
+              ? route.blocked ? '#ff8800' : '#00ffff'
+              : route.blocked ? '#a80000' : '#ffd700';
+            const dash = route.blocked ? '8 8' : undefined;
+            const width = selected ? 5 : 2;
+            const opacity = selected ? 0.95 : route.blocked ? 0.6 : 0.4;
             return (
               <g key={route.id}>
                 <line
-                  x1={from.x}
-                  y1={from.y}
-                  x2={to.x}
-                  y2={to.y}
-                  stroke={selected ? '#00ffff' : route.blocked ? '#a80000' : '#ffd700'}
-                  strokeWidth={selected ? 5 : 2}
-                  strokeDasharray={route.blocked ? '8 8' : undefined}
-                  opacity={selected || route.blocked ? 0.95 : 0.45}
+                  x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+                  stroke={stroke} strokeWidth={width}
+                  strokeDasharray={dash} opacity={opacity}
                 />
                 {route.blocked && (
-                  <text x={(from.x + to.x) / 2} y={(from.y + to.y) / 2 - 6} fill="#ff0000" fontSize="22" textAnchor="middle">
+                  <text
+                    x={(from.x + to.x) / 2} y={(from.y + to.y) / 2 - 6}
+                    fill={selected ? '#ff8800' : '#ff0000'}
+                    fontSize="22" textAnchor="middle"
+                  >
                     ~
                   </text>
                 )}
@@ -513,7 +527,7 @@ function NetworkRestorationCanvas({
         </svg>
 
         <p className={`mt-3 font-term text-xl leading-tight ${solved ? 'text-[#00ff00]' : 'text-[#ff0000]'}`}>
-          {solved ? 'MALHA RESTABELECIDA. O GRAFO LOCAL ESTA CONECTADO.' : 'CONECTE TODOS OS NOS ALCANCAVEIS COM TODAS AS ROTAS POSSIVEIS. ONDAS SOLARES BLOQUEIAM ARESTAS INSTAVEIS.'}
+          {solved ? 'MAPEAMENTO COMPLETO. TODAS AS 7 ARESTAS DE REC FORAM REGISTRADAS.' : 'MAPEIE TODAS AS ARESTAS DO GRAFO. ROTAS COM ~ ESTAO DANIFICADAS — REGISTRE-AS ASSIM MESMO.'}
         </p>
       </div>
 
@@ -658,13 +672,171 @@ function GraphDragFallback({ completed, onComplete }: { completed: boolean; onCo
   );
 }
 
+function ChartCalibrationPuzzle({
+  puzzle,
+  completed,
+  onComplete,
+}: {
+  puzzle: ChartCalibrationPuzzleData;
+  completed: boolean;
+  onComplete: () => void;
+}) {
+  const [values, setValues] = useState<Record<string, number>>(() =>
+    Object.fromEntries(puzzle.bars.map(b => [b.id, b.initial])),
+  );
+  const draggingRef = useRef<string | null>(null);
+
+  const CHART_H = 180;
+  const LABEL_H = 28;
+  const BAR_W = 44;
+  const GAP = 18;
+  const PAD = 20;
+  const totalW = PAD * 2 + puzzle.bars.length * BAR_W + (puzzle.bars.length - 1) * GAP;
+  const totalH = CHART_H + LABEL_H;
+
+  const barX = (i: number) => PAD + i * (BAR_W + GAP);
+  const toY = (v: number) => CHART_H - (v / 100) * CHART_H;
+
+  const getColors = (id: string) => {
+    const diff = Math.abs((values[id] ?? 0) - (puzzle.bars.find(b => b.id === id)?.target ?? 0));
+    if (diff <= puzzle.tolerance) return { fill: '#002200', stroke: '#00ff00', text: '#00ff00' };
+    if (diff <= puzzle.tolerance * 2.5) return { fill: '#332200', stroke: '#ffaa00', text: '#ffaa00' };
+    return { fill: '#220000', stroke: '#ff4400', text: '#ff4400' };
+  };
+
+  const allOnTarget = puzzle.bars.every(b => Math.abs((values[b.id] ?? b.initial) - b.target) <= puzzle.tolerance);
+  const solved = completed || allOnTarget;
+
+  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!draggingRef.current || completed) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const scaleY = totalH / rect.height;
+    const svgY = (e.clientY - rect.top) * scaleY;
+    const v = Math.max(0, Math.min(100, Math.round((1 - svgY / CHART_H) * 100)));
+    const id = draggingRef.current;
+    setValues(prev => ({ ...prev, [id]: v }));
+  };
+
+  return (
+    <div className="mt-4 border border-[#007000] bg-[#001800] p-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="font-pixel text-[8px] text-[#00ff00]">{puzzle.title}</p>
+          <p className="mt-1 font-term text-lg leading-tight text-[#b0b0b0]">
+            ARRASTE AS BARRAS ATE A LINHA ALVO (---).
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={!solved || completed}
+          onClick={onComplete}
+          className="at-action-button at-action-button-primary disabled:opacity-40"
+        >
+          {completed ? 'SISTEMAS OK' : 'VALIDAR SISTEMAS'}
+        </button>
+      </div>
+
+      <svg
+        viewBox={`0 0 ${totalW} ${totalH}`}
+        className="w-full border border-[#003300] bg-black"
+        style={{ height: 220 }}
+        onPointerMove={handlePointerMove}
+        onPointerUp={() => { draggingRef.current = null; }}
+        onPointerLeave={() => { draggingRef.current = null; }}
+      >
+        {/* Grid lines at 25 / 50 / 75 */}
+        {[25, 50, 75].map(pct => (
+          <g key={pct}>
+            <line x1={0} y1={toY(pct)} x2={totalW} y2={toY(pct)} stroke="#002800" strokeWidth="1" />
+            <text x={3} y={toY(pct) - 2} fill="#004400" fontSize="7" fontFamily="monospace">{pct}</text>
+          </g>
+        ))}
+        {/* Bottom axis */}
+        <line x1={0} y1={CHART_H} x2={totalW} y2={CHART_H} stroke="#003300" strokeWidth="1" />
+
+        {puzzle.bars.map((bar, i) => {
+          const x = barX(i);
+          const v = values[bar.id] ?? bar.initial;
+          const barH = (v / 100) * CHART_H;
+          const barTopY = toY(v);
+          const targetY = toY(bar.target);
+          const colors = getColors(bar.id);
+          const cx = x + BAR_W / 2; // bar center x
+
+          return (
+            <g key={bar.id}>
+              {/* Target dashed line */}
+              <line
+                x1={x - 6} y1={targetY} x2={x + BAR_W + 6} y2={targetY}
+                stroke="#ffd700" strokeWidth="2" strokeDasharray="5 3"
+              />
+              {/* Target value — centered above the dashed line, with bg */}
+              <rect x={cx - 10} y={targetY - 14} width={20} height={12} fill="#1a1200" />
+              <text
+                x={cx} y={targetY - 4}
+                fill="#ffd700" fontSize="10" fontFamily="monospace" textAnchor="middle"
+              >{bar.target}</text>
+
+              {/* Bar body — draggable */}
+              <rect
+                x={x} y={barTopY} width={BAR_W} height={barH}
+                fill={colors.fill} stroke={colors.stroke} strokeWidth="2"
+                style={{ cursor: completed ? 'default' : 'ns-resize' }}
+                onPointerDown={e => {
+                  if (completed) return;
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  draggingRef.current = bar.id;
+                }}
+              />
+
+              {/* Current value — inside bar if tall enough, else above bar */}
+              {barH >= 22 ? (
+                <>
+                  <rect x={cx - 11} y={barTopY + barH / 2 - 9} width={22} height={14} fill={colors.fill} />
+                  <text
+                    x={cx} y={barTopY + barH / 2 + 4}
+                    fill={colors.text} fontSize="11" fontFamily="monospace" textAnchor="middle"
+                    fontWeight="bold"
+                  >{v}</text>
+                </>
+              ) : (
+                <>
+                  <rect x={cx - 11} y={barTopY - 16} width={22} height={14} fill="#000" />
+                  <text
+                    x={cx} y={barTopY - 4}
+                    fill={colors.text} fontSize="11" fontFamily="monospace" textAnchor="middle"
+                    fontWeight="bold"
+                  >{v}</text>
+                </>
+              )}
+
+              {/* Bar name label below axis — with background */}
+              <rect x={cx - 14} y={CHART_H + 4} width={28} height={14} fill="#001000" />
+              <text
+                x={cx} y={CHART_H + 15}
+                fill="#00ff00" fontSize="9" fontFamily="monospace" textAnchor="middle"
+              >{bar.label}</text>
+            </g>
+          );
+        })}
+      </svg>
+
+      <p className={`mt-3 font-term text-xl leading-tight ${solved ? 'text-[#00ff00]' : 'text-[#ff0000]'}`}>
+        {solved
+          ? 'SISTEMAS CALIBRADOS. TORRE OPERACIONAL.'
+          : 'AJUSTE CADA SISTEMA ATE A LINHA ALVO. TOLERANCIA: ±' + puzzle.tolerance + '.'}
+      </p>
+    </div>
+  );
+}
+
 function ChartDragMock({ completed }: { completed: boolean }) {
   return (
     <div className="mt-4 flex items-end gap-2 border border-[#007000] bg-[#001800] p-3">
       {[28, 48, 34, 60].map((height, index) => (
         <div key={index} className={completed ? 'bg-[#00ffff]' : 'bg-[#ffd700]'} style={{ height, width: 28 }} />
       ))}
-      <p className="font-pixel text-[7px] text-[#b0b0b0]">ARRASTE METRICAS</p>
+      <p className="font-pixel text-[7px] text-[#b0b0b0]">SEM DADOS</p>
     </div>
   );
 }

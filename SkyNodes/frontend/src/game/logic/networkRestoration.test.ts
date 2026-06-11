@@ -7,13 +7,17 @@ import {
 } from './networkRestoration';
 
 describe('network restoration puzzle', () => {
-  it('defines Recife tutorial as a network restoration canvas with guide pages', () => {
+  it('defines Recife tutorial with all 7 REC routes and all 8 connected nodes', () => {
     const puzzle = getNetworkRestorationPuzzle('rec-restore-network');
 
     expect(puzzle?.airportId).toBe('REC');
-    expect(puzzle?.requiredNodeIds).toEqual(['REC', 'JPA']);
-    expect(puzzle?.requiredRouteIds).toEqual(['route-3']);
-    expect(puzzle?.candidateRoutes.map(route => route.id)).toEqual(['route-3', 'route-0', 'route-1']);
+    expect(puzzle?.requiredNodeIds).toEqual(['REC', 'JPA', 'SSA', 'FOR', 'NAT', 'THE', 'GRU', 'BSB']);
+    expect(puzzle?.requiredRouteIds).toEqual([
+      'route-3', 'route-0', 'route-1', 'route-2', 'route-4', 'route-37', 'route-47',
+    ]);
+    expect(puzzle?.candidateRoutes.map(route => route.id)).toEqual([
+      'route-3', 'route-0', 'route-1', 'route-2', 'route-4', 'route-37', 'route-47',
+    ]);
     expect(puzzle?.guidePages.length).toBeGreaterThan(1);
   });
 
@@ -26,19 +30,27 @@ describe('network restoration puzzle', () => {
     expect(positions.JPA).toEqual({ x: puzzle!.canvas.width, y: 0 });
   });
 
-  it('connects only possible routes and ignores blocked or unknown routes', () => {
+  it('allows selecting blocked routes and ignores unknown routes', () => {
     const puzzle = getNetworkRestorationPuzzle('rec-restore-network');
     expect(puzzle).toBeTruthy();
 
     const withBlockedRoute = connectNetworkRoute(puzzle!, [], 'REC', 'SSA');
-    const withRequiredRoute = connectNetworkRoute(puzzle!, [], 'REC', 'JPA');
+    const withSafeRoute = connectNetworkRoute(puzzle!, [], 'REC', 'JPA');
     const withUnknownRoute = connectNetworkRoute(puzzle!, [], 'JPA', 'FOR');
 
-    expect(withBlockedRoute).toEqual([]);
-    expect(withRequiredRoute).toEqual(['route-3']);
+    expect(withBlockedRoute).toEqual(['route-0']);
+    expect(withSafeRoute).toEqual(['route-3']);
     expect(withUnknownRoute).toEqual([]);
-    expect(isNetworkRestorationSolved(puzzle!, withBlockedRoute)).toBe(false);
-    expect(isNetworkRestorationSolved(puzzle!, withRequiredRoute)).toBe(true);
+  });
+
+  it('is solved only when all 7 routes are selected', () => {
+    const puzzle = getNetworkRestorationPuzzle('rec-restore-network');
+    expect(puzzle).toBeTruthy();
+
+    const allRoutes = ['route-3', 'route-0', 'route-1', 'route-2', 'route-4', 'route-37', 'route-47'];
+    expect(isNetworkRestorationSolved(puzzle!, ['route-3'])).toBe(false);
+    expect(isNetworkRestorationSolved(puzzle!, allRoutes.slice(0, 6))).toBe(false);
+    expect(isNetworkRestorationSolved(puzzle!, allRoutes)).toBe(true);
   });
 
   it('requires every possible route for the current airport and a connected graph over required nodes', () => {

@@ -54,7 +54,7 @@ describe('missions', () => {
     expect(isRouteRestored({ ...progress, restoredRouteIds: ['SSA-BSB'] }, 'SSA-BSB')).toBe(true);
   });
 
-  it('completes the Recife tutorial after restoring the local airport network', () => {
+  it('completes the Recife tutorial only after all four REC tasks are done', () => {
     const tutorialMissions: GameMission[] = [
       {
         id: 'tutorial-rec',
@@ -81,10 +81,29 @@ describe('missions', () => {
       activeMissionId: 'tutorial-rec',
     };
 
-    const next = completeAirportTask(tutorialMissions, tutorialProgress, 'rec-restore-network');
+    // Single task does NOT complete the tutorial
+    const afterFirst = completeAirportTask(tutorialMissions, tutorialProgress, 'rec-restore-network');
+    expect(afterFirst.completedTaskIds).toEqual(['rec-restore-network']);
+    expect(afterFirst.completedMissionIds).toEqual([]);
+    expect(afterFirst.activeMissionId).toBe('tutorial-rec');
 
-    expect(next.completedTaskIds).toEqual(['rec-restore-network']);
-    expect(next.completedMissionIds).toEqual(['tutorial-rec']);
-    expect(next.activeMissionId).toBe('visit-jpa');
+    // All four tasks complete the tutorial and advance to JPA
+    const afterAll = [
+      'rec-restore-network',
+      'rec-calibrate-systems',
+      'rec-route-weights',
+      'rec-frequency-scan',
+    ].reduce(
+      (p, taskId) => completeAirportTask(tutorialMissions, p, taskId),
+      tutorialProgress,
+    );
+    expect(afterAll.completedTaskIds).toEqual([
+      'rec-restore-network',
+      'rec-calibrate-systems',
+      'rec-route-weights',
+      'rec-frequency-scan',
+    ]);
+    expect(afterAll.completedMissionIds).toEqual(['tutorial-rec']);
+    expect(afterAll.activeMissionId).toBe('visit-jpa');
   });
 });
