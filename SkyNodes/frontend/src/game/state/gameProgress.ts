@@ -8,6 +8,8 @@ export const INITIAL_PROGRESS: GameProgress = {
   activeMissionId: 'tutorial-rec',
   credits: 1200,
   fuel: 80,
+  anomalyDefeatedRouteIds: [],
+  anomalyBonusTrips: 0,
 };
 
 export function loadGameProgress(): GameProgress {

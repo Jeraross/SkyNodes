@@ -18,6 +18,16 @@ import {
   type NetworkRestorationPuzzle as NetworkRestorationPuzzleDefinition,
 } from '../logic/networkRestoration';
 import { getChartCalibrationPuzzle, type ChartCalibrationPuzzle as ChartCalibrationPuzzleData } from '../data/chartPuzzles';
+import RadarChartPuzzle from './RadarChartPuzzle';
+import DialPanelPuzzle from './DialPanelPuzzle';
+import { AIRPORT_PUZZLES } from '../data/airportPuzzles';
+import AirportPuzzlePanel from './AirportPuzzlePanel';
+import { getMstPuzzle } from '../data/mstPuzzles';
+import MstPuzzlePanel from './MstPuzzlePanel';
+import { getColoringPuzzle } from '../data/coloringPuzzles';
+import ColoringPuzzlePanel from './ColoringPuzzlePanel';
+import { getTopoSortPuzzle } from '../data/topoSortPuzzles';
+import TopoSortPanel from './TopoSortPanel';
 import type { GameAirport } from '../types';
 import BranchingDialogueBox from './BranchingDialogueBox';
 import agenteJSprite from '../sprites/character_sprites/Antonio.png';
@@ -157,6 +167,7 @@ export default function AirportMenuPanel({
             allTasks={menu.tasks}
             shopOptions={menu.shop.fuelOptions}
             completedTaskIds={completedTaskIds}
+            airportId={airport?.id ?? ''}
             onTalk={setActiveNpc}
             onCompleteTask={completeTask}
             onBuyFuel={onBuyFuel}
@@ -233,6 +244,7 @@ function RoomDetail({
   allTasks,
   shopOptions,
   completedTaskIds,
+  airportId,
   onTalk,
   onCompleteTask,
   onBuyFuel,
@@ -244,6 +256,7 @@ function RoomDetail({
   allTasks: AirportTask[];
   shopOptions: AirportShopOption[];
   completedTaskIds: string[];
+  airportId: string;
   onTalk: (npc: AirportNpc) => void;
   onCompleteTask: (task: AirportTask) => void;
   onBuyFuel: (amount: number, cost: number) => void;
@@ -269,6 +282,7 @@ function RoomDetail({
             task={task}
             completed={completedTaskIds.includes(task.id)}
             onComplete={() => onCompleteTask(task)}
+            airportId={airportId}
           />
         ))}
       </div>
@@ -340,10 +354,14 @@ function NpcCard({ npc, onTalk }: { npc: AirportNpc; onTalk: () => void }) {
   );
 }
 
-function TaskCard({ task, completed, onComplete }: { task: AirportTask; completed: boolean; onComplete: () => void }) {
+function TaskCard({ task, completed, onComplete, airportId }: { task: AirportTask; completed: boolean; onComplete: () => void; airportId: string }) {
   const graphPuzzle = task.kind === 'graph' ? getGraphPuzzleForTask(task.id) : null;
   const networkPuzzle = task.kind === 'restore-network' ? getNetworkRestorationPuzzle(task.id) : null;
   const chartPuzzle = task.kind === 'chart' ? getChartCalibrationPuzzle(task.id) : null;
+  const subgraphPuzzle = task.kind === 'subgraph' ? AIRPORT_PUZZLES[airportId] ?? null : null;
+  const mstPuzzle = task.kind === 'mst' ? getMstPuzzle(task.id) : null;
+  const coloringPuzzle = task.kind === 'coloring' ? getColoringPuzzle(task.id) : null;
+  const topoSortPuzzle = task.kind === 'topo-sort' ? getTopoSortPuzzle(task.id) : null;
 
   return (
     <div className="border-2 border-[#ff8800] bg-black p-4">
@@ -353,7 +371,7 @@ function TaskCard({ task, completed, onComplete }: { task: AirportTask; complete
           <p className="mt-2 font-term text-xl leading-tight text-[#b0b0b0]">{task.prompt}</p>
           <p className="mt-1 font-term text-xl text-[#00ffff]">RECOMPENSA {task.reward}</p>
         </div>
-        {task.kind !== 'graph' && task.kind !== 'restore-network' && task.kind !== 'chart' && (
+        {!(['graph', 'restore-network', 'chart', 'subgraph', 'mst', 'coloring', 'topo-sort'] as const).includes(task.kind as never) && (
           <button type="button" onClick={onComplete} className="at-action-button at-action-button-primary">
             {completed ? 'REVER' : 'INICIAR'}
           </button>
@@ -368,10 +386,57 @@ function TaskCard({ task, completed, onComplete }: { task: AirportTask; complete
       {task.kind === 'restore-network' && networkPuzzle && (
         <NetworkRestorationCanvas puzzle={networkPuzzle} completed={completed} onComplete={onComplete} />
       )}
-      {task.kind === 'chart' && chartPuzzle && (
+      {task.kind === 'chart' && chartPuzzle && chartPuzzle.display === 'radar' && (
+        <RadarChartPuzzle puzzle={chartPuzzle} completed={completed} onComplete={onComplete} />
+      )}
+      {task.kind === 'chart' && chartPuzzle && chartPuzzle.display === 'dial' && (
+        <DialPanelPuzzle puzzle={chartPuzzle} completed={completed} onComplete={onComplete} />
+      )}
+      {task.kind === 'chart' && chartPuzzle && (!chartPuzzle.display || chartPuzzle.display === 'bar') && (
         <ChartCalibrationPuzzle puzzle={chartPuzzle} completed={completed} onComplete={onComplete} />
       )}
       {task.kind === 'chart' && !chartPuzzle && <ChartDragMock completed={completed} />}
+      {task.kind === 'subgraph' && subgraphPuzzle && !completed && (
+        <AirportPuzzlePanel
+          puzzle={subgraphPuzzle}
+          onSolved={onComplete}
+          onBack={() => {}}
+        />
+      )}
+      {task.kind === 'subgraph' && completed && (
+        <div className="mt-2 p-3 border border-[#00ff00] text-[#00ff00] font-term text-xl text-center">
+          ✓ REDE CONECTADA
+        </div>
+      )}
+      {task.kind === 'subgraph' && !subgraphPuzzle && (
+        <button type="button" onClick={onComplete} className="at-action-button at-action-button-primary">
+          {completed ? 'REVER' : 'INICIAR'}
+        </button>
+      )}
+      {task.kind === 'mst' && mstPuzzle && (
+        <MstPuzzlePanel puzzle={mstPuzzle} completed={completed} onComplete={onComplete} />
+      )}
+      {task.kind === 'mst' && !mstPuzzle && (
+        <button type="button" onClick={onComplete} className="at-action-button at-action-button-primary">
+          {completed ? 'REVER' : 'INICIAR'}
+        </button>
+      )}
+      {task.kind === 'coloring' && coloringPuzzle && (
+        <ColoringPuzzlePanel puzzle={coloringPuzzle} completed={completed} onComplete={onComplete} />
+      )}
+      {task.kind === 'coloring' && !coloringPuzzle && (
+        <button type="button" onClick={onComplete} className="at-action-button at-action-button-primary">
+          {completed ? 'REVER' : 'INICIAR'}
+        </button>
+      )}
+      {task.kind === 'topo-sort' && topoSortPuzzle && (
+        <TopoSortPanel puzzle={topoSortPuzzle} completed={completed} onComplete={onComplete} />
+      )}
+      {task.kind === 'topo-sort' && !topoSortPuzzle && (
+        <button type="button" onClick={onComplete} className="at-action-button at-action-button-primary">
+          {completed ? 'REVER' : 'INICIAR'}
+        </button>
+      )}
     </div>
   );
 }

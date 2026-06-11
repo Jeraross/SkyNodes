@@ -1,4 +1,4 @@
-export const AEROTALE_ACTIONS = ['MAPA', 'VIAJAR', 'MISSOES', 'ENTRAR NO AEROPORTO'] as const;
+export const AEROTALE_ACTIONS = ['MAPA', 'MISSOES', 'ENTRAR NO AEROPORTO'] as const;
 
 export type AeroTaleAction = (typeof AEROTALE_ACTIONS)[number];
 

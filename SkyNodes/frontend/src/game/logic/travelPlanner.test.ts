@@ -1,67 +1,69 @@
 import { describe, expect, it } from 'vitest';
+import { findShortestPath } from './travelPlanner';
 import type { GameAirport, GameRoute } from '../types';
-import { buildTravelOptions, calculateTravelPlan } from './travelPlanner';
 
-const airports: GameAirport[] = [
-  { id: 'REC', code: 'REC', name: 'Recife', city: 'Recife', region: 'Nordeste', x: 0, y: 0 },
-  { id: 'JPA', code: 'JPA', name: 'Joao Pessoa', city: 'Joao Pessoa', region: 'Nordeste', x: 1, y: 1 },
-  { id: 'NAT', code: 'NAT', name: 'Natal', city: 'Natal', region: 'Nordeste', x: 2, y: 2 },
-  { id: 'SSA', code: 'SSA', name: 'Salvador', city: 'Salvador', region: 'Nordeste', x: 3, y: 3 },
-];
+const mkAirport = (id: string): GameAirport =>
+  ({ id, code: id, name: id, city: id, x: 0, y: 0 } as GameAirport);
 
-const routes: GameRoute[] = [
-  { id: 'rec-jpa', from: 'REC', to: 'JPA', cost: 2, state: 'available' },
-  { id: 'jpa-nat', from: 'JPA', to: 'NAT', cost: 2, state: 'available' },
-  { id: 'rec-ssa', from: 'REC', to: 'SSA', cost: 8, state: 'available' },
-];
+const mkRoute = (id: string, from: string, to: string, state: GameRoute['state'] = 'restored'): GameRoute =>
+  ({ id, from, to, cost: 1, state } as GameRoute);
 
-describe('travel planner', () => {
-  it('only offers airports connected by a direct route from the origin', () => {
-    expect(buildTravelOptions('REC', airports, routes).map(option => option.airport.id)).toEqual(['JPA', 'SSA']);
+describe('findShortestPath', () => {
+  it('returns null when origin equals destination', () => {
+    const airports = [mkAirport('A')];
+    expect(findShortestPath('A', 'A', airports, [])).toBeNull();
   });
 
-  it('hides locked routes but keeps blocked anomaly routes visible as unavailable options', () => {
-    const knownRoutes: GameRoute[] = [
-      { id: 'rec-jpa', from: 'REC', to: 'JPA', cost: 2, state: 'available' },
-      { id: 'rec-ssa', from: 'REC', to: 'SSA', cost: 8, state: 'blocked', blockReason: 'solar-anomaly' },
-      { id: 'rec-nat', from: 'REC', to: 'NAT', cost: 3, state: 'locked' },
+  it('returns direct 1-hop path', () => {
+    const airports = [mkAirport('A'), mkAirport('B')];
+    const routes = [mkRoute('AB', 'A', 'B')];
+    const result = findShortestPath('A', 'B', airports, routes);
+    expect(result?.airportIds).toEqual(['A', 'B']);
+    expect(result?.routeIds).toEqual(['AB']);
+  });
+
+  it('finds 2-hop path through intermediate', () => {
+    const airports = [mkAirport('A'), mkAirport('B'), mkAirport('C')];
+    const routes = [mkRoute('AB', 'A', 'B'), mkRoute('BC', 'B', 'C')];
+    const result = findShortestPath('A', 'C', airports, routes);
+    expect(result?.airportIds).toEqual(['A', 'B', 'C']);
+    expect(result?.routeIds).toEqual(['AB', 'BC']);
+  });
+
+  it('returns null when no path exists', () => {
+    const airports = [mkAirport('A'), mkAirport('B'), mkAirport('C')];
+    const routes = [mkRoute('AB', 'A', 'B')];
+    expect(findShortestPath('A', 'C', airports, routes)).toBeNull();
+  });
+
+  it('ignores locked routes', () => {
+    const airports = [mkAirport('A'), mkAirport('B'), mkAirport('C')];
+    const routes = [
+      mkRoute('AB', 'A', 'B', 'locked'),
+      mkRoute('BC', 'B', 'C'),
     ];
-
-    expect(buildTravelOptions('REC', airports, knownRoutes).map(option => [option.airport.id, option.route.state])).toEqual([
-      ['JPA', 'available'],
-      ['SSA', 'blocked'],
-    ]);
+    expect(findShortestPath('A', 'C', airports, routes)).toBeNull();
   });
 
-  it('calculates a route plan with anomaly and storm costs on edges', () => {
-    const plan = calculateTravelPlan({
-      airportIds: ['REC', 'JPA', 'NAT'],
-      routes,
-      anomalyRouteIds: ['rec-jpa'],
-      stormRouteIds: ['jpa-nat'],
-    });
-
-    expect(plan).toEqual({
-      valid: true,
-      routeIds: ['rec-jpa', 'jpa-nat'],
-      totalCost: 9,
-      edges: [
-        { routeId: 'rec-jpa', from: 'REC', to: 'JPA', baseCost: 2, anomaly: true, storm: false, finalCost: 5 },
-        { routeId: 'jpa-nat', from: 'JPA', to: 'NAT', baseCost: 2, anomaly: false, storm: true, finalCost: 4 },
-      ],
-    });
+  it('treats available routes as traversable', () => {
+    const airports = [mkAirport('A'), mkAirport('B')];
+    const routes = [mkRoute('AB', 'A', 'B', 'available')];
+    const result = findShortestPath('A', 'B', airports, routes);
+    expect(result?.airportIds).toEqual(['A', 'B']);
   });
 
-  it('rejects plans that skip required connections', () => {
-    expect(calculateTravelPlan({ airportIds: ['REC', 'NAT'], routes, anomalyRouteIds: [], stormRouteIds: [] }).valid).toBe(false);
-  });
-
-  it('rejects plans through blocked or locked routes', () => {
-    expect(calculateTravelPlan({
-      airportIds: ['REC', 'SSA'],
-      routes: [{ id: 'rec-ssa', from: 'REC', to: 'SSA', cost: 8, state: 'blocked', blockReason: 'solar-anomaly' }],
-      anomalyRouteIds: ['rec-ssa'],
-      stormRouteIds: [],
-    }).valid).toBe(false);
+  it('finds shortest among two valid paths', () => {
+    const airports = [mkAirport('A'), mkAirport('B'), mkAirport('C'), mkAirport('D')];
+    const routes = [
+      mkRoute('AB', 'A', 'B'),
+      mkRoute('BD', 'B', 'D'),
+      mkRoute('AC', 'A', 'C'),
+      mkRoute('CD', 'C', 'D'),
+      mkRoute('CB', 'C', 'B'),
+    ];
+    const result = findShortestPath('A', 'D', airports, routes);
+    expect(result?.airportIds).toHaveLength(3);
+    expect(result?.airportIds[0]).toBe('A');
+    expect(result?.airportIds[2]).toBe('D');
   });
 });

@@ -10,6 +10,7 @@ export interface ChartCalibrationPuzzle {
   title: string;
   tolerance: number; // acceptable distance from target
   bars: ChartBar[];
+  display?: 'bar' | 'radar' | 'dial';
 }
 
 const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
@@ -17,6 +18,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'rec-calibrate-systems',
     title: 'CALIBRAR SISTEMAS DA TORRE',
     tolerance: 5,
+    display: 'dial',
     bars: [
       { id: 'radar',    label: 'RADAR',   target: 75, initial: 18 },
       { id: 'potencia', label: 'POTENC.', target: 88, initial: 12 },
@@ -54,6 +56,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'bsb-map-northeast',
     title: 'MAPA DE CONECTIVIDADE DO NORDESTE',
     tolerance: 5,
+    display: 'radar',
     bars: [
       { id: 'rec', label: 'REC', target: 70, initial: 30 },
       { id: 'ssa', label: 'SSA', target: 65, initial: 20 },
@@ -66,6 +69,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'gru-anomaly-map',
     title: 'ANOMALIAS SOLARES — GUARULHOS',
     tolerance: 6,
+    display: 'radar',
     bars: [
       { id: 'freq1', label: 'F.1', target: 90, initial: 25 },
       { id: 'freq2', label: 'F.2', target: 45, initial: 80 },
@@ -79,6 +83,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'jpa-degree-map',
     title: 'MAPA DE GRAU — JOÃO PESSOA',
     tolerance: 5,
+    display: 'dial',
     bars: [
       { id: 'terminal', label: 'TERMINAL', target: 3,  initial: 0 },
       { id: 'pista',    label: 'PISTA',    target: 4,  initial: 0 },
@@ -92,6 +97,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'nat-path-costs',
     title: 'CUSTO DAS ROTAS — NATAL',
     tolerance: 5,
+    display: 'radar',
     bars: [
       { id: 'r1', label: 'ROTA-1', target: 35, initial: 90 },
       { id: 'r2', label: 'ROTA-2', target: 70, initial: 20 },
@@ -117,6 +123,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'the-echo-cancel',
     title: 'CANCELAR ECOS — TERESINA',
     tolerance: 6,
+    display: 'dial',
     bars: [
       { id: 'e1', label: 'ECO-1', target: 50, initial: 95 },
       { id: 'e2', label: 'ECO-2', target: 50, initial:  8 },
@@ -130,6 +137,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'bel-component-sync',
     title: 'SINCRONIZAR COMPONENTES — BELÉM',
     tolerance: 5,
+    display: 'radar',
     bars: [
       { id: 'comp1',  label: 'COMP.1',  target: 80, initial: 20 },
       { id: 'comp2',  label: 'COMP.2',  target: 80, initial: 55 },
@@ -144,6 +152,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'mao-bridge-strength',
     title: 'REFORÇAR PONTES — MANAUS',
     tolerance: 5,
+    display: 'dial',
     bars: [
       { id: 'ponte1', label: 'PONTE-1', target: 90, initial: 25 },
       { id: 'ponte2', label: 'PONTE-2', target: 75, initial: 40 },
@@ -157,6 +166,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'gyn-hub-balance',
     title: 'BALANCEAR HUB — GOIÂNIA',
     tolerance: 6,
+    display: 'radar',
     bars: [
       { id: 'fluxo',  label: 'FLUXO',  target: 60, initial: 95 },
       { id: 'carga',  label: 'CARGA',  target: 55, initial: 10 },
@@ -195,6 +205,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'vix-coastal-freq',
     title: 'FREQUÊNCIAS COSTEIRAS — VITÓRIA',
     tolerance: 6,
+    display: 'dial',
     bars: [
       { id: 'c1', label: 'COSTA-1', target: 65, initial: 20 },
       { id: 'c2', label: 'COSTA-2', target: 45, initial: 88 },
@@ -208,6 +219,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'gig-route-verify',
     title: 'VERIFICAR ROTAS — GALEÃO',
     tolerance: 5,
+    display: 'radar',
     bars: [
       { id: 'r-real',   label: 'R.REAL',   target: 90, initial: 20 },
       { id: 'r-falsa1', label: 'R.FALSA-1', target:  0, initial: 75 },
@@ -233,6 +245,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'cgh-traffic-decongest',
     title: 'DESCONGESTIONAR TRÁFEGO — CGH',
     tolerance: 5,
+    display: 'dial',
     bars: [
       { id: 't1', label: 'PISTA-1', target: 50, initial: 95 },
       { id: 't2', label: 'PISTA-2', target: 50, initial: 92 },
@@ -247,6 +260,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'gru-dense-optimize',
     title: 'OTIMIZAR MALHA DENSA — GRU',
     tolerance: 5,
+    display: 'radar',
     bars: [
       { id: 'hub1',   label: 'HUB-1',  target: 70, initial: 95 },
       { id: 'hub2',   label: 'HUB-2',  target: 65, initial: 90 },
@@ -272,6 +286,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'cwb-bfs-levels',
     title: 'NÍVEIS BFS — CURITIBA',
     tolerance: 5,
+    display: 'dial',
     bars: [
       { id: 'lv0', label: 'NÍVEL-0', target: 100, initial: 20 },
       { id: 'lv1', label: 'NÍVEL-1', target:  75, initial: 10 },
@@ -297,6 +312,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'fln-dfs-trace',
     title: 'RASTREAR PROFUNDIDADE — FLN',
     tolerance: 5,
+    display: 'radar',
     bars: [
       { id: 'd1', label: 'PROF-1', target: 20, initial: 80 },
       { id: 'd2', label: 'PROF-2', target: 45, initial: 15 },
@@ -322,6 +338,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'poa-path-weights',
     title: 'PESOS DE CAMINHO — P.ALEGRE',
     tolerance: 5,
+    display: 'dial',
     bars: [
       { id: 'w1', label: 'PESO-1', target: 30, initial: 85 },
       { id: 'w2', label: 'PESO-2', target: 55, initial: 10 },
@@ -347,6 +364,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'pvh-border-clear',
     title: 'LIMPAR FRONTEIRA — P.VELHO',
     tolerance: 7,
+    display: 'dial',
     bars: [
       { id: 'b1', label: 'FRONT-1', target: 70, initial: 15 },
       { id: 'b2', label: 'FRONT-2', target: 70, initial: 85 },
@@ -359,6 +377,7 @@ const PUZZLES: Record<string, ChartCalibrationPuzzle> = {
     id: 'rbr-final-node',
     title: 'NÓ FINAL — RIO BRANCO',
     tolerance: 7,
+    display: 'radar',
     bars: [
       { id: 'n1', label: 'NÓ-1', target: 100, initial: 25 },
       { id: 'n2', label: 'NÓ-2', target: 100, initial: 40 },

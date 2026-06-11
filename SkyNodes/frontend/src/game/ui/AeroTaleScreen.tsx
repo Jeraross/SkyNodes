@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DialogueSequence, GameAirport, GameMission, GameRoute, PlayerPosition } from '../types';
 import { buildRetroScreenModel } from './retroScreen';
 import WorldMapPanel from './WorldMapPanel';
-import TravelPlannerPanel from './TravelPlannerPanel';
 import AirportMenuPanel from './AirportMenuPanel';
 import AeroTaleIntro from './AeroTaleIntro';
 import CombatScreen from './CombatScreen';
+import TravelModal from './TravelModal';
 import { getEncounterForAirport } from '../data/combatEncounters';
+import { getRouteAnomalyEncounter } from '../data/anomalyEncounters';
 import { AEROTALE_ACTIONS as ACTIONS, type AeroTaleAction as Action, shouldShowGlobalHud } from './aeroTaleHud';
 import { AIRPORT_PUZZLES } from '../data/airportPuzzles';
 import {
@@ -26,6 +27,7 @@ import {
 import DialogueOverlay from './DialogueOverlay';
 import AirportPuzzlePanel from './AirportPuzzlePanel';
 import VictoryScreen from './VictoryScreen';
+import { findShortestPath, type ShortestPath } from '../logic/travelPlanner';
 
 interface AeroTaleScreenProps {
   airports: GameAirport[];
@@ -64,6 +66,10 @@ interface AeroTaleScreenProps {
   onPuzzleSolved: () => void;
   onPuzzleBack: () => void;
   openPuzzle: () => void;
+  // Anomaly
+  anomalyDefeatedRouteIds: string[];
+  anomalyBonusTrips: number;
+  onAnomalyDefeated: (routeId: string) => void;
 }
 
 const STAT_COLORS = {
@@ -105,12 +111,21 @@ export default function AeroTaleScreen({
   onPuzzleSolved,
   onPuzzleBack,
   openPuzzle,
+  anomalyDefeatedRouteIds,
+  anomalyBonusTrips,
+  onAnomalyDefeated,
 }: AeroTaleScreenProps) {
   const [activeAction, setActiveAction] = useState<Action>('MAPA');
   const [combatActive, setCombatActive] = useState(false);
   const [recifeStarted, setRecifeStarted] = useState(false);
   const [victoryActive, setVictoryActive] = useState(false);
+  const [travelIntent, setTravelIntent] = useState<{
+    destination: GameAirport;
+    path: ShortestPath;
+  } | null>(null);
+  const [anomalyCombatRouteId, setAnomalyCombatRouteId] = useState<string | null>(null);
   const arrivedAirportIdsRef = useRef<Set<string>>(new Set(['REC']));
+  const pendingTravelRef = useRef<{ destination: GameAirport; path: ShortestPath } | null>(null);
 
   const model = useMemo(
     () => buildRetroScreenModel({ currentAirport, activeMission, completedCount, totalMissions, nearbyAirport, credits, fuel }),
@@ -150,14 +165,62 @@ export default function AeroTaleScreen({
     }
   }, [onRouteActivated, pushDialogue]);
 
+  const handleAirportClick = useCallback((airportId: string) => {
+    if (!currentAirport || airportId === currentAirport.id) return;
+    const destination = airports.find(a => a.id === airportId);
+    if (!destination) return;
+    const path = findShortestPath(currentAirport.id, airportId, airports, routes);
+    if (!path) return;
+    setTravelIntent({ destination, path });
+  }, [currentAirport, airports, routes]);
+
+  const handleTravelConfirm = useCallback(() => {
+    if (!travelIntent) return;
+    const anomalyRouteIds = activeMission?.anomalyRouteIds ?? [];
+    const firstUndefeatedAnomaly = travelIntent.path.routeIds.find(
+      routeId =>
+        anomalyRouteIds.includes(routeId) &&
+        !anomalyDefeatedRouteIds.includes(routeId),
+    );
+    if (firstUndefeatedAnomaly) {
+      pendingTravelRef.current = travelIntent;
+      setAnomalyCombatRouteId(firstUndefeatedAnomaly);
+      setTravelIntent(null);
+      return;
+    }
+    const plan = travelIntent;
+    const totalCost = plan.path.routeIds.reduce((sum, routeId) => {
+      const route = routes.find(r => r.id === routeId);
+      return sum + (route?.cost ?? 1);
+    }, 0);
+    onConfirmTravel(plan.destination, plan.path.routeIds, totalCost);
+    setTravelIntent(null);
+  }, [travelIntent, activeMission, anomalyDefeatedRouteIds, routes, onConfirmTravel]);
+
   const handleCombatVictory = useCallback((encounterId: string) => {
     onCombatVictory(encounterId);
     setCombatActive(false);
+
+    if (anomalyCombatRouteId) {
+      onAnomalyDefeated(anomalyCombatRouteId);
+      setAnomalyCombatRouteId(null);
+      const pending = pendingTravelRef.current;
+      pendingTravelRef.current = null;
+      if (pending) {
+        const totalCost = pending.path.routeIds.reduce((sum, routeId) => {
+          const route = routes.find(r => r.id === routeId);
+          return sum + (route?.cost ?? 1);
+        }, 0);
+        onConfirmTravel(pending.destination, pending.path.routeIds, totalCost);
+      }
+      return;
+    }
+
     const prePuzzle = currentAirport?.id === 'REC'
       ? RECIFE_PRE_PUZZLE
       : currentAirport ? buildPrePuzzleDialogue(currentAirport) : RECIFE_PRE_PUZZLE;
     pushDialogue({ ...prePuzzle, onComplete: () => openPuzzle() });
-  }, [onCombatVictory, openPuzzle, pushDialogue, currentAirport]);
+  }, [onCombatVictory, anomalyCombatRouteId, onAnomalyDefeated, currentAirport, pushDialogue, openPuzzle, routes, onConfirmTravel]);
 
   const handlePuzzleSolved = useCallback(() => {
     onPuzzleSolved();
@@ -182,6 +245,10 @@ export default function AeroTaleScreen({
     arestasDialogueFiredRef.current = false;
     arrivedAirportIdsRef.current = new Set(['REC']);
     setVictoryActive(false);
+    setActiveAction('MAPA');
+    setTravelIntent(null);
+    setAnomalyCombatRouteId(null);
+    pendingTravelRef.current = null;
     onReset();
   }, [onReset]);
 
@@ -216,7 +283,23 @@ export default function AeroTaleScreen({
     );
   }
 
-  // Active combat encounter check
+  // Route anomaly combat
+  if (anomalyCombatRouteId) {
+    const encounter = getRouteAnomalyEncounter(anomalyCombatRouteId);
+    return (
+      <CombatScreen
+        encounter={encounter}
+        clearedActIds={[]}
+        onVictory={handleCombatVictory}
+        onDefeat={() => {
+          setAnomalyCombatRouteId(null);
+          pendingTravelRef.current = null;
+        }}
+      />
+    );
+  }
+
+  // Active airport combat encounter
   const activeEncounter = combatActive ? getEncounterForAirport(currentAirport?.id) : null;
   if (activeEncounter && !clearedCombatIds.includes(activeEncounter.id)) {
     return (
@@ -249,7 +332,7 @@ export default function AeroTaleScreen({
               <span className="text-[#ff0000]">AERO</span>TALE
             </h1>
             <div className="flex items-center gap-2">
-<button type="button" onClick={onBack} className="at-top-button">
+              <button type="button" onClick={onBack} className="at-top-button">
                 VOLTAR
               </button>
               <button type="button" onClick={handleReset} className="at-top-button at-top-button-danger">
@@ -277,17 +360,7 @@ export default function AeroTaleScreen({
             </div>
           </section>
 
-          {activeAction === 'VIAJAR' ? (
-            <TravelPlannerPanel
-              airports={airports}
-              routes={routes}
-              currentAirport={currentAirport}
-              activeMission={activeMission}
-              credits={credits}
-              fuel={fuel}
-              onConfirm={onConfirmTravel}
-            />
-          ) : activeAction === 'ENTRAR NO AEROPORTO' ? (
+          {activeAction === 'ENTRAR NO AEROPORTO' ? (
             <AirportMenuPanel
               airport={currentAirport}
               completedTaskIds={completedTaskIds}
@@ -309,6 +382,8 @@ export default function AeroTaleScreen({
                 setTargetPosition={setTargetPosition}
                 buildMode={buildMode}
                 onRouteActivated={handleRouteActivated}
+                onAirportClick={handleAirportClick}
+                pendingRouteIds={travelIntent?.path.routeIds ?? []}
               />
             </section>
           )}
@@ -372,11 +447,26 @@ export default function AeroTaleScreen({
         </div>
       </div>
 
-      {/* DialogueOverlay — z-30, above everything including map */}
       {dialogueQueue.length > 0 && (
         <DialogueOverlay
           queue={dialogueQueue}
           onAdvance={onAdvanceDialogue}
+        />
+      )}
+
+      {travelIntent && (
+        <TravelModal
+          destination={travelIntent.destination}
+          path={travelIntent.path}
+          airports={airports}
+          routes={routes}
+          anomalyRouteIds={activeMission?.anomalyRouteIds ?? []}
+          anomalyDefeatedRouteIds={anomalyDefeatedRouteIds}
+          credits={credits}
+          fuel={fuel}
+          anomalyBonusTrips={anomalyBonusTrips}
+          onConfirm={handleTravelConfirm}
+          onCancel={() => setTravelIntent(null)}
         />
       )}
     </main>
