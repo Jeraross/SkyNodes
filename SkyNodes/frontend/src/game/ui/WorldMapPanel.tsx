@@ -78,6 +78,8 @@ interface WorldMapPanelProps {
   setTargetPosition: (position: PlayerPosition | null) => void;
   buildMode?: boolean;
   onRouteActivated?: (routeId: string) => void;
+  onAirportClick?: (airportId: string) => void;
+  pendingRouteIds?: string[];
 }
 
 export default function WorldMapPanel({
@@ -89,6 +91,8 @@ export default function WorldMapPanel({
   setTargetPosition,
   buildMode,
   onRouteActivated,
+  onAirportClick,
+  pendingRouteIds = [],
 }: WorldMapPanelProps) {
   const symbols = terrainSymbols();
   const playerAirport = closestAirport(playerPosition, airports);
@@ -162,6 +166,25 @@ export default function WorldMapPanel({
           if (!fromAirport || !toAirport) return null;
           const from = getMapPosition(fromAirport);
           const to = getMapPosition(toAirport);
+
+          // Pending travel route highlight
+          const isPending = pendingRouteIds.includes(route.id);
+          if (isPending) {
+            return (
+              <line
+                key={route.id}
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                stroke="#00ffff"
+                strokeWidth="3"
+                opacity="0.9"
+                className="at-route-pulse"
+              />
+            );
+          }
+
           const isBlocked = route.state === 'blocked';
           const isSelected = route.state === 'restored';
           const mx = (from.x + to.x) / 2;
@@ -230,15 +253,20 @@ export default function WorldMapPanel({
           const pos = getMapPosition(airport);
           const label = getLabelPosition(airport, pos);
           const active = isHighlightedAirport(airport, nearbyAirport);
-          const selectable = isAirportSelectable(airport, playerAirport, routes);
+          const isCurrent = airport.id === playerAirport?.id;
           return (
             <g
               key={airport.id}
-              className={selectable ? 'cursor-pointer' : 'cursor-not-allowed opacity-65'}
+              className={isCurrent ? 'cursor-default' : 'cursor-pointer'}
               onClick={() => {
-                if (!selectable) return;
-                setPlayerPosition({ x: airport.x, y: airport.y });
-                setTargetPosition(null);
+                if (isCurrent) return;
+                if (buildMode) return;
+                if (onAirportClick) {
+                  onAirportClick(airport.id);
+                } else {
+                  setPlayerPosition({ x: airport.x, y: airport.y });
+                  setTargetPosition(null);
+                }
               }}
             >
               <rect
@@ -246,7 +274,7 @@ export default function WorldMapPanel({
                 y={pos.y - 6}
                 width="12"
                 height="12"
-                fill={active ? C.yellow : C.red}
+                fill={isCurrent ? C.yellow : active ? '#ff8800' : C.red}
                 stroke={C.white}
                 strokeWidth="1"
               />

@@ -1,198 +1,61 @@
-# Teoria dos Grafos
+<div align="center">
 
-## Descrição
+# SkyNodes
 
-Este projeto modela a **rede de aeroportos brasileiros** como um grafo rotulado não-direcionado e aplica algoritmos clássicos de teoria dos grafos para análise estrutural e busca de caminhos.
+**Um grafo interativo da rede de aeroportos brasileiros com algoritmos clássicos e narrativa visual**
 
-O projeto é dividido em duas partes:
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-19+-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-4+-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 
-- **Parte 1 (este repositório):** Construção do grafo, implementação dos algoritmos (BFS, DFS, Dijkstra e Bellman-Ford) do zero, cálculo de métricas (grau, ego-rede, densidade), geração de visualizações estáticas e interativas, e interface de linha de comando (CLI).
-- **Parte 2:** Análise avançada de redes (centralidade, comunidades, correlação com dados de streaming musical via dataset Spotify).
-
-Cada aeroporto é representado por seu código **IATA** (ex.: `GRU`, `REC`, `BSB`). As arestas modelam rotas entre aeroportos com pesos calculados por uma fórmula híbrida que considera distância geográfica, penalidade inter-regional e bônus de hub nacional.
+</div>
 
 ---
 
-## Estrutura de Pastas
+## O que é o SkyNodes?
+
+SkyNodes modela a **rede de aeroportos brasileiros** como um grafo rotulado não-direcionado e aplica algoritmos clássicos de teoria dos grafos para análise estrutural e busca de caminhos.
+
+Cada aeroporto é um nó identificado pelo seu código **IATA** (ex.: `GRU`, `REC`, `BSB`). As arestas representam rotas com pesos calculados por uma fórmula híbrida que considera distância geográfica, penalidade inter-regional e bônus de hub nacional. O projeto também inclui o **AeroTale**: uma narrativa visual interativa ambientada nessa rede, onde o jogador explora aeroportos, resolve puzzles baseados em grafos e descobre uma história de anomalias no sistema de rotas.
+
+---
+
+## Funcionalidades
+
+- **Globe View:** Visualização 3D do grafo de aeroportos sobre o globo terrestre com rotas e nós interativos
+- **Mapa Interativo:** Visualização 2D da rede sobre o mapa do Brasil com tooltips de métricas
+- **Algoritmos:** Execute BFS, DFS, Dijkstra e Bellman-Ford sobre o grafo e visualize o percurso em tempo real
+- **Métricas:** Dashboard com grau, densidade, ego-redes e rankings por aeroporto e região
+- **AeroTale:** Jogo de narrativa visual onde o jogador pilota rotas, enfrenta anomalias e resolve puzzles de grafos
+- **Leaderboard:** Ranking de pontuações do modo AeroTale
+
+---
+
+## Stack
 
 ```
-MixGraph/
-├── requirements.txt                  # Dependências do projeto
-├── README.md                         # Este arquivo
-└── MixGraph/                         # Pacote principal
-    ├── data/
-    │   ├── aeroportos_data.csv       # 20 aeroportos (IATA, cidade, região)
-    │   ├── adjacencias_aeroportos.csv# Arestas geradas pelas regras de conectividade
-    │   ├── rotas.csv                 # 7 pares de rotas para Dijkstra
-    │   └── dataset_MixGraph/
-    │       └── spotify_songs.csv     # Dataset Spotify (Parte 2)
-    ├── out/                          # Arquivos de saída gerados automaticamente
-    │   ├── global.json               # Métricas globais do grafo
-    │   ├── regioes.json              # Métricas por região
-    │   ├── ego_aeroportos.csv        # Ego-redes de cada aeroporto
-    │   ├── graus.csv                 # Ranking de graus
-    │   ├── distancias_rotas.csv      # Rotas Dijkstra com custos e caminhos
-    │   ├── arvore_percurso.png       # Mapa estático dos caminhos obrigatórios
-    │   ├── grafo_interativo.html     # Grafo completo interativo (pyvis)
-    │   ├── viz1_distribuicao_graus.png
-    │   ├── viz2_ranking_conectados.png
-    │   ├── viz3_metricas_regioes.png
-    │   ├── viz4_ego_grau_densidade.png
-    │   ├── viz5_camadas_bfs.png
-    │   └── viz6_heatmap_distancias.png
-    ├── src/
-    │   ├── __init__.py
-    │   ├── build_data.py             # Gera adjacencias_aeroportos.csv
-    │   ├── cli.py                    # Interface de linha de comando (argparse)
-    │   ├── solve.py                  # Métricas, ego-redes, rotas (Parte 1)
-    │   ├── viz.py                    # Todas as visualizações (matplotlib + pyvis)
-    │   └── graphs/
-    │       ├── __init__.py
-    │       ├── graph.py              # Classe Grafo e Aresta
-    │       ├── io.py                 # Carregamento e construção do grafo via CSV
-    │       └── algorithms.py         # BFS, DFS, Dijkstra, Bellman-Ford
-    └── tests/
-        ├── test_bfs.py
-        ├── test_dfs.py
-        ├── test_dijkstra.py
-        └── test_bellman_ford.py
+Backend          Python 3.11 · FastAPI · grafo implementado do zero
+Frontend         React 19 · TypeScript · Vite · TailwindCSS 4
+Visualização     reagraph (WebGL) · react-globe.gl · react-simple-maps
+Motor do Jogo    PixiJS 8 · Three.js · GSAP
+Dataset          20 aeroportos · aeroportos_data.csv
 ```
 
 ---
 
-## Instalação
+## Grafo de Aeroportos
 
-```bash
-# 1. Clone o repositório
-git clone https://github.com/Jeraross/MixGraph.git
-cd MixGraph
+O grafo $G = (V, E, w)$ é **não-direcionado e ponderado**.
 
-# 2. Crie e ative o ambiente virtual
-python -m venv .venv
+- **Nó** → um aeroporto com código IATA, cidade e região
+- **Aresta / rota** → uma conexão aérea possível entre dois aeroportos
+- **Peso** → custo total da rota (quanto maior, mais "cara" é a conexão)
 
-# Linux/macOS
-source .venv/bin/activate
+### Aeroportos
 
-# Windows (PowerShell)
-.venv\Scripts\Activate.ps1
-
-# 3. Instale as dependências
-pip install -r requirements.txt
-```
-
----
-
-## Como Executar
-
-> Todos os comandos abaixo devem ser rodados a partir do diretório `MixGraph\MixGraph\`
-> (o subdiretório com `src/`, `data/` e `tests/`).
-
-```
-cd MixGraph\MixGraph
-```
-
----
-
-### Pipeline completo — Parte 1
-
-Executa tudo de uma vez: métricas, rotas, visualizações estáticas e grafo interativo.
-
-```bash
-python -m src.cli --dataset ./data/aeroportos_data.csv --alg ALL --out ./out/
-```
-
-Arquivos gerados em `out/`: métricas JSON, CSVs, PNG analíticos, mapa estático e `grafo_interativo.html`.
-
----
-
-### Gerar apenas as visualizações
-
-```bash
-python -m src.viz
-```
-
-Gera `out/arvore_percurso.png`, `out/grafo_interativo.html` e todos os PNGs analíticos sem re-executar o pipeline de métricas.
-
----
-
-### Visualização interativa (grafo_interativo.html)
-
-Após gerar o arquivo, abra-o diretamente no navegador:
-
-**Windows Explorer** — navegue até `MixGraph\out\` e dê duplo clique em `grafo_interativo.html`.
-
-**PowerShell**:
-```powershell
-Invoke-Item .\out\grafo_interativo.html
-```
-
-**Prompt de Comando (cmd)**:
-```cmd
-start out\grafo_interativo.html
-```
-
-O HTML é completamente autocontido (sem dependências externas) — funciona offline em qualquer navegador moderno.
-
-#### Controles da interface
-
-| Botão | Ação |
-|---|---|
-| `⊕` | Centralizar / reajustar zoom |
-| `⚡` | Ligar / desligar simulação física |
-| `⬤` | Modo compacto (oculta rótulos, reduz nós) |
-
-- **Hover** sobre nó: exibe IATA, cidade, região, grau e densidade da ego-rede
-- **Hover** sobre aresta: exibe tipo de conexão, peso e justificativa
-- **Clique** em nó: fixa painel de detalhes no rodapé
-- **Player de caminhos**: reproduz passo a passo os caminhos mínimos REC→POA e MAO→GRU
-
-> Hover de nós e arestas fica desativado enquanto a física estiver ligada.
-
----
-
-### Algoritmos individuais via CLI
-
-```bash
-# BFS a partir de Recife
-python -m src.cli --dataset ./data/aeroportos_data.csv --alg BFS --source REC --out ./out/
-
-# DFS a partir de São Paulo (GRU)
-python -m src.cli --dataset ./data/aeroportos_data.csv --alg DFS --source GRU --out ./out/
-
-# Dijkstra: menor caminho de Recife a Porto Alegre
-python -m src.cli --dataset ./data/aeroportos_data.csv --alg DIJKSTRA --source REC --target POA --out ./out/
-
-# Bellman-Ford: Manaus a São Paulo
-python -m src.cli --dataset ./data/aeroportos_data.csv --alg BELLMAN_FORD --source MAO --target GRU --out ./out/
-```
-
-Cada algoritmo salva um JSON em `out/` com os resultados completos (pais, distâncias, caminhos).
-
----
-
-### Gerar apenas as adjacências
-
-Necessário apenas na primeira execução se o arquivo `data/adjacencias_aeroportos.csv` não existir (o pipeline `ALL` já faz isso automaticamente):
-
-```bash
-python src/build_data.py
-```
-
----
-
-### Rodar testes
-
-```bash
-pytest tests/ -v
-```
-
----
-
-## Modelo do Grafo
-
-### Nós
-
-Cada nó representa um aeroporto identificado pelo código **IATA**. O grafo contém **20 aeroportos** distribuídos por 5 regiões:
+O grafo contém **20 aeroportos** distribuídos por 5 regiões:
 
 | Região | Aeroportos |
 |---|---|
@@ -206,54 +69,156 @@ Cada nó representa um aeroporto identificado pelo código **IATA**. O grafo con
 
 **Regra 1 — Conexão Regional** (`tipo_conexao = "regional"`, `peso_base = 1.0`)
 Todo aeroporto conecta-se a todos os outros da mesma região (clique completo intra-regional).
-`justificativa = "conexão intra-regional: {regiao}"`
 
 **Regra 2 — Conexão via Hub Nacional** (`tipo_conexao = "hub"`, `peso_base = 2.0`)
 Hubs nacionais: **GRU** (Sudeste), **BSB** (Centro-Oeste), **GIG** (Sudeste).
-Aeroportos de outras regiões conectam-se ao(s) hub(s) correspondente(s):
-- Norte → MAO conecta a GRU e BSB
-- Nordeste → REC, SSA, FOR conectam a GRU; NAT, JPA, THE conectam a BSB
-- Sul → POA, CWB, FLN conectam a GRU
-
-`justificativa = "conexão via hub nacional {hub}"`
+Aeroportos de outras regiões conectam-se ao hub correspondente.
 
 **Regra 3 — Pontes Inter-Regionais** (`tipo_conexao = "inter_regional"`, `peso_base = 2.5`)
 Conexões estratégicas para garantir conectividade total:
 `BSB↔MAO`, `BSB↔BEL`, `BSB↔REC`, `BSB↔POA`, `GRU↔MAO`, `GIG↔SSA`
 
-`justificativa = "ponte inter-regional estratégica"`
-
 ### Fórmula Híbrida de Pesos
 
-```
-penalidade_regiao = 1.0  se os dois nós são de regiões diferentes
-                  = 0.0  se são da mesma região
+$$peso\_final = peso\_base + penalidade\_regiao + penalidade\_hub$$
 
-penalidade_hub    = 0.5  se nenhum dos dois nós é hub nacional (GRU, BSB, GIG)
-                  = 0.0  se pelo menos um é hub
+| Componente | Critério | Valor |
+|---|---|---|
+| `penalidade_regiao` | Nós em regiões diferentes | `1.0` |
+| `penalidade_regiao` | Nós na mesma região | `0.0` |
+| `penalidade_hub` | Nenhum dos nós é hub (GRU, BSB, GIG) | `0.5` |
+| `penalidade_hub` | Pelo menos um nó é hub | `0.0` |
 
-peso_final = peso_base + penalidade_regiao + penalidade_hub
-peso_final ≥ 1.0  (nunca negativo)
-```
-
-Isso penaliza conexões inter-regionais sem hub intermediário e beneficia rotas que passam por hubs nacionais.
+> O `peso_final` nunca é negativo (mínimo `1.0`). Conexões inter-regionais sem hub intermediário são penalizadas; rotas que passam por hubs nacionais recebem desconto.
 
 ---
 
-## Arquivos de Saída (`out/`)
+## Algoritmos Implementados
 
-| Arquivo | Descrição |
-|---|---|
-| `global.json` | Ordem \|V\|, tamanho \|E\|, densidade e conectividade do grafo |
-| `regioes.json` | Métricas do subgrafo induzido por cada região (ordem, tamanho, densidade) |
-| `ego_aeroportos.csv` | Grau, ordem, tamanho e densidade da ego-rede de cada aeroporto |
-| `graus.csv` | Ranking de todos os aeroportos por grau (decrescente) |
-| `distancias_rotas.csv` | Custo e caminho mínimo (Dijkstra) para os 7 pares de `data/rotas.csv` |
-| `arvore_percurso.png` | Mapa estático (matplotlib) com os caminhos REC→POA e MAO→GRU destacados |
-| `grafo_interativo.html` | Grafo completo interativo com tooltips, player de caminhos e legenda |
-| `viz1_distribuicao_graus.png` | Histograma da distribuição de graus (exploratória) |
-| `viz2_ranking_conectados.png` | Barras horizontais com ranking de conectividade por região (exploratória) |
-| `viz3_metricas_regioes.png` | Barras agrupadas comparando métricas por região (exploratória) |
-| `viz4_ego_grau_densidade.png` | Scatter grau × densidade da ego-rede por região (exploratória) |
-| `viz5_camadas_bfs.png` | Camadas BFS a partir de REC em layout por colunas (explanatória) |
-| `viz6_heatmap_distancias.png` | Heatmap 20×20 das distâncias mínimas Dijkstra entre todos os pares (explanatória) |
+> Nenhum desses algoritmos usa bibliotecas prontas de grafos (`networkx`, `igraph`, etc.).
+
+### BFS: Exploração em Largura
+
+A busca em largura percorre o grafo em ondas, visitando todos os aeroportos a 1 salto da origem antes dos a 2 saltos, e assim por diante. No SkyNodes, o BFS é usado para revelar quais aeroportos são alcançáveis dentro de $k$ conexões a partir de um ponto de partida, construindo a árvore BFS com níveis e pais.
+
+### DFS: Busca em Profundidade e Detecção de Ciclos
+
+A busca em profundidade mergulha o mais fundo possível por um caminho antes de retroceder, marcando nós com timestamps de descoberta e término e identificando **back-edges** (arestas que apontam para um ancestral já em exploração). No SkyNodes, o DFS é usado para detectar ciclos no grafo de aeroportos.
+
+### Dijkstra: Caminho de Menor Custo
+
+O algoritmo de Dijkstra encontra o caminho de **menor custo acumulado** entre dois aeroportos usando uma fila de prioridade (min-heap). Ele assume que todos os pesos são não-negativos e lança `ValueError` ao encontrar um peso negativo — o que não ocorre neste grafo, já que `peso_final ≥ 1.0` sempre.
+
+### Bellman-Ford: Caminho Ótimo com Detecção de Ciclos Negativos
+
+O Bellman-Ford também encontra o caminho de menor custo, mas relaxa todas as arestas $|V| - 1$ vezes e tolera **pesos negativos**. No SkyNodes, ele serve como alternativa robusta ao Dijkstra e é capaz de **detectar e reportar ciclos de peso negativo** — útil para validar a integridade do grafo.
+
+---
+
+## Arquitetura do Backend
+
+### Estrutura de Pacotes
+
+```
+SkyNodes/
+  api/
+    main.py            — ponto de entrada FastAPI + CORS
+    dependencies.py    — injeção do grafo via Depends
+    coordinates.py     — coordenadas geográficas (lat/lon) de cada IATA
+    routers/
+      graph.py         — /graph/nodes, /graph/edges
+      algorithms.py    — /algorithms/bfs, dfs, dijkstra, bellman-ford
+      metrics.py       — /metrics/global, regions, ego, rankings
+  src/
+    graphs/
+      graph.py         — classes Grafo e Aresta
+      algorithms.py    — BFS, DFS, Dijkstra, Bellman-Ford
+      io.py            — pipeline CSV → Grafo
+  data/
+    aeroportos_data.csv        — 20 aeroportos (IATA, cidade, região)
+    adjacencias_aeroportos.csv — arestas geradas pelas regras de conectividade
+  tests/
+```
+
+### Pipeline de Carregamento: CSV → Grafo
+
+A construção do grafo a partir do CSV segue duas etapas:
+
+1. **`carregar_grafo`**: lê `aeroportos_data.csv`, instancia os nós e carrega as arestas de `adjacencias_aeroportos.csv`.
+2. **`construir_adjacencias`**: aplica as três regras de conectividade (regional, hub, inter-regional), calcula a fórmula de pesos e persiste o resultado em `adjacencias_aeroportos.csv`.
+
+O grafo é carregado **uma única vez** na inicialização do servidor e injetado via `Depends` em todos os endpoints.
+
+---
+
+## Endpoints da API
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/graph/nodes` | Retorna todos os aeroportos com IATA, cidade, região, coordenadas e grau |
+| `GET` | `/graph/edges` | Retorna todas as arestas com origem, destino, peso, tipo e justificativa |
+| `POST` | `/algorithms/bfs` | Executa BFS a partir de um aeroporto e retorna visitados, níveis, pais e árvore |
+| `POST` | `/algorithms/dfs` | Executa DFS a partir de um aeroporto e retorna percurso, timestamps, back-edges e ciclos |
+| `POST` | `/algorithms/dijkstra` | Calcula o caminho de menor custo entre dois aeroportos (sem pesos negativos) |
+| `POST` | `/algorithms/bellman-ford` | Calcula o caminho de menor custo com suporte a pesos negativos e detecção de ciclos negativos |
+| `GET` | `/metrics/global` | Retorna ordem, tamanho, densidade e conectividade do grafo |
+| `GET` | `/metrics/regions` | Retorna métricas do subgrafo induzido por cada região |
+| `GET` | `/metrics/ego` | Retorna grau, ordem, tamanho e densidade da ego-rede de cada aeroporto |
+| `GET` | `/metrics/rankings` | Retorna o aeroporto mais conectado e o de maior densidade de ego-rede |
+
+---
+
+## Como Rodar
+
+### Pré-requisitos
+
+- Python 3.11+
+- Node.js 18+
+
+### Backend
+
+```bash
+cd SkyNodes
+
+# Instale as dependências
+pip install -r requirements.txt
+
+# Gere o arquivo de adjacências (apenas na primeira execução)
+python -m src.build_data
+
+# Inicie o servidor
+uvicorn main:app --reload
+# API disponível em http://localhost:8000
+```
+
+### Frontend
+
+```bash
+cd SkyNodes/frontend
+
+# Instale as dependências
+npm install
+
+# Inicie o servidor de desenvolvimento
+npm run dev
+# App disponível em http://localhost:5173
+```
+
+### Testes
+
+```bash
+cd SkyNodes
+
+# Executar toda a suíte de testes
+pytest
+
+# Executar com detalhamento
+pytest -v -s
+
+# Executar apenas os testes de algoritmos
+pytest tests/test_dijkstra.py tests/test_bellman_ford.py
+```
+
+<div align="center">
+<sub>Projeto acadêmico — Teoria dos Grafos</sub>
+</div>
