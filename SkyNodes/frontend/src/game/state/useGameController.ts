@@ -123,6 +123,14 @@ export function useGameController() {
     setBuildMode(false);
   }, []);
 
+  const defeatAnomaly = useCallback((routeId: string) => {
+    setProgress(prev => ({
+      ...prev,
+      anomalyDefeatedRouteIds: [...new Set([...prev.anomalyDefeatedRouteIds, routeId])],
+      anomalyBonusTrips: 2,
+    }));
+  }, []);
+
   const reset = useCallback(() => {
     const fresh = resetGameProgress();
     const airport = GAME_AIRPORTS.find(item => item.id === fresh.currentAirportId) ?? GAME_AIRPORTS[0];
@@ -167,6 +175,7 @@ export function useGameController() {
     activateBuildMode,
     deactivateBuildMode,
     activateRoute,
+    defeatAnomaly,
     puzzleActive,
     openPuzzle,
     closePuzzle,

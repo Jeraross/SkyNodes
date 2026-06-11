@@ -14,8 +14,8 @@ export default function TopControlNav({ viewMode, onViewModeChange }: Props) {
       bgColor: 'rgba(15, 23, 42, 0.9)',
       textColor: '#e2e8f0',
       links: [
-        { label: 'Objetivo', ariaLabel: 'Ver objetivo do projeto' },
-        { label: 'Como funciona', ariaLabel: 'Entender funcionamento' },
+        { label: 'Objetivo',      href: '/projeto?tab=objetivo',       ariaLabel: 'Ver objetivo do projeto' },
+        { label: 'Como funciona', href: '/projeto?tab=como-funciona',  ariaLabel: 'Entender funcionamento' },
       ],
     },
     {
@@ -23,8 +23,8 @@ export default function TopControlNav({ viewMode, onViewModeChange }: Props) {
       bgColor: 'rgba(8, 47, 73, 0.9)',
       textColor: '#e2e8f0',
       links: [
-        { label: 'Nós e arestas', ariaLabel: 'Sobre nós e arestas' },
-        { label: 'Algoritmos', ariaLabel: 'Algoritmos disponíveis' },
+        { label: 'Nós e arestas', href: '/grafos?tab=nos-arestas', ariaLabel: 'Sobre nós e arestas' },
+        { label: 'Algoritmos',    href: '/grafos?tab=algoritmos',  ariaLabel: 'Algoritmos disponíveis' },
       ],
     },
     {
@@ -32,8 +32,8 @@ export default function TopControlNav({ viewMode, onViewModeChange }: Props) {
       bgColor: 'rgba(5, 46, 22, 0.9)',
       textColor: '#e2e8f0',
       links: [
-        { label: 'Aeroportos', ariaLabel: 'Lista de aeroportos' },
-        { label: 'Rotas', ariaLabel: 'Rotas aéreas' },
+        { label: 'Aeroportos', href: '/dados?tab=aeroportos', ariaLabel: 'Lista de aeroportos' },
+        { label: 'Rotas',      href: '/dados?tab=rotas',      ariaLabel: 'Rotas aéreas' },
       ],
     },
   ];

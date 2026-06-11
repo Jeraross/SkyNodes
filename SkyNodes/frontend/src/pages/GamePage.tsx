@@ -122,6 +122,9 @@ function GameContent({ onBack }: { onBack: () => void }) {
       onPuzzleSolved={game.closePuzzle}
       onPuzzleBack={game.closePuzzle}
       openPuzzle={game.openPuzzle}
+      anomalyDefeatedRouteIds={game.progress.anomalyDefeatedRouteIds}
+      anomalyBonusTrips={game.progress.anomalyBonusTrips}
+      onAnomalyDefeated={game.defeatAnomaly}
     />
   );
 }

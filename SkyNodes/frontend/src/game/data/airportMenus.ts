@@ -1,6 +1,6 @@
 import type { DialogueScript } from '../logic/dialogueEngine';
 
-export type AirportTaskKind = 'restore-network' | 'graph' | 'chart' | 'dialogue';
+export type AirportTaskKind = 'restore-network' | 'graph' | 'chart' | 'dialogue' | 'subgraph' | 'mst' | 'coloring' | 'topo-sort';
 
 export interface AirportNpc {
   id: string;
@@ -898,13 +898,6 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
         reward: 170,
         prompt: 'A onda solar embaralhou as frequências do hub. Restaure cada banda ao valor operacional.',
       },
-      {
-        id: 'for-hub-balance',
-        title: 'Balancear Hub Regional',
-        kind: 'chart',
-        reward: 180,
-        prompt: 'Fortaleza é hub. Calibre o fluxo de rotas para não sobrecarregar um único nó.',
-      },
     ],
     shop: defaultShop,
   },
@@ -1019,6 +1012,20 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
       },
     ],
     tasks: [
+      {
+        id: 'ssa-subgraph',
+        title: 'Reconectar Rede de Salvador',
+        kind: 'subgraph',
+        reward: 180,
+        prompt: 'Quatro fragmentos isolados. Conecte todos ao coordenador central para restaurar a malha.',
+      },
+      {
+        id: 'ssa-mst-nordeste',
+        title: 'Minimizar Custo da Rede Nordestina',
+        kind: 'mst',
+        reward: 240,
+        prompt: 'Conecte os aeroportos nordestinos usando as arestas de menor custo total. Orçamento limitado.',
+      },
       {
         id: 'ssa-read-protocol-fragments',
         title: 'Ler Fragmentos do Protocolo-M',
@@ -1157,25 +1164,25 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
     ],
     tasks: [
       {
+        id: 'mao-subgraph',
+        title: 'Reconectar Rede de Manaus',
+        kind: 'subgraph',
+        reward: 195,
+        prompt: 'A rede de Manaus tem dois clusters. A ponte central conecta ambos os lados.',
+      },
+      {
+        id: 'mao-amazon-network',
+        title: 'Minimizar Custo da Rede Amazônica',
+        kind: 'mst',
+        reward: 250,
+        prompt: 'A floresta encarece cada nova ligação. Conecte os 6 aeroportos com o menor custo total.',
+      },
+      {
         id: 'mao-map-amazon-routes',
         title: 'Mapear Rotas Amazônicas',
         kind: 'graph',
         reward: 180,
         prompt: 'Registre as rotas que Bento conhece de memória e construa o grafo da região Norte.',
-      },
-      {
-        id: 'mao-anomaly-structure',
-        title: 'Analisar Estrutura da Anomalia',
-        kind: 'chart',
-        reward: 200,
-        prompt: 'A anomalia tem bordas definidas. Use os dados de Bento para mapear sua estrutura.',
-      },
-      {
-        id: 'mao-bridge-strength',
-        title: 'Reforçar Pontes Críticas',
-        kind: 'chart',
-        reward: 190,
-        prompt: 'Manaus depende de poucas pontes. Calibre o reforço de cada conexão crítica.',
       },
     ],
     shop: {
@@ -1255,13 +1262,6 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
         reward: 150,
         prompt: 'Cada rota tem um custo diferente. Calibre os valores para escolher o caminho mais eficiente.',
       },
-      {
-        id: 'nat-frequency-restore',
-        title: 'Restaurar Frequências VHF',
-        kind: 'chart',
-        reward: 140,
-        prompt: 'As frequências de comunicação estão fora de calibração após a interferência solar.',
-      },
     ],
     shop: {
       fuelOptions: [
@@ -1318,6 +1318,13 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
       },
     ],
     tasks: [
+      {
+        id: 'the-subgraph',
+        title: 'Reconectar Rede de Teresina',
+        kind: 'subgraph',
+        reward: 160,
+        prompt: 'Conecte todos os nós ao núcleo central. O padrão aqui é simétrico — use isso a seu favor.',
+      },
       {
         id: 'the-map-region',
         title: 'Mapear Região Interiorana',
@@ -1435,6 +1442,13 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
     ],
     tasks: [
       {
+        id: 'bel-subgraph',
+        title: 'Reconectar Rede de Belém',
+        kind: 'subgraph',
+        reward: 200,
+        prompt: 'Dois componentes completamente isolados. Use a junção central para unificá-los.',
+      },
+      {
         id: 'bel-unify-components',
         title: 'Unificar Componentes da Rede',
         kind: 'restore-network',
@@ -1518,6 +1532,20 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
       },
     ],
     tasks: [
+      {
+        id: 'gyn-subgraph',
+        title: 'Reconectar Rede de Goiânia',
+        kind: 'subgraph',
+        reward: 170,
+        prompt: 'O hub de Goiânia precisa de duas ramificações equilibradas. Conecte os ramos esquerdo e direito.',
+      },
+      {
+        id: 'gyn-inspection-order',
+        title: 'Sequenciar Inspeção de Pistas',
+        kind: 'topo-sort',
+        reward: 210,
+        prompt: 'As etapas de inspeção têm dependências. Organize-as na ordem correta respeitando os pré-requisitos.',
+      },
       {
         id: 'gyn-map-center',
         title: 'Mapear Conectividade Central',
@@ -1630,6 +1658,13 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
     ],
     tasks: [
       {
+        id: 'cnf-subgraph',
+        title: 'Reconectar Rede de Confins',
+        kind: 'subgraph',
+        reward: 190,
+        prompt: 'Energia limitada. Conecte todos os setores usando o mínimo de arestas — sem criar ciclos.',
+      },
+      {
         id: 'cnf-build-spanning-tree',
         title: 'Construir Árvore Geradora',
         kind: 'graph',
@@ -1637,18 +1672,11 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
         prompt: 'Energia limitada. Conecte todos os setores usando o mínimo de arestas — sem ciclos.',
       },
       {
-        id: 'cnf-tree-construction',
-        title: 'Calibrar Estrutura da Árvore',
-        kind: 'chart',
-        reward: 180,
-        prompt: 'Ajuste os pesos dos galhos para que a árvore geradora seja mínima.',
-      },
-      {
-        id: 'cnf-cycle-detection',
-        title: 'Detectar e Remover Ciclos',
-        kind: 'chart',
-        reward: 170,
-        prompt: 'Ciclos desperdiçam energia. Identifique e elimine as arestas redundantes.',
+        id: 'cnf-frequency-coloring',
+        title: 'Alocar Frequências sem Interferência',
+        kind: 'coloring',
+        reward: 230,
+        prompt: 'Aeroportos adjacentes não podem usar a mesma frequência de rádio. Use no máximo 3 canais.',
       },
     ],
     shop: {
@@ -1708,6 +1736,13 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
       },
     ],
     tasks: [
+      {
+        id: 'vix-subgraph',
+        title: 'Reconectar Rede de Vitória',
+        kind: 'subgraph',
+        reward: 165,
+        prompt: 'A rede costeira de Vitória. Conecte os nós portuários — há mais de um caminho possível.',
+      },
       {
         id: 'vix-coastal-routes',
         title: 'Mapear Rotas Costeiras',
@@ -1825,6 +1860,13 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
     ],
     tasks: [
       {
+        id: 'gig-subgraph',
+        title: 'Reconectar Rede do Galeão',
+        kind: 'subgraph',
+        reward: 200,
+        prompt: 'A malha do Galeão usa redundância em anel. Conecte o nexo central ao anel completo.',
+      },
+      {
         id: 'gig-verify-routes',
         title: 'Verificar Rotas Reais',
         kind: 'graph',
@@ -1837,13 +1879,6 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
         kind: 'chart',
         reward: 195,
         prompt: 'Calibre os indicadores de cada rota para separar as reais das falsas.',
-      },
-      {
-        id: 'gig-resilience-map',
-        title: 'Mapa de Resiliência',
-        kind: 'chart',
-        reward: 185,
-        prompt: 'Rio precisa de múltiplas rotas redundantes. Mapeie a resiliência de cada setor.',
       },
     ],
     shop: {
@@ -1908,6 +1943,20 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
       },
     ],
     tasks: [
+      {
+        id: 'cgh-subgraph',
+        title: 'Reconectar Rede de Congonhas',
+        kind: 'subgraph',
+        reward: 185,
+        prompt: 'Congonhas tem um gargalo central. Conecte entradas e saídas — passando pelo gargalo.',
+      },
+      {
+        id: 'cgh-maintenance-sequence',
+        title: 'Sequenciar Protocolo de Manutenção',
+        kind: 'topo-sort',
+        reward: 220,
+        prompt: 'Nenhum avião parte sem inspeção completa. Ordene as etapas de manutenção respeitando as dependências.',
+      },
       {
         id: 'cgh-decongest',
         title: 'Descongestionar Terminal',
@@ -2038,13 +2087,6 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
         reward: 175,
         prompt: 'Cada nível de distância tem uma opacidade diferente na neblina. Calibre a visibilidade por nível.',
       },
-      {
-        id: 'cwb-fog-clear',
-        title: 'Dissipar Neblina Digital',
-        kind: 'chart',
-        reward: 165,
-        prompt: 'Os setores estão envoltos em neblina digital. Aumente o sinal progressivamente setor por setor.',
-      },
     ],
     shop: {
       fuelOptions: [
@@ -2126,13 +2168,6 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
         kind: 'chart',
         reward: 180,
         prompt: 'Registre a profundidade de cada nó. Nós mais profundos requerem mais recursos para alcançar.',
-      },
-      {
-        id: 'fln-backtrack',
-        title: 'Marcar Becos e Retroceder',
-        kind: 'chart',
-        reward: 165,
-        prompt: 'Identifique os becos sem saída e elimine-os do mapa de rotas.',
       },
     ],
     shop: {
@@ -2237,6 +2272,13 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
     ],
     tasks: [
       {
+        id: 'poa-subgraph',
+        title: 'Reconectar Rede de Porto Alegre',
+        kind: 'subgraph',
+        reward: 210,
+        prompt: 'Múltiplos caminhos possíveis. Conecte a fonte aos nós intermediários e à meta.',
+      },
+      {
         id: 'poa-minimum-path',
         title: 'Calcular Caminho Mínimo',
         kind: 'graph',
@@ -2249,13 +2291,6 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
         kind: 'chart',
         reward: 200,
         prompt: 'As arestas têm pesos diferentes. Calibre os valores corretos antes de calcular o caminho.',
-      },
-      {
-        id: 'poa-minimum-route',
-        title: 'Otimizar Rota Final',
-        kind: 'chart',
-        reward: 185,
-        prompt: 'Minimize o custo total da rota: combustível, tempo e saltos são as métricas a equilibrar.',
       },
     ],
     shop: {
@@ -2316,6 +2351,13 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
     ],
     tasks: [
       {
+        id: 'pvh-subgraph',
+        title: 'Reconectar Rede de Porto Velho',
+        kind: 'subgraph',
+        reward: 170,
+        prompt: 'Quatro postos remotos dependem da base central. Conecte cada posto.',
+      },
+      {
         id: 'pvh-north-corridor',
         title: 'Abrir Corredor Norte',
         kind: 'graph',
@@ -2328,6 +2370,13 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
         kind: 'chart',
         reward: 155,
         prompt: 'Interferências na fronteira bloqueiam comunicação. Calibre as frequências de borda.',
+      },
+      {
+        id: 'pvh-sector-coloring',
+        title: 'Colorir Setores de Controle',
+        kind: 'coloring',
+        reward: 200,
+        prompt: 'Setores de controle adjacentes não podem operar no mesmo canal. Encontre a alocação mínima.',
       },
     ],
     shop: {
@@ -2392,6 +2441,13 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
       },
     ],
     tasks: [
+      {
+        id: 'rbr-subgraph',
+        title: 'Reconectar Rede de Rio Branco',
+        kind: 'subgraph',
+        reward: 180,
+        prompt: 'O nó final. Conecte as quatro rotas ao nó central para completar a malha Norte.',
+      },
       {
         id: 'rbr-close-network',
         title: 'Fechar Malha do Norte',
