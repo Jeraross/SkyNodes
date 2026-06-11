@@ -5,12 +5,12 @@ const script: DialogueScript = {
   start: 'intro',
   nodes: {
     intro: {
-      speakerId: 'carlos',
+      speakerId: 'lia',
       text: 'A rede caiu.',
       next: 'question',
     },
     question: {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'O que fazemos?',
       choices: [
         { label: 'Validar caminho', next: 'graph' },
@@ -18,7 +18,7 @@ const script: DialogueScript = {
       ],
     },
     graph: {
-      speakerId: 'carlos',
+      speakerId: 'lia',
       text: 'Comece pelos vizinhos.',
     },
     shop: {

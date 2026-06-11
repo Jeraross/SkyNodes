@@ -38,18 +38,18 @@ describe('retro screen model', () => {
       { label: 'LOCAL', value: 'RECIFE', tone: 'green' },
       { label: 'COMBUSTIVEL', value: '80', tone: 'yellow' },
       { label: 'CREDITOS', value: '1200', tone: 'yellow' },
-      { label: 'REPUTACAO', value: '1/4', tone: 'cyan' },
+      { label: 'MALHA', value: '1/4', tone: 'cyan' },
     ]);
-    expect(model.missionLine).toBe('MISSAO: PRIMEIRA DECOLAGEM');
-    expect(model.dialogueSpeaker).toBe('CONTROLADOR CARLOS:');
+    expect(model.missionLine).toBe('PROTOCOLO-M: PRIMEIRA DECOLAGEM');
+    expect(model.dialogueSpeaker).toBe('LIA:');
     expect(model.dialogueLines).toEqual([
-      'POUSE EM SALVADOR PARA CONFIRMAR UMA ROTA SIMPLES.',
+      'PROTOCOLO-M ATIVO. MALHA AEREA BRASILEIRA COMPROMETIDA.',
       'ANOMALIA DETECTADA NO CAMINHO: VALIDE AS CONEXOES DA MALHA.',
-      'USE AS SETAS OU CLIQUE NO MAPA PARA NAVEGAR.',
+      'MOVA-SE PELO MAPA PARA EXPLORAR NOVOS AEROPORTOS.',
     ]);
   });
 
-  it('prompts landing when the player is near an airport', () => {
+  it('prompts airport entry when the player is already at the current airport', () => {
     const model = buildRetroScreenModel({
       currentAirport: rec,
       activeMission: mission,
@@ -60,7 +60,7 @@ describe('retro screen model', () => {
       fuel: 80,
     });
 
-    expect(model.dialogueLines[2]).toBe('AEROPORTO REC AO ALCANCE. USE VIAJAR PARA POUSAR.');
+    expect(model.dialogueLines[2]).toBe('RECIFE ESTA COM O NODO CORROMPIDO. ENTRE NO AEROPORTO E RESTAURE A TORRE.');
   });
 
   it('mentions route anomalies when the active mission path is corrupted', () => {

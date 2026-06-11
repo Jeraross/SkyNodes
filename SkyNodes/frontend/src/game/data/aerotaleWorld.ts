@@ -89,7 +89,7 @@ export const GAME_MISSIONS: GameMission[] = AIRPORT_VISIT_ORDER.map((airportId, 
         ? 'Rota Final Para Rio Branco'
         : `Visitar ${airport?.city ?? airportId}`,
     description: airportId === 'REC'
-      ? 'Carlos precisa que Antonio valide nos, arestas e a primeira rota segura antes de mapear viagens.'
+      ? 'Agente J deve mapear nos, arestas e a primeira rota segura da malha aerea com apoio de Lia.'
       : `Calcule uma rota possivel de ${from} ate ${airportId} e confirme a viagem para ${airport?.city ?? airportId}.`,
     objectiveAirportId: airportId,
     unlocksRouteIds: path?.routeIds ?? [],

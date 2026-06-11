@@ -199,6 +199,34 @@ export default function AirportPuzzlePanel({ puzzle, onSolved, onBack }: Airport
             onPointerDown={handlePointerDown}
             aria-label="Puzzle — clique nos nós para conectar"
           />
+          {/* node label overlay */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            {puzzle.nodes.map(node => {
+              const isConnected = createdEdges.some(
+                eid => puzzle.availableEdges.find(e => e.id === eid && (e.from === node.id || e.to === node.id)),
+              );
+              const color = isConnected
+                ? '#00ff00'
+                : node.status === 'active' ? '#ffd700'
+                : node.status === 'corrupted' ? '#ff4400'
+                : '#446644';
+              return (
+                <span
+                  key={node.id}
+                  className="font-pixel text-[6px] leading-none"
+                  style={{
+                    position: 'absolute',
+                    left: node.x * W,
+                    top: node.y * H,
+                    transform: 'translate(-50%, -50%)',
+                    color,
+                  }}
+                >
+                  {node.label}
+                </span>
+              );
+            })}
+          </div>
         </div>
       </div>
 

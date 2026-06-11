@@ -2,6 +2,9 @@ import type { AirportId, GameMission, GameProgress, RouteId } from '../types';
 
 export const RECIFE_TUTORIAL_TASK_IDS = [
   'rec-restore-network',
+  'rec-calibrate-systems',
+  'rec-route-weights',
+  'rec-frequency-scan',
 ];
 
 export function getActiveMission(

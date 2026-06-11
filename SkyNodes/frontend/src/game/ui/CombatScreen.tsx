@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CombatEncounter } from '../data/combatEncounters';
+import { normalizeCombatKey } from '../logic/combatInput';
+import AtariSpriteCanvas from './AtariSpriteCanvas';
 import CombatBattleBox, { BOX_W, BOX_H, spawnWave, type CombatBullet } from './CombatBattleBox';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const INVINCIBLE_MS = 700;
 const PLAYER_MAX_HP = 100;
-const FIGHT_BAR_SPEED = 1.8; // pixels per ms (0-200 range)
+const FIGHT_BAR_SPEED = 0.3; // pixels per ms (0-200 range)
 const ENEMY_DAMAGE_PER_HIT = 28; // % of enemy max HP (approx 3-4 hits to beat)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -59,10 +61,10 @@ export default function CombatScreen({ encounter, clearedActIds, onVictory, onDe
   // ─── Keyboard input ───────────────────────────────────────────────────────
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      keysRef.current.add(e.key);
+      keysRef.current.add(normalizeCombatKey(e.key));
       e.preventDefault();
     };
-    const up = (e: KeyboardEvent) => keysRef.current.delete(e.key);
+    const up = (e: KeyboardEvent) => keysRef.current.delete(normalizeCombatKey(e.key));
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     return () => {
@@ -265,16 +267,22 @@ export default function CombatScreen({ encounter, clearedActIds, onVictory, onDe
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black overflow-hidden">
       <div className="crt-scanlines h-full w-full flex flex-col items-center justify-center">
-        <div className="w-full max-w-2xl px-4 flex flex-col gap-3">
+        <div className="w-full max-w-2xl px-3 sm:px-4 flex max-h-screen flex-col gap-2.5 overflow-y-auto py-4 sm:gap-3">
 
           {/* Enemy info */}
-          <div className="flex items-start gap-4 border-2 border-[#ff0000] bg-black p-3">
-            <pre className="font-term text-sm leading-tight text-[#ff4400] shrink-0">
-              {encounter.spriteLines.join('\n')}
-            </pre>
+          <div className="flex flex-col items-center gap-3 border-2 border-[#ff0000] bg-black p-3 shadow-[0_0_18px_rgba(255,0,0,0.18)] sm:flex-row sm:items-start sm:gap-4">
+            <div className="shrink-0">
+              <AtariSpriteCanvas
+                spriteId={encounter.spriteId}
+                scale={encounter.id === 'anac-bsb-final' ? 5 : 6}
+                frameColor={0xff2200}
+                glitch={phase === 'enemy-talk' || phase === 'enemy-attack'}
+                label={`Sprite de ${encounter.name}`}
+              />
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="font-pixel text-[9px] text-[#ffd700]">{encounter.name}</p>
-              <p className="mt-1 font-pixel text-[7px] text-[#b0b0b0]">{encounter.subtitle}</p>
+              <p className="text-center font-pixel text-[9px] leading-relaxed text-[#ffd700] sm:text-left">{encounter.name}</p>
+              <p className="mt-1 text-center font-pixel text-[7px] leading-relaxed text-[#b0b0b0] sm:text-left">{encounter.subtitle}</p>
               <div className="mt-3 flex items-center gap-2">
                 <span className="font-pixel text-[7px] text-[#b0b0b0]">HP</span>
                 <div className="flex-1 h-3 border border-[#007000] bg-black relative overflow-hidden">
@@ -288,33 +296,35 @@ export default function CombatScreen({ encounter, clearedActIds, onVictory, onDe
           </div>
 
           {/* Dialogue / result box */}
-          <div className="border-2 border-[#ffd700] bg-black p-3 min-h-[56px]">
-            <p className="font-term text-xl leading-tight text-[#e0e0e0]">
+          <div className="border-2 border-[#ffd700] bg-black p-3 min-h-[64px] shadow-[0_0_14px_rgba(255,215,0,0.12)]">
+            <p className="font-term text-lg leading-tight text-[#e0e0e0] sm:text-xl">
               {phase === 'intro' ? encounter.flavorText
                 : phase === 'player-result' ? resultText
                 : phase === 'enemy-talk'   ? dialogueText
-                : phase === 'menu'         ? (turnCount === 0 ? encounter.flavorText : '* O que você vai fazer?')
+                : phase === 'menu'         ? (turnCount === 0 ? '* AGIR repara o sistema. LUTAR força um sinal corretivo. MISERICORDIA só funciona quando o nodo estabiliza.' : '* O que você vai fazer?')
                 : ''}
             </p>
           </div>
 
-          {/* Battle box — rendered via @pixi/react */}
-          {phase === 'enemy-attack' && (
-            <div className="flex justify-center">
-              <CombatBattleBox
-                activeRef={activeRef}
-                heartRef={heartRef}
-                bulletsRef={bulletsRef}
-                keysRef={keysRef}
-                invincibleRef={invincibleRef}
-                onHit={onHeartHit}
-              />
-            </div>
-          )}
+          {/* Battle box — always mounted to keep the WebGL context alive across phase transitions.
+              Firefox destroys/leaks WebGL contexts on unmount; hiding via CSS avoids that. */}
+          <div
+            className="flex justify-center overflow-hidden"
+            style={{ display: (phase === 'enemy-talk' || phase === 'enemy-attack') ? 'flex' : 'none' }}
+          >
+            <CombatBattleBox
+              activeRef={activeRef}
+              heartRef={heartRef}
+              bulletsRef={bulletsRef}
+              keysRef={keysRef}
+              invincibleRef={invincibleRef}
+              onHit={onHeartHit}
+            />
+          </div>
 
           {/* Player HP */}
           <div className="flex items-center gap-3">
-            <span className="font-pixel text-[8px] text-[#ffd700]">ANTÔNIO</span>
+            <span className="font-pixel text-[8px] text-[#ffd700]">AGENTE J</span>
             <div className="flex-1 h-4 border-2 border-[#007000] bg-black relative overflow-hidden">
               <div
                 className="h-full transition-all duration-200"
@@ -352,7 +362,7 @@ export default function CombatScreen({ encounter, clearedActIds, onVictory, onDe
 
           {/* Action menu */}
           {phase === 'menu' && (
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
               {[
                 { label: '⚔ LUTAR',    action: () => { setFightBarPos(0); setFightBarDir(1); setPhase('fight-bar'); } },
                 { label: '◆ AGIR',     action: () => setPhase('act-menu') },
@@ -363,7 +373,7 @@ export default function CombatScreen({ encounter, clearedActIds, onVictory, onDe
                   key={btn.label}
                   type="button"
                   onClick={btn.action}
-                  className="border-2 border-[#ffd700] bg-black py-2 font-pixel text-[8px] text-[#ffd700] hover:bg-[#181400] hover:text-[#fff] active:scale-95"
+                  className="min-h-11 border-2 border-[#ffd700] bg-black px-1 py-2 font-pixel text-[7px] leading-relaxed text-[#ffd700] hover:bg-[#181400] hover:text-[#fff] active:scale-95 sm:text-[8px]"
                 >
                   {btn.label}
                 </button>

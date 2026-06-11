@@ -7,7 +7,7 @@ export interface AirportNpc {
   name: string;
   role: string;
   lines: string[];
-  sprite: 'antonio' | 'carlos' | 'ana' | 'controller' | 'passenger';
+  sprite: 'agente-j' | 'lia' | 'ana' | 'controller' | 'passenger';
   dialogue: DialogueScript;
 }
 
@@ -44,61 +44,51 @@ const defaultShop = {
 };
 
 // ─── REC — Intro ──────────────────────────────────────────────────────────────
-// Antônio acabou de pousar. No dia seguinte, todas as comunicações caem.
+// Agente J pousa em Recife. Lia é a operadora de campo que vai guiar a missão.
 
-const carlosRecDialogue: DialogueScript = {
+const liaGuideDialogue: DialogueScript = {
   start: 'abertura',
   nodes: {
     abertura: {
-      speakerId: 'carlos',
-      text: 'ANTÔNIO, FICOU SABENDO? AS COMUNICAÇÕES COM SALVADOR CAÍRAM ONTEM À NOITE. HOJE DE MANHÃ, FORTALEZA TAMBÉM.',
-      next: 'antonio-acabei',
+      speakerId: 'lia',
+      text: 'AGENTE J. RECEBI A CONFIRMAÇÃO DO PRESIDENTE. PROTOCOLO-M ESTÁ ATIVO EM TODA A MALHA. RECIFE É O PONTO DE PARTIDA.',
+      next: 'agente-j-entendido',
     },
-    'antonio-acabei': {
-      speakerId: 'antonio',
-      text: 'ACABEI DE SAIR DO AVIÃO. NÃO TENHO IDEIA DO QUE ACONTECEU.',
+    'agente-j-entendido': {
+      speakerId: 'agente-j',
+      text: 'ENTENDIDO. O QUE PRECISO FAZER PRIMEIRO?',
       choices: [
-        { label: 'O que os outros pilotos estão dizendo?', next: 'carlos-pilotos' },
-        { label: 'Consigo sair daqui hoje?', next: 'carlos-saida' },
+        { label: 'Como funciona o PROTOCOLO-M?', next: 'lia-explica' },
+        { label: 'Por onde começo?', next: 'lia-inicio' },
       ],
     },
-    'carlos-pilotos': {
-      speakerId: 'carlos',
-      text: 'OS PILOTOS COM SISTEMA AUTOMÁTICO NÃO CONSEGUEM DECOLAR. OS PAINÉIS NÃO RECEBEM SINAL DE ROTA.',
-      next: 'antonio-manual',
+    'lia-explica': {
+      speakerId: 'lia',
+      text: 'É UM SISTEMA DE IA AUTÔNOMO DOS LABS ANAC. AO DETECTAR A ONDA SOLAR, ENTROU EM HIPER-PROTEÇÃO E BLOQUEOU TODA A MALHA. IRONICAMENTE, PARA PROTEGER ELA.',
+      next: 'agente-j-e-agora',
     },
-    'antonio-manual': {
-      speakerId: 'antonio',
-      text: 'MEU AVIÃO É TOTALMENTE MANUAL. NÃO DEPENDO DE SINAL.',
-      next: 'carlos-eu-sei',
+    'agente-j-e-agora': {
+      speakerId: 'agente-j',
+      text: 'E AGORA PRECISO RESTAURAR NÓ POR NÓ.',
+      next: 'lia-exato',
     },
-    'carlos-eu-sei': {
-      speakerId: 'carlos',
-      text: 'EU SEI. POR ISSO ESTOU FALANDO COM VOCÊ.',
-      next: 'antonio-familia',
+    'lia-exato': {
+      speakerId: 'lia',
+      text: 'EXATO. CADA NÓ RESTAURADO ENFRAQUECE O PROTOCOLO. O NÚCLEO CENTRAL ESTÁ EM BRASÍLIA.',
     },
-    'antonio-familia': {
-      speakerId: 'antonio',
-      text: 'MINHA FAMÍLIA ESTÁ EM JOÃO PESSOA. PRECISO SABER SE ESTÃO BEM.',
-      next: 'carlos-entendo',
+    'lia-inicio': {
+      speakerId: 'lia',
+      text: 'MAPEIE OS NÓS E ARESTAS DA MALHA LOCAL. É BÁSICO — MAS É A FUNDAÇÃO. SEM ISSO, NENHUMA ROTA PODE SER VALIDADA.',
+      next: 'agente-j-vou-comecar',
     },
-    'carlos-entendo': {
-      speakerId: 'carlos',
-      text: 'ENTENDO. SE FOR, ABASTEÇA ANTES. NÃO HÁ PREVISÃO DE QUANDO VOLTA A TER COORDENAÇÃO CENTRAL.',
+    'agente-j-vou-comecar': {
+      speakerId: 'agente-j',
+      text: 'VOU COMEÇAR AGORA.',
+      next: 'lia-boa-sorte',
     },
-    'carlos-saida': {
-      speakerId: 'carlos',
-      text: 'TECNICAMENTE SIM. MAS NÃO HÁ COMUNICAÇÃO COM NENHUM AEROPORTO DE DESTINO.',
-      next: 'antonio-voo-cego',
-    },
-    'antonio-voo-cego': {
-      speakerId: 'antonio',
-      text: 'VOO COM MAPA DE PAPEL SE PRECISAR.',
-      next: 'carlos-mapa',
-    },
-    'carlos-mapa': {
-      speakerId: 'carlos',
-      text: 'TENHO UM AQUI. DO NORDESTE. GUARDA. PODE PRECISAR.',
+    'lia-boa-sorte': {
+      speakerId: 'lia',
+      text: 'BOA SORTE. E CUIDADO: O GLITCH JÁ ESTÁ MONITORANDO A TORRE.',
     },
   },
 };
@@ -112,7 +102,7 @@ const liaRecDialogue: DialogueScript = {
       next: 'antonio-quando',
     },
     'antonio-quando': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'HÁ QUANTAS HORAS?',
       next: 'lia-desde',
     },
@@ -130,7 +120,7 @@ const liaRecDialogue: DialogueScript = {
       next: 'antonio-entendo-lia',
     },
     'antonio-entendo-lia': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'ENTENDO.',
       next: 'lia-voce-piloto',
     },
@@ -140,7 +130,7 @@ const liaRecDialogue: DialogueScript = {
       next: 'antonio-vou-tentar',
     },
     'antonio-vou-tentar': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'AINDA ESTOU TENTANDO ENTENDER O QUE ACONTECEU. MAS SIM, EU CONSIGO VOAR.',
     },
     'lia-ligou': {
@@ -149,7 +139,7 @@ const liaRecDialogue: DialogueScript = {
       next: 'antonio-parece-maior',
     },
     'antonio-parece-maior': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'PARECE MAIOR QUE UM PROBLEMA DE ROTA.',
       next: 'lia-isso-me-preocupa',
     },
@@ -165,11 +155,11 @@ const anaRecDialogue: DialogueScript = {
   nodes: {
     abertura: {
       speakerId: 'ana',
-      text: 'ANTÔNIO. A PARDAL-01 ESTÁ ABASTECIDA. VOCÊ QUER SAIR HOJE?',
+      text: 'AGENTE J. A PARDAL-01 ESTÁ ABASTECIDA. VOCÊ QUER SAIR HOJE?',
       next: 'antonio-ainda-nao-sei',
     },
     'antonio-ainda-nao-sei': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'AINDA ESTOU DECIDINDO. O QUE VOCÊ ESTÁ OUVINDO POR AÍ?',
       next: 'ana-ouvindo',
     },
@@ -187,7 +177,7 @@ const anaRecDialogue: DialogueScript = {
       next: 'antonio-bom-saber',
     },
     'antonio-bom-saber': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'BOM SABER.',
       next: 'ana-mas-voa',
     },
@@ -201,7 +191,7 @@ const anaRecDialogue: DialogueScript = {
       next: 'antonio-obrigado-ana',
     },
     'antonio-obrigado-ana': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'OBRIGADO, ANA.',
       next: 'ana-vai-com-cuidado',
     },
@@ -220,11 +210,11 @@ const controladorJpaDialogue: DialogueScript = {
   nodes: {
     abertura: {
       speakerId: 'controller',
-      text: 'SENHOR ANTÔNIO. O PREFEITO GOSTARIA DE FALAR COM O SENHOR ANTES DE QUALQUER PARTIDA DAQUI.',
+      text: 'AGENTE J. O PREFEITO GOSTARIA DE FALAR COM O SENHOR ANTES DE QUALQUER PARTIDA DAQUI.',
       next: 'antonio-nao-trabalho',
     },
     'antonio-nao-trabalho': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'EU NÃO TRABALHO PARA O PREFEITO. ESTOU PROCURANDO MINHA FAMÍLIA.',
       next: 'control-eu-entendo',
     },
@@ -242,7 +232,7 @@ const controladorJpaDialogue: DialogueScript = {
       next: 'antonio-vai-la',
     },
     'antonio-vai-la': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'CERTO. VOU FALAR COM ELE.',
     },
     'control-familia': {
@@ -251,7 +241,7 @@ const controladorJpaDialogue: DialogueScript = {
       next: 'antonio-entende',
     },
     'antonio-entende': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'ENTENDIDO.',
     },
   },
@@ -262,11 +252,11 @@ const prefeitoJpaDialogue: DialogueScript = {
   nodes: {
     abertura: {
       speakerId: 'controller',
-      text: 'SENHOR ANTÔNIO. RUI FONSECA, PREFEITO DE JOÃO PESSOA. OBRIGADO POR VIR.',
+      text: 'AGENTE J. RUI FONSECA, PREFEITO DE JOÃO PESSOA. OBRIGADO POR VIR.',
       next: 'antonio-nao-tive-escolha',
     },
     'antonio-nao-tive-escolha': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'NÃO TIVE MUITA ESCOLHA. ONDE ESTÁ MINHA FAMÍLIA?',
       next: 'prefeito-familia',
     },
@@ -276,7 +266,7 @@ const prefeitoJpaDialogue: DialogueScript = {
       next: 'antonio-o-que-voce-quer',
     },
     'antonio-o-que-voce-quer': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'O QUE VOCÊ QUER DE MIM?',
       next: 'prefeito-direto',
     },
@@ -294,7 +284,7 @@ const prefeitoJpaDialogue: DialogueScript = {
       next: 'antonio-e-a-minha-familia',
     },
     'antonio-e-a-minha-familia': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'E MINHA FAMÍLIA?',
       next: 'prefeito-promessa',
     },
@@ -304,7 +294,7 @@ const prefeitoJpaDialogue: DialogueScript = {
       next: 'antonio-nao-e-negocio',
     },
     'antonio-nao-e-negocio': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'NÃO GOSTO DESSE TIPO DE ACORDO.',
       next: 'prefeito-eu-tambem',
     },
@@ -318,7 +308,7 @@ const prefeitoJpaDialogue: DialogueScript = {
       next: 'antonio-todos-improvisando',
     },
     'antonio-todos-improvisando': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'TODO MUNDO ESTÁ IMPROVISANDO.',
       next: 'prefeito-diferenca',
     },
@@ -328,7 +318,7 @@ const prefeitoJpaDialogue: DialogueScript = {
       next: 'antonio-quero',
     },
     'antonio-quero': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'QUERO.',
     },
   },
@@ -346,7 +336,7 @@ const passengerGenJourneyDialogue: DialogueScript = {
       next: 'antonio-honesto',
     },
     'antonio-honesto': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'NÃO SEI. AINDA ESTOU DESCOBRINDO O QUE ACONTECEU.',
       choices: [
         { label: 'Você está bem?', next: 'pass-bem' },
@@ -359,7 +349,7 @@ const passengerGenJourneyDialogue: DialogueScript = {
       next: 'antonio-mesmo-aqui',
     },
     'antonio-mesmo-aqui': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'MESMO PROBLEMA AQUI.',
       next: 'pass-pelo-menos',
     },
@@ -373,7 +363,7 @@ const passengerGenJourneyDialogue: DialogueScript = {
       next: 'antonio-faz-sentido',
     },
     'antonio-faz-sentido': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'FAZ SENTIDO.',
       next: 'pass-nao-ajuda',
     },
@@ -396,7 +386,7 @@ const helenaDialogue: DialogueScript = {
       next: 'antonio-sim',
     },
     'antonio-sim': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'SIM. O QUE ACONTECEU AQUI?',
       next: 'helena-tempestade',
     },
@@ -414,7 +404,7 @@ const helenaDialogue: DialogueScript = {
       next: 'antonio-paradoxo',
     },
     'antonio-paradoxo': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'ENTÃO NINGUÉM CONSEGUE RELIGAR NADA PORQUE TUDO PRECISA DE TUDO PARA FUNCIONAR.',
       next: 'helena-mais-ou-menos',
     },
@@ -424,7 +414,7 @@ const helenaDialogue: DialogueScript = {
       next: 'antonio-entao-eu',
     },
     'antonio-entao-eu': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'ENTÃO EU SOU UM DOS POUCOS QUE CONSEGUE VOAR.',
       next: 'helena-por-enquanto',
     },
@@ -438,7 +428,7 @@ const helenaDialogue: DialogueScript = {
       next: 'antonio-quanto-tempo',
     },
     'antonio-quanto-tempo': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'QUANTO TEMPO?',
       next: 'helena-semanas',
     },
@@ -458,7 +448,7 @@ const caioDialogue: DialogueScript = {
       next: 'antonio-aprendi-assim',
     },
     'antonio-aprendi-assim': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'APRENDI ASSIM. NUNCA TROQUEI.',
       next: 'caio-bom',
     },
@@ -476,7 +466,7 @@ const caioDialogue: DialogueScript = {
       next: 'antonio-isso-eu-faco',
     },
     'antonio-isso-eu-faco': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'ISSO EU CONSIGO FAZER ENQUANTO VIAJO.',
       next: 'caio-e-o-suficiente',
     },
@@ -490,7 +480,7 @@ const caioDialogue: DialogueScript = {
       next: 'antonio-ainda-decidindo',
     },
     'antonio-ainda-decidindo': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'AINDA ESTOU DECIDINDO. AS ROTAS DIRETAS ESTÃO COM PROBLEMA.',
       next: 'caio-anomalias',
     },
@@ -500,7 +490,7 @@ const caioDialogue: DialogueScript = {
       next: 'antonio-que-tipo',
     },
     'antonio-que-tipo': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'QUE TIPO DE FORMAS?',
       next: 'caio-poligonais',
     },
@@ -523,7 +513,7 @@ const renataDialogue: DialogueScript = {
       next: 'antonio-desde-quando',
     },
     'antonio-desde-quando': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'DESDE QUANDO?',
       next: 'renata-ontem',
     },
@@ -541,7 +531,7 @@ const renataDialogue: DialogueScript = {
       next: 'antonio-quanto-aguenta',
     },
     'antonio-quanto-aguenta': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'DEPENDE DA ROTA. ME MOSTRA O QUE TEM.',
       next: 'renata-mapa',
     },
@@ -555,7 +545,7 @@ const renataDialogue: DialogueScript = {
       next: 'antonio-como-passa',
     },
     'antonio-como-passa': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'COMO SE PASSA POR ELAS?',
       next: 'renata-nao-sei',
     },
@@ -575,7 +565,7 @@ const bentoMaoDialogue: DialogueScript = {
       next: 'antonio-como-esta-aqui',
     },
     'antonio-como-esta-aqui': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'COMO ESTÁ A SITUAÇÃO AQUI?',
       next: 'bento-calmo',
     },
@@ -593,7 +583,7 @@ const bentoMaoDialogue: DialogueScript = {
       next: 'antonio-isso-ajuda',
     },
     'antonio-isso-ajuda': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'ISSO AJUDA MUITO.',
       next: 'bento-qualquer-coisa',
     },
@@ -607,7 +597,7 @@ const bentoMaoDialogue: DialogueScript = {
       next: 'antonio-passou-por-ela',
     },
     'antonio-passou-por-ela': {
-      speakerId: 'antonio',
+      speakerId: 'agente-j',
       text: 'VOCÊ PASSOU POR ELA?',
       next: 'bento-dei-volta',
     },
@@ -638,7 +628,7 @@ function makeFallbackDialogue(airportId: string): DialogueScript {
         next: 'antonio-igual-todo-lado',
       },
       'antonio-igual-todo-lado': {
-        speakerId: 'antonio',
+        speakerId: 'agente-j',
         text: 'IGUAL EM TODO LADO.',
       },
       combustivel: {
@@ -647,7 +637,7 @@ function makeFallbackDialogue(airportId: string): DialogueScript {
         next: 'antonio-bom',
       },
       'antonio-bom': {
-        speakerId: 'antonio',
+        speakerId: 'agente-j',
         text: 'BOM. VOU PRECISAR.',
       },
     },
@@ -663,26 +653,15 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
     status: 'TUTORIAL DA MALHA LOCAL - RECIFE ISOLADO',
     npcs: [
       {
-        id: 'carlos',
-        name: 'Controlador Carlos',
-        role: 'Tutorial da malha aerea',
-        sprite: 'carlos',
-        lines: [
-          'Antes de decolar, precisamos entender o que ainda existe na malha de Recife.',
-          'Valide os pontos e conexoes simples. Depois eu libero o mapeamento para Joao Pessoa.',
-        ],
-        dialogue: carlosRecDialogue,
-      },
-      {
         id: 'lia',
-        name: 'Passageira Lia',
-        role: 'Passageira sem voo',
-        sprite: 'passenger',
+        name: 'Lia',
+        role: 'Operadora de Rede — PROTOCOLO-M',
+        sprite: 'lia',
         lines: [
-          'Meu voo para Salvador cancelou. Estou aqui desde ontem.',
-          'Os celulares não têm sinal. Nem o telefone fixo.',
+          'Agente J, o PROTOCOLO-M está bloqueando toda a malha. Recife é o ponto de partida.',
+          'Mapeie os nós e arestas. Depois enfrentamos o Glitch na torre.',
         ],
-        dialogue: liaRecDialogue,
+        dialogue: liaGuideDialogue,
       },
       {
         id: 'ana',
@@ -702,7 +681,28 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
         title: 'Restabelecer Malha de Recife',
         kind: 'restore-network',
         reward: 280,
-        prompt: 'Monte no canvas um grafo conectado com todos os nos alcancaveis e todas as rotas possiveis do aeroporto atual.',
+        prompt: 'Mapeie todas as 7 arestas do grafo local — operacionais e danificadas — clicando nos pares de nos.',
+      },
+      {
+        id: 'rec-calibrate-systems',
+        title: 'Calibrar Sistemas da Torre',
+        kind: 'chart',
+        reward: 180,
+        prompt: 'Arraste as barras ate os valores-alvo para restaurar os sistemas operacionais da torre de controle.',
+      },
+      {
+        id: 'rec-route-weights',
+        title: 'Calibrar Pesos das Rotas',
+        kind: 'chart',
+        reward: 160,
+        prompt: 'Cada rota tem um peso proporcional ao seu alcance. Ajuste as barras para os valores corretos do grafo.',
+      },
+      {
+        id: 'rec-frequency-scan',
+        title: 'Varredura de Frequências',
+        kind: 'chart',
+        reward: 200,
+        prompt: 'O PROTOCOLO-M corrompeu as frequências de transmissão. Restaure cada banda ao nivel operacional.',
       },
     ],
     shop: defaultShop,
@@ -779,11 +779,11 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
           nodes: {
             abertura: {
               speakerId: 'controller',
-              text: 'ANTÔNIO LIMA? CARLOS NOS AVISOU QUE VOCÊ ESTAVA VINDO. A SITUAÇÃO AQUI ESTÁ DIFERENTE.',
+              text: 'AGENTE J? LIA NOS AVISOU QUE VOCÊ ESTAVA VINDO. A SITUAÇÃO AQUI ESTÁ DIFERENTE.',
               next: 'antonio-diferente',
             },
             'antonio-diferente': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'DIFERENTE COMO?',
               next: 'marta-reage',
             },
@@ -801,7 +801,7 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
               next: 'antonio-nao-e-natural',
             },
             'antonio-nao-e-natural': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'ISSO NÃO É COMPORTAMENTO NATURAL DE UMA TEMPESTADE SOLAR.',
               next: 'marta-eu-tambem',
             },
@@ -815,7 +815,7 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
               next: 'antonio-que-hora',
             },
             'antonio-que-hora': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'QUE HORAS?',
               next: 'marta-antes',
             },
@@ -825,7 +825,7 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
               next: 'antonio-espera',
             },
             'antonio-espera': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'ESPERA. ISSO SIGNIFICA QUE ELA COMEÇOU ANTES DA TEMPESTADE SOLAR.',
               next: 'marta-exatamente',
             },
@@ -854,7 +854,7 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
               next: 'antonio-o-que-viu',
             },
             'antonio-o-que-viu': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'O QUE VOCÊ VIU?',
               next: 'dirceu-forma',
             },
@@ -864,7 +864,7 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
               next: 'antonio-confirma',
             },
             'antonio-confirma': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'OUTRO PILOTO ME DISSE A MESMA COISA. POLIGONAL. GEOMÉTRICA.',
               next: 'dirceu-codigo',
             },
@@ -907,11 +907,11 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
           nodes: {
             abertura: {
               speakerId: 'controller',
-              text: 'ANTÔNIO. VOCÊ PRECISAVA VER ISSO. ENCONTREI NO LOG DO NÓ CENTRAL ANTES DE ELE CORROMPER TOTALMENTE.',
+              text: 'AGENTE J. VOCÊ PRECISAVA VER ISSO. ENCONTREI NO LOG DO NÓ CENTRAL ANTES DE ELE CORROMPER TOTALMENTE.',
               next: 'antonio-o-que-e',
             },
             'antonio-o-que-e': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'O QUE É?',
               next: 'paula-codigo',
             },
@@ -925,11 +925,11 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
             },
             'paula-eu-tambem': {
               speakerId: 'controller',
-              text: 'EU TAMBÉM NÃO. PEDI PARA O CARLOS VER. ELE FICOU QUIETO POR TEMPO DEMAIS ANTES DE DIZER QUE NÃO CONHECIA.',
+              text: 'EU TAMBÉM NÃO. PEDI PARA A LIA VER. ELA FICOU QUIETA POR TEMPO DEMAIS ANTES DE DIZER QUE NÃO CONHECIA.',
               next: 'antonio-tempo-demais',
             },
             'antonio-tempo-demais': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'TEMPO DEMAIS.',
               next: 'paula-exato',
             },
@@ -939,8 +939,8 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
               next: 'antonio-vai-perguntar',
             },
             'antonio-vai-perguntar': {
-              speakerId: 'antonio',
-              text: 'VOU PERGUNTAR PARA CARLOS DIRETAMENTE QUANDO CHEGAR EM BRASÍLIA.',
+              speakerId: 'agente-j',
+              text: 'VOU VERIFICAR COM A LIA DIRETAMENTE QUANDO CHEGAR EM BRASÍLIA.',
             },
           },
         },
@@ -963,7 +963,7 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
               next: 'antonio-jornalista',
             },
             'antonio-jornalista': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'DEPENDE DAS PERGUNTAS.',
               next: 'felipe-anomalia',
             },
@@ -981,7 +981,7 @@ export const AIRPORT_MENUS: Record<string, AirportMenuData> = {
               next: 'antonio-esse-dado',
             },
             'antonio-esse-dado': {
-              speakerId: 'antonio',
+              speakerId: 'agente-j',
               text: 'ESSE DADO É IMPORTANTE. PODE ME PASSAR OS CONTATOS DELES?',
               next: 'felipe-passa',
             },

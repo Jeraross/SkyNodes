@@ -14,8 +14,11 @@ export interface AeroTaleIntroScene {
 
 export const AEROTALE_INTRO_SCENES: AeroTaleIntroScene[] = [
   {
-    lines: ['O ANO É 2082.'],
-    accent: 'A HUMANIDADE DEPENDE DE REDES DIGITAIS PARA MANTER CIDADES E AEROPORTOS FUNCIONANDO.',
+    lines: [
+      'O ANO É 2082.',
+      'A HUMANIDADE DEPENDE DE REDES DIGITAIS',
+      'PARA MANTER CIDADES E AEROPORTOS FUNCIONANDO.',
+    ],
     color: '#ff8800',
     pauseMs: 2200,
     typeSpeed: 24,

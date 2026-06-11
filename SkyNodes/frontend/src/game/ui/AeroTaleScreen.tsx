@@ -152,6 +152,12 @@ export default function AeroTaleScreen({
     });
   }, [onCompleteTask, onPuzzleSolved, pushDialogue]);
 
+  const handleReset = useCallback(() => {
+    setRecifeStarted(false);
+    arestasDialogueFiredRef.current = false;
+    onReset();
+  }, [onReset]);
+
   const handleAction = (action: Action) => {
     if (action === 'ENTRAR NO AEROPORTO' && currentAirport) {
       const encounter = getEncounterForAirport(currentAirport.id);
@@ -206,13 +212,10 @@ export default function AeroTaleScreen({
               <span className="text-[#ff0000]">AERO</span>TALE
             </h1>
             <div className="flex items-center gap-2">
-              <span className="hidden font-pixel text-[7px] text-[#b0b0b0] sm:inline">
-                A MALHA AEREA - 8-BIT - 1984
-              </span>
-              <button type="button" onClick={onBack} className="at-top-button">
+<button type="button" onClick={onBack} className="at-top-button">
                 VOLTAR
               </button>
-              <button type="button" onClick={onReset} className="at-top-button at-top-button-danger">
+              <button type="button" onClick={handleReset} className="at-top-button at-top-button-danger">
                 RESET
               </button>
             </div>
@@ -278,9 +281,12 @@ export default function AeroTaleScreen({
               <section className="relative bg-black">
                 <div className="absolute -top-2 left-6 h-3 w-3 rounded-full bg-[#ff8800]" aria-hidden="true" />
                 <div className="absolute -top-2 right-6 h-3 w-3 rounded-full bg-[#ff8800]" aria-hidden="true" />
-                <div className="border-2 border-[#ff8800] bg-black px-4 py-3">
-                  <p className="font-pixel text-[8px] leading-none text-[#ffd700]">{model.dialogueSpeaker}</p>
-                  <div className="mt-2 space-y-1.5">
+                <div className="flex border-2 border-[#ff8800] bg-black">
+                  <div className="flex min-w-[72px] flex-col items-center justify-center gap-1 border-r-2 border-[#ff8800] px-3 py-3">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#ff8800] at-blink" aria-hidden="true" />
+                    <p className="font-pixel text-[8px] leading-none text-[#ffd700]">{model.dialogueSpeaker}</p>
+                  </div>
+                  <div className="flex-1 space-y-1.5 px-4 py-3">
                     {model.dialogueLines.map((line, index) => (
                       <p key={line} className="font-term text-xl leading-tight text-[#ff0000]">
                         {line}
