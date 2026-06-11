@@ -57,12 +57,26 @@ export const GAME_ROUTES: GameRoute[] = routes.map(route => ({
 
 const graph = buildGraph(airports, routes);
 
-export function buildRoutesForProgress(baseRoutes: GameRoute[], progress: { completedMissionIds: string[]; restoredRouteIds: string[] }): GameRoute[] {
+export function buildRoutesForProgress(
+  baseRoutes: GameRoute[],
+  progress: { completedMissionIds: string[]; restoredRouteIds: string[]; activeMissionId?: string },
+  missions?: GameMission[],
+): GameRoute[] {
   const tutorialComplete = progress.completedMissionIds.includes(RECIFE_TUTORIAL_MISSION_ID);
+
+  // Routes belonging to the active mission are made available so the player can travel them
+  const activeMission = missions && progress.activeMissionId
+    ? missions.find(m => m.id === progress.activeMissionId)
+    : undefined;
+  const activeMissionRouteIds = new Set(activeMission?.unlocksRouteIds ?? []);
 
   return baseRoutes.map(route => {
     if (progress.restoredRouteIds.includes(route.id)) {
       return { ...route, state: 'restored' };
+    }
+
+    if (activeMissionRouteIds.has(route.id)) {
+      return { ...route, state: 'available' };
     }
 
     if (tutorialComplete && (route.from === 'REC' || route.to === 'REC')) {
