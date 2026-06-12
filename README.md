@@ -267,12 +267,37 @@ O grafo é carregado **uma única vez** na inicialização do servidor e injetad
 
 ## Como Rodar
 
-### Pré-requisitos
+### Com Docker (recomendado)
 
-- Python 3.11+
-- Node.js 18+
+**Pré-requisito:** Docker e Docker Compose instalados.
 
-### Backend
+```bash
+# Clone o repositório e suba os containers
+docker compose up --build
+```
+
+| Serviço | URL |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend (API) | http://localhost:8000 |
+
+Ambos os serviços rodam com hot-reload: alterações nos arquivos são refletidas automaticamente sem reiniciar os containers.
+
+```bash
+# Parar os containers
+docker compose down
+
+# Rebuild após mudanças em dependências (requirements.txt ou package.json)
+docker compose up --build
+```
+
+---
+
+### Sem Docker
+
+**Pré-requisitos:** Python 3.11+ e Node.js 18+
+
+#### Backend
 
 ```bash
 cd SkyNodes
@@ -288,7 +313,7 @@ uvicorn main:app --reload
 # API disponível em http://localhost:8000
 ```
 
-### Frontend
+#### Frontend
 
 ```bash
 cd SkyNodes/frontend
@@ -301,7 +326,7 @@ npm run dev
 # App disponível em http://localhost:5173
 ```
 
-### Testes
+#### Testes
 
 ```bash
 cd SkyNodes
