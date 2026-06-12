@@ -10,7 +10,7 @@ export default function AeroMetricBento({ metrics }: { metrics: GraphMetrics }) 
     { label: 'Hub', title: 'Hub Principal', description: 'Aeroporto mais conectado', value: metrics.mostConnectedAirport },
     { label: 'Métrica', title: 'Densidade', description: 'Razão de arestas existentes vs. possíveis', value: metrics.graphDensity.toFixed(3) },
     { label: 'Maior', title: 'Rota mais longa', description: metrics.longestRoute ? `${metrics.longestRoute.from} → ${metrics.longestRoute.to}` : '—', value: metrics.longestRoute?.weight ?? 0 },
-    { label: 'Região', title: 'Região + Conectada', description: 'Com mais rotas originadas', value: metrics.regionMostConnected },
+    { label: 'Região', title: 'Região + Conectada', description: 'Com mais rotas envolvidas (origem + destino)', value: metrics.regionMostConnected },
   ];
 
   return (

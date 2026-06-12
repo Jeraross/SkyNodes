@@ -27,7 +27,7 @@ function CustomDot(props: { cx?: number; cy?: number; payload?: DotEntry }) {
     <circle
       cx={cx}
       cy={cy}
-      r={Math.max(4, payload.degree * 3)}
+      r={Math.max(4, Math.min(payload.degree * 2.5, 22))}
       fill={REGION_COLOR[payload.region]}
       fillOpacity={0.75}
       stroke="rgba(255,255,255,0.2)"
@@ -83,7 +83,7 @@ export default function EgoScatterChart({ egoByAirport, degreeByAirport }: Props
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={260}>
-          <ScatterChart margin={{ top: 8, right: 16, left: -10, bottom: 16 }}>
+          <ScatterChart margin={{ top: 28, right: 36, left: -10, bottom: 16 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(34,211,238,0.04)" />
             <XAxis
               type="number"

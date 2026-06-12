@@ -67,7 +67,7 @@ export default function AlgorithmsSidebar({ open, simulation, onHighlightRoutes,
           <SelectTrigger className="border-slate-700 bg-slate-900 text-slate-200 text-sm">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="border-slate-700 bg-slate-900">
+          <SelectContent className="border-slate-700 bg-slate-900 min-w-max">
             {([
               ['bfs',          'BFS — Busca em Largura'],
               ['dfs',          'DFS — Busca em Profundidade'],
