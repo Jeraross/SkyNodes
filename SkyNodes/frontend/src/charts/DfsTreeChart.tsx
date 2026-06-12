@@ -16,9 +16,10 @@ const PAD_Y = 30;
 
 function discoveryColor(idx: number, total: number): string {
   const t = total > 1 ? idx / (total - 1) : 0;
-  const r = Math.round(251 - t * 30);
-  const g = Math.round(146 + t * 30);
-  const b = Math.round(60 - t * 20);
+  // light peach (t=0) → deep orange (t=1), mirrors BFS light→dark style
+  const r = Math.round(254 - t * 60);
+  const g = Math.round(235 - t * 170);
+  const b = Math.round(210 - t * 198);
   return `rgb(${r},${g},${b})`;
 }
 
@@ -53,7 +54,7 @@ export default function DfsTreeChart() {
       <CardHeader>
         <CardTitle className="text-orange-200 text-sm">Árvore DFS</CardTitle>
         <CardDescription className="text-slate-400 text-xs">
-          Exploração em profundidade a partir de {startAirport?.city ?? startId} · cor = ordem de descoberta
+          Exploração em profundidade a partir de {startAirport?.city ?? startId} · claro = descoberto primeiro · escuro = descoberto por último
         </CardDescription>
         <div className="pt-1 w-48">
           <Select value={startId} onValueChange={value => { if (value) setStartId(value); }}>

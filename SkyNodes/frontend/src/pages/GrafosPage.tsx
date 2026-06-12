@@ -75,11 +75,11 @@ const ALGORITHMS = [
   {
     name: 'Dijkstra',
     full: 'Caminho Mínimo',
-    complexity: 'O((V+E) log V)',
-    structure: 'Min-heap (heapq)',
+    complexity: 'O(V²)',
+    structure: 'Varredura linear',
     weights: 'Requer w ≥ 0',
     cycles: 'Não detecta',
-    problem: 'Menor custo entre dois aeroportos · todos os pesos ≥ 1.0 neste grafo',
+    problem: 'Menor custo entre dois aeroportos · implementação com varredura linear sobre o conjunto de não-visitados · válido pois todos os pesos ≥ 1.0',
     color: 'emerald',
   },
   {
@@ -95,20 +95,18 @@ const ALGORITHMS = [
 ];
 
 const BFS_LAYERS = [
-  { layer: 0, nodes: ['REC'],                                                                count: 1,  desc: 'Origem' },
-  { layer: 1, nodes: ['SSA', 'FOR', 'NAT', 'JPA', 'THE', 'GRU', 'BSB'],                     count: 7,  desc: 'Clique Nordeste + hubs' },
+  { layer: 1, nodes: ['SSA', 'FOR', 'NAT', 'JPA', 'THE', 'GRU', 'BSB'],                     count: 7,  desc: 'Clique Nordeste + hubs nacionais' },
   { layer: 2, nodes: ['CGH', 'GIG', 'CNF', 'VIX', 'MAO', 'POA', 'CWB', 'FLN', 'GYN', 'BEL'], count: 10, desc: 'Via GRU e BSB' },
-  { layer: 3, nodes: ['PVH', 'RBR'],                                                          count: 2,  desc: 'Via MAO/BEL — extremo Norte' },
+  { layer: 3, nodes: ['PVH', 'RBR'],                                                          count: 2,  desc: 'Via MAO / BEL — extremo Norte' },
 ];
 
 const COMPARISON = [
-  { feature: 'Estrutura auxiliar', bfs: 'Fila (deque)', dfs: 'Pilha', dijk: 'Min-heap', bf: 'Nenhuma' },
+  { feature: 'Estrutura auxiliar', bfs: 'Fila (deque)', dfs: 'Pilha', dijk: 'Varredura linear', bf: 'Nenhuma' },
   { feature: 'Pesos nas arestas',  bfs: 'Ignora',       dfs: 'Ignora', dijk: 'Requer ≥ 0', bf: 'Permite < 0' },
   { feature: 'Detecta ciclos',     bfs: '✗',            dfs: '✓',      dijk: '✗',        bf: '✓ negativos' },
   { feature: 'Caminho mín. saltos',bfs: '✓',            dfs: '✗',      dijk: '✗*',       bf: '✗*' },
   { feature: 'Caminho mín. custo', bfs: '✗',            dfs: '✗',      dijk: '✓',        bf: '✓' },
-  { feature: 'Complexidade',       bfs: 'O(V+E)',        dfs: 'O(V+E)', dijk: 'O((V+E)logV)', bf: 'O(V·E)' },
-  { feature: 'Tempo (portos)',     bfs: '18.4 ms',       dfs: '22.1 ms', dijk: '134.7 ms', bf: '~2.890 ms' },
+  { feature: 'Complexidade',       bfs: 'O(V+E)',        dfs: 'O(V+E)', dijk: 'O(V²)',        bf: 'O(V·E)' },
 ];
 
 const colorMap: Record<string, string> = {
@@ -268,33 +266,6 @@ function AlgoritmosTab() {
       </FadeContent>
 
       <FadeContent duration={700} delay={100}>
-        <BlurText text="BFS a partir de REC — Camadas" className="mb-6 text-xl font-semibold text-white" animateBy="words" delay={80} />
-        <div className="space-y-3">
-          {BFS_LAYERS.map(layer => (
-            <SpotlightCard key={layer.layer} className="p-4">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-500/30 font-mono text-sm font-bold text-cyan-300">
-                  {layer.layer}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs text-slate-400">{layer.desc}</span>
-                    <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[10px] text-slate-300">{layer.count} nó{layer.count !== 1 ? 's' : ''}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {layer.nodes.map(n => (
-                      <span key={n} className="rounded bg-cyan-500/10 px-2 py-0.5 font-mono text-xs text-cyan-300">{n}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </SpotlightCard>
-          ))}
-        </div>
-        <p className="mt-3 text-xs text-slate-500 font-mono">Diâmetro = 3 · efeito "mundo pequeno" promovido pelos hubs GRU e BSB</p>
-      </FadeContent>
-
-      <FadeContent duration={700} delay={150}>
         <BlurText text="Comparativo dos Algoritmos" className="mb-6 text-xl font-semibold text-white" animateBy="words" delay={80} />
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
@@ -320,7 +291,7 @@ function AlgoritmosTab() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-[10px] text-slate-500 font-mono">* Tempos medidos no dataset portuário (1.452 nós · 8.973 arestas)</p>
+        <p className="mt-2 text-[10px] text-slate-500 font-mono">* Dijkstra não garante mínimo de saltos — otimiza custo · Bellman-Ford detecta ciclos negativos (inexistentes nesta malha)</p>
       </FadeContent>
     </div>
   );

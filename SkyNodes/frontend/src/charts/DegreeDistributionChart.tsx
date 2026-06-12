@@ -60,12 +60,13 @@ export default function DegreeDistributionChart({ degreeByAirport }: Props) {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 14 }}>
+          <BarChart data={data} margin={{ top: 4, right: 24, left: -20, bottom: 14 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(34,211,238,0.04)" horizontal={false} />
             <XAxis
               dataKey="degree"
               type="number"
-              domain={['dataMin', 'dataMax']}
+              domain={['dataMin - 0.5', 'dataMax + 0.5']}
+              padding={{ left: 20, right: 20 }}
               tick={{ fill: '#64748b', fontSize: 10 }}
               label={{ value: 'Grau', position: 'insideBottom', offset: -8, fill: '#475569', fontSize: 10 }}
             />
