@@ -115,29 +115,126 @@ O Bellman-Ford também encontra o caminho de menor custo, mas relaxa todas as ar
 
 ---
 
-## Arquitetura do Backend
+## Arquitetura
 
-### Estrutura de Pacotes
+### Estrutura de Pastas
 
 ```
-SkyNodes/
-  api/
-    main.py            — ponto de entrada FastAPI + CORS
-    dependencies.py    — injeção do grafo via Depends
-    coordinates.py     — coordenadas geográficas (lat/lon) de cada IATA
-    routers/
-      graph.py         — /graph/nodes, /graph/edges
-      algorithms.py    — /algorithms/bfs, dfs, dijkstra, bellman-ford
-      metrics.py       — /metrics/global, regions, ego, rankings
-  src/
-    graphs/
-      graph.py         — classes Grafo e Aresta
-      algorithms.py    — BFS, DFS, Dijkstra, Bellman-Ford
-      io.py            — pipeline CSV → Grafo
-  data/
-    aeroportos_data.csv        — 20 aeroportos (IATA, cidade, região)
-    adjacencias_aeroportos.csv — arestas geradas pelas regras de conectividade
-  tests/
+SkyNodes/                              — raiz do repositório
+├── Dockerfile.backend
+├── Dockerfile.frontend
+├── docker-compose.yml
+├── requirements.txt
+├── Relatorios/                        — documentos acadêmicos (.docx)
+└── SkyNodes/                         — código-fonte do projeto
+    ├── main.py                        — entrypoint uvicorn
+    ├── conftest.py
+    ├── pytest.ini
+    ├── api/                           — camada HTTP (FastAPI)
+    │   ├── main.py                    — app FastAPI + CORS
+    │   ├── config.py
+    │   ├── dependencies.py            — injeção do grafo via Depends
+    │   ├── coordinates.py             — lat/lon por código IATA
+    │   └── routers/
+    │       ├── graph.py               — /graph/nodes, /graph/edges
+    │       ├── algorithms.py          — /algorithms/bfs, dfs, dijkstra, bellman-ford
+    │       └── metrics.py             — /metrics/global, regions, ego, rankings
+    ├── src/                           — lógica de domínio Python
+    │   ├── build_data.py              — gera adjacencias_aeroportos.csv
+    │   ├── cli.py
+    │   ├── solve.py
+    │   ├── viz.py
+    │   └── graphs/
+    │       ├── graph.py               — classes Grafo e Aresta
+    │       ├── algorithms.py          — BFS, DFS, Dijkstra, Bellman-Ford
+    │       └── io.py                  — pipeline CSV → Grafo
+    ├── data/
+    │   ├── aeroportos_data.csv        — 20 aeroportos (IATA, cidade, região)
+    │   ├── adjacencias_aeroportos.csv — arestas geradas pelas regras de conectividade
+    │   └── rotas.csv
+    ├── tests/                         — testes de backend (pytest)
+    │   ├── test_api_algorithms.py
+    │   ├── test_api_graph.py
+    │   ├── test_api_metrics.py
+    │   ├── test_bellman_ford.py
+    │   ├── test_bfs.py
+    │   ├── test_dfs.py
+    │   └── test_dijkstra.py
+    ├── lib/                           — dependências JS legadas
+    │   ├── bindings/
+    │   └── vis-9.1.2/
+    └── frontend/                      — SPA React + TypeScript
+        ├── index.html
+        ├── vite.config.ts
+        ├── componentes/               — componentes visuais reutilizáveis
+        │   ├── BlurText/
+        │   ├── CardNav/
+        │   ├── ClickSpark/
+        │   ├── Counter/
+        │   ├── Dock/
+        │   ├── FadeContent/
+        │   ├── Folder/
+        │   ├── MagicBento/
+        │   ├── Particles/
+        │   ├── ScrollReveal/
+        │   ├── SplitText/
+        │   ├── SpotlightCard/
+        │   └── Stepper/
+        ├── public/
+        │   ├── favicon.svg
+        │   └── models/                — cenas GLTF (monumentos 3D)
+        └── src/
+            ├── main.tsx
+            ├── App.tsx
+            ├── index.css
+            ├── types.ts
+            ├── assets/                — imagens, áudio, sprites
+            ├── charts/                — gráficos Recharts por algoritmo
+            │   ├── BfsLayersChart.tsx
+            │   ├── CentralityRankingChart.tsx
+            │   ├── DegreeDistributionChart.tsx
+            │   ├── DfsTreeChart.tsx
+            │   ├── DistanceHeatmapChart.tsx
+            │   ├── EgoScatterChart.tsx
+            │   ├── RoutesByRegionChart.tsx
+            │   └── RoutesByTypeChart.tsx
+            ├── components/
+            │   ├── IntroScreen.tsx
+            │   ├── dashboard/         — painéis de métricas e algoritmos
+            │   ├── globe/             — FlightGlobe, overlays e objetos 3D
+            │   ├── navigation/        — sidebar, dock, top nav, toggles
+            │   ├── ui/                — componentes shadcn/ui customizados
+            │   └── views/             — GraphView, MapView
+            ├── data/                  — datasets estáticos TypeScript
+            ├── game/                  — motor AeroTale
+            │   ├── types.ts
+            │   ├── data/              — diálogos, puzzles, encontros, mundo
+            │   ├── logic/             — engines de puzzle, combate, navegação
+            │   ├── render/            — canvas PixiJS (GameCanvas, camadas)
+            │   ├── sprites/           — sprites pixel art e geração procedural
+            │   ├── state/             — gameProgress, useGameController
+            │   └── ui/                — telas e overlays do jogo
+            │       ├── AeroTaleScreen.tsx
+            │       ├── AeroTaleIntro.tsx
+            │       ├── CombatScreen.tsx
+            │       ├── DialogueOverlay.tsx
+            │       ├── WorldMapPanel.tsx
+            │       └── ...
+            ├── hooks/                 — useFlightSimulation, useIsMobile
+            ├── lib/
+            │   ├── api/               — cliente HTTP para o backend
+            │   ├── geo/               — interpolação great-circle
+            │   └── graph/             — algoritmos de grafo client-side
+            ├── pages/                 — rotas wouter
+            │   ├── DadosPage.tsx
+            │   ├── GamePage.tsx
+            │   ├── GrafosPage.tsx
+            │   ├── LeaderboardPage.tsx
+            │   ├── LoginPage.tsx
+            │   └── ProjetoPage.tsx
+            ├── router/
+            │   └── transitions.ts
+            └── types/                 — declarações de módulos externos
 ```
 
 ### Pipeline de Carregamento: CSV → Grafo
