@@ -1,8 +1,5 @@
-"""
-Módulo de algoritmos de grafos.
 
-Implementa BFS, DFS, Dijkstra e Bellman-Ford sobre a classe Grafo.
-"""
+# Módulo de algoritmos de grafos
 
 import heapq
 from collections import deque
@@ -12,26 +9,14 @@ from typing import Optional
 from src.graphs.graph import Grafo
 
 
-# ---------------------------------------------------------------------------
+
 # Função auxiliar
-# ---------------------------------------------------------------------------
 
 
 def reconstruir_caminho(
     pais: dict[str, Optional[str]], origem: str, destino: str
 ) -> list[str]:
-    """
-    Reconstrói o caminho de origem até destino a partir do dicionário de pais.
-
-    Parâmetros:
-      pais    : dicionário {nó: pai} produzido por BFS/DFS/Dijkstra/Bellman-Ford
-      origem  : IATA do nó inicial
-      destino : IATA do nó final
-
-    Retorna lista de IATAs do início ao fim.
-    Retorna lista vazia se destino não for alcançável (pais[destino] inexistente
-    e destino != origem).
-    """
+    
     # Caso trivial: origem é o próprio destino
     if destino == origem:
         return [origem]
@@ -51,28 +36,13 @@ def reconstruir_caminho(
     return caminho
 
 
-# ---------------------------------------------------------------------------
+
 # BFS — Busca em Largura
-# ---------------------------------------------------------------------------
+
 
 
 def bfs(grafo: Grafo, origem: str) -> dict:
-    """
-    Realiza busca em largura a partir de 'origem'.
-
-    Parâmetros:
-      grafo  : instância de Grafo
-      origem : IATA do nó inicial
-
-    Retorna dicionário com:
-      'visitados'     : list[str]              — ordem de visita
-      'niveis'        : dict[str, int]         — nível (distância em arestas) de cada nó
-      'pais'          : dict[str, str | None]  — pai de cada nó na árvore BFS
-      'arestas_arvore': list[tuple[str, str]]  — arestas da árvore BFS
-
-    Usa collections.deque como fila.
-    Lança KeyError se origem não existir no grafo.
-    """
+   
     if origem not in grafo.nos():
         raise KeyError(f"Nó de origem '{origem}' não existe no grafo.")
 
@@ -106,31 +76,13 @@ def bfs(grafo: Grafo, origem: str) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
+
 # DFS — Busca em Profundidade
-# ---------------------------------------------------------------------------
+
 
 
 def dfs(grafo: Grafo, origem: str) -> dict:
-    """
-    Realiza busca em profundidade a partir de 'origem'.
-    Implementação ITERATIVA (usa pilha explícita para evitar RecursionError).
-
-    Parâmetros:
-      grafo  : instância de Grafo
-      origem : IATA do nó inicial
-
-    Retorna dicionário com:
-      'visitados'      : list[str]              — ordem de visita (pré-ordem)
-      'pais'           : dict[str, str | None]
-      'descoberta'     : dict[str, int]         — tempo de descoberta
-      'termino'        : dict[str, int]         — tempo de término
-      'arestas_arvore' : list[tuple[str, str]]
-      'arestas_retorno': list[tuple[str, str]]  — back edges (indicam ciclo)
-      'tem_ciclo'      : bool                   — True se back_edges não vazio
-
-    Lança KeyError se origem não existir no grafo.
-    """
+    
     if origem not in grafo.nos():
         raise KeyError(f"Nó de origem '{origem}' não existe no grafo.")
 
@@ -198,33 +150,11 @@ def dfs(grafo: Grafo, origem: str) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
 # Dijkstra
-# ---------------------------------------------------------------------------
 
 
 def dijkstra(grafo: Grafo, origem: str, destino: Optional[str] = None) -> dict:
-    """
-    Calcula caminhos mínimos a partir de 'origem' usando o algoritmo de Dijkstra.
-    Usa heapq como fila de prioridade (min-heap).
-
-    Parâmetros:
-      grafo   : instância de Grafo
-      origem  : IATA do nó inicial
-      destino : IATA do nó alvo (opcional); se None, calcula para todos os nós
-
-    Restrição: todos os pesos devem ser >= 0.
-    Lança ValueError("Dijkstra não aceita pesos negativos") se encontrar peso negativo.
-    Lança KeyError se origem não existir no grafo.
-
-    Retorna dicionário com:
-      'distancias' : dict[str, float]      — custo mínimo de origem a cada nó
-      'pais'       : dict[str, str | None]
-      'caminho'    : list[str]             — caminho de origem a destino ([] se destino=None)
-      'custo'      : float                 — custo até destino (inf se não alcançado)
-
-    Se destino não for alcançável: caminho=[], custo=inf.
-    """
+    
     if origem not in grafo.nos():
         raise KeyError(f"Nó de origem '{origem}' não existe no grafo.")
 
@@ -280,34 +210,13 @@ def dijkstra(grafo: Grafo, origem: str, destino: Optional[str] = None) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
+
 # Bellman-Ford
-# ---------------------------------------------------------------------------
+
 
 
 def bellman_ford(grafo: Grafo, origem: str, destino: Optional[str] = None) -> dict:
-    """
-    Calcula caminhos mínimos a partir de 'origem' usando o algoritmo de Bellman-Ford.
-    Suporta pesos negativos e detecta ciclos negativos.
-
-    Parâmetros:
-      grafo   : instância de Grafo
-      origem  : IATA do nó inicial
-      destino : IATA do nó alvo (opcional)
-
-    Retorna dicionário com:
-      'distancias'     : dict[str, float]
-      'pais'           : dict[str, str | None]
-      'caminho'        : list[str]
-      'custo'          : float
-      'ciclo_negativo' : bool — True se ciclo negativo detectado
-
-    ATENÇÃO: se ciclo_negativo=True, as distâncias podem ser inválidas,
-    pois o relaxamento continua indefinidamente nos nós afetados pelo ciclo.
-    Não confie nos valores de 'distancias' ou 'caminho' nesse caso.
-
-    Lança KeyError se origem não existir no grafo.
-    """
+   
     if origem not in grafo.nos():
         raise KeyError(f"Nó de origem '{origem}' não existe no grafo.")
 
@@ -320,12 +229,7 @@ def bellman_ford(grafo: Grafo, origem: str, destino: Optional[str] = None) -> di
     distancias[origem] = 0.0
     pais: dict[str, Optional[str]] = {origem: None}
 
-    # Percorre as listas de adjacência diretamente.
-    # Para grafos não-direcionados construídos com adicionar_aresta(), cada aresta
-    # já aparece nos dois sentidos em _adjacencia, portanto ambas as direções
-    # são relaxadas naturalmente. Para grafos com arestas direcionadas inseridas
-    # manualmente (ex: testes unitários), apenas a direção presente é relaxada,
-    # evitando a criação de falsos ciclos negativos por arestas reversas.
+    # Percorre as listas de adjacência diretamente
     todas_arestas: list[tuple[str, str, float]] = [
         (u, aresta.destino, aresta.peso)
         for u in grafo.nos()
@@ -373,9 +277,8 @@ def bellman_ford(grafo: Grafo, origem: str, destino: Optional[str] = None) -> di
     }
 
 
-# ---------------------------------------------------------------------------
-# Bloco de teste rápido
-# ---------------------------------------------------------------------------
+
+# Bloco de teste
 
 if __name__ == "__main__":
     from src.graphs.io import carregar_grafo
@@ -387,9 +290,9 @@ if __name__ == "__main__":
 
     grafo = carregar_grafo(_CSV_AEROPORTOS, _CSV_ADJACENCIAS)
 
-    # ------------------------------------------------------------------
+
     # 1. BFS a partir de REC — imprime nível de cada nó
-    # ------------------------------------------------------------------
+
     print("=" * 60)
     print("BFS a partir de REC")
     print("=" * 60)
@@ -399,9 +302,9 @@ if __name__ == "__main__":
     for no, nivel in sorted(resultado_bfs["niveis"].items(), key=lambda x: x[1]):
         print(f"{no:<6} {nivel:>6}")
 
-    # ------------------------------------------------------------------
+
     # 2. DFS a partir de GRU — imprime se tem ciclo
-    # ------------------------------------------------------------------
+
     print()
     print("=" * 60)
     print("DFS a partir de GRU")
@@ -412,9 +315,9 @@ if __name__ == "__main__":
     print(f"back edges ({len(retornos)}): {retornos[:5]}{'...' if len(retornos) > 5 else ''}")
     print(f"ordem de visita: {resultado_dfs['visitados']}")
 
-    # ------------------------------------------------------------------
+
     # 3. Dijkstra REC → POA
-    # ------------------------------------------------------------------
+
     print()
     print("=" * 60)
     print("Dijkstra: REC -> POA")
@@ -423,9 +326,9 @@ if __name__ == "__main__":
     print(f"custo  : {resultado_dij['custo']:.2f}")
     print(f"caminho: {' -> '.join(resultado_dij['caminho'])}")
 
-    # ------------------------------------------------------------------
+
     # 4. Bellman-Ford MAO -> GRU
-    # ------------------------------------------------------------------
+
     print()
     print("=" * 60)
     print("Bellman-Ford: MAO -> GRU")

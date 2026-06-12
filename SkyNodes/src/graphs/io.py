@@ -1,9 +1,6 @@
-"""
-Módulo de entrada e saída do grafo de aeroportos.
 
-Responsável por carregar o grafo a partir de arquivos CSV, construir
-adjacências, e prover utilitários de persistência (JSON, diretórios).
-"""
+# Módulo de entrada e saída do grafo de aeroportos.
+
 
 import json
 import os
@@ -13,9 +10,9 @@ import pandas as pd
 
 from src.graphs.graph import Aresta, Grafo
 
-# ---------------------------------------------------------------------------
+
 # Constantes
-# ---------------------------------------------------------------------------
+
 
 # Hubs nacionais: ao menos um hub em cada aresta zera a penalidade de hub
 _HUBS: set[str] = {"GRU", "BSB", "GIG"}
@@ -25,9 +22,9 @@ _COLUNAS_AEROPORTOS = {"iata", "cidade", "regiao"}
 _COLUNAS_ADJACENCIAS = {"origem", "destino", "tipo_conexao", "justificativa", "peso"}
 
 
-# ---------------------------------------------------------------------------
+
 # Funções auxiliares privadas
-# ---------------------------------------------------------------------------
+
 
 
 def _calcular_peso(
@@ -37,22 +34,15 @@ def _calcular_peso(
     regiao_b: str,
     peso_base: float,
 ) -> float:
-    """
-    Calcula o peso final de uma aresta usando a fórmula híbrida:
-
-        penalidade_regiao = 1.0  se regiões diferentes, 0.0 caso contrário
-        penalidade_hub    = 0.5  se nenhum dos nós é hub, 0.0 caso contrário
-        peso = peso_base + penalidade_regiao + penalidade_hub
-        peso >= 1.0  (nunca negativo)
-    """
+    
     penalidade_regiao = 0.0 if regiao_a == regiao_b else 1.0
     penalidade_hub = 0.0 if (iata_a in _HUBS or iata_b in _HUBS) else 0.5
     return max(peso_base + penalidade_regiao + penalidade_hub, 1.0)
 
 
-# ---------------------------------------------------------------------------
+
 # Utilitários de I/O
-# ---------------------------------------------------------------------------
+
 
 
 def garantir_diretorio(diretorio: str) -> None:
@@ -61,7 +51,7 @@ def garantir_diretorio(diretorio: str) -> None:
 
 
 def garantir_adjacencias(csv_aeroportos: str, csv_adjacencias: str) -> None:
-    """Constrói o CSV de adjacências se ele ainda não existir."""
+   
     if not Path(csv_adjacencias).exists():
         print("Arquivo de adjacencias nao encontrado. Construindo...")
         construir_adjacencias(csv_aeroportos, csv_adjacencias)
@@ -69,7 +59,7 @@ def garantir_adjacencias(csv_aeroportos: str, csv_adjacencias: str) -> None:
 
 
 def salvar_json(dados: dict, caminho: str) -> None:
-    """Serializa dicionário em JSON, convertendo float('inf') para 'inf'."""
+  
     garantir_diretorio(str(Path(caminho).parent))
 
     def _converter(obj):
@@ -82,26 +72,13 @@ def salvar_json(dados: dict, caminho: str) -> None:
     print(f"Resultado salvo em: {caminho}")
 
 
-# ---------------------------------------------------------------------------
+
 # API pública
-# ---------------------------------------------------------------------------
+
 
 
 def carregar_grafo(csv_aeroportos: str, csv_adjacencias: str) -> Grafo:
-    """
-    Carrega o grafo a partir dos dois CSVs:
-    - csv_aeroportos : data/aeroportos_data.csv (colunas: iata, cidade, regiao)
-    - csv_adjacencias: data/adjacencias_aeroportos.csv
-      (colunas: origem, destino, tipo_conexao, justificativa, peso)
-
-    Validações obrigatórias (lança ValueError com mensagem clara se falhar):
-    - Sem IATA duplicado em aeroportos
-    - Todas as colunas obrigatórias presentes
-    - Nenhuma aresta com nó inexistente
-    - Nenhum peso negativo
-
-    Retorna o Grafo carregado e pronto para uso.
-    """
+   
     # --- Leitura e validação do CSV de aeroportos ---
     df_aeroportos = pd.read_csv(csv_aeroportos, dtype=str)
     df_aeroportos.columns = df_aeroportos.columns.str.strip()
@@ -171,45 +148,7 @@ def carregar_grafo(csv_aeroportos: str, csv_adjacencias: str) -> Grafo:
 
 
 def construir_adjacencias(csv_aeroportos: str, csv_saida: str) -> None:
-    """
-    Lê data/aeroportos_data.csv e constrói data/adjacencias_aeroportos.csv.
-
-    MODELO DE ARESTAS:
-    ------------------
-    REGRA 1 — Conexão regional (tipo_conexao = "regional"):
-      Todo aeroporto conecta-se a TODOS os outros da mesma região.
-      justificativa = "conexão intra-regional: {regiao}"
-      peso_base = 1.0
-
-    REGRA 2 — Conexão hub nacional (tipo_conexao = "hub"):
-      Hubs definidos: GRU (São Paulo/Sudeste), BSB (Brasília/Centro-Oeste),
-      GIG (Rio de Janeiro/Sudeste).
-      Todo aeroporto de outra região conecta-se ao(s) hub(s) mais relevante(s):
-        - Norte    → MAO conecta a GRU e BSB
-        - Nordeste → REC, SSA, FOR conectam a GRU; NAT, JPA, THE conectam a BSB
-        - Sul      → POA, CWB, FLN conectam a GRU
-      justificativa = "conexão via hub nacional {hub}"
-      peso_base = 2.0
-
-    REGRA 3 — Conexão inter-regional (tipo_conexao = "inter_regional"):
-      Para garantir conectividade total e representar rotas estratégicas:
-        BSB ↔ MAO, BSB ↔ BEL, BSB ↔ REC, BSB ↔ POA
-        GRU ↔ MAO, GIG ↔ SSA
-      justificativa = "ponte inter-regional estratégica"
-      peso_base = 2.5
-
-    FÓRMULA DO PESO FINAL (híbrida):
-      penalidade_regiao = 1.0  se regiões diferentes, 0.0 caso contrário
-      penalidade_hub    = 0.5  se nenhum dos dois é hub, 0.0 se pelo menos um é hub
-      peso = peso_base + penalidade_regiao + penalidade_hub
-      Restrição: peso >= 1.0, nunca negativo.
-
-    Formato de saída (uma linha por par, sem espelhar):
-      origem,destino,tipo_conexao,justificativa,peso
-
-    Ao final, carrega o grafo e verifica conectividade.
-    Lança RuntimeError se o grafo não for conectado.
-    """
+    
     df = pd.read_csv(csv_aeroportos, dtype=str)
     df.columns = df.columns.str.strip()
     df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
@@ -245,18 +184,18 @@ def construir_adjacencias(csv_aeroportos: str, csv_saida: str) -> None:
             }
         )
 
-    # ------------------------------------------------------------------
+    
     # REGRA 1 — Conexões regionais (clique completo dentro de cada região)
-    # ------------------------------------------------------------------
+    
     for regiao, aeroportos in por_regiao.items():
         justificativa = f"conexão intra-regional: {regiao}"
         for i in range(len(aeroportos)):
             for j in range(i + 1, len(aeroportos)):
                 _registrar(aeroportos[i], aeroportos[j], "regional", justificativa, 1.0)
 
-    # ------------------------------------------------------------------
+    
     # REGRA 2 — Conexões de hub nacional
-    # ------------------------------------------------------------------
+    
     # Mapeamento: aeroporto → hubs aos quais deve se conectar
     conexoes_hub: dict[str, list[str]] = {
         # Norte
@@ -276,16 +215,16 @@ def construir_adjacencias(csv_aeroportos: str, csv_saida: str) -> None:
 
     for aeroporto, hubs in conexoes_hub.items():
         if aeroporto not in regioes:
-            continue  # aeroporto não presente no dataset, ignora silenciosamente
+            continue 
         for hub in hubs:
             if hub not in regioes:
                 continue
             justificativa = f"conexão via hub nacional {hub}"
             _registrar(aeroporto, hub, "hub", justificativa, 2.0)
 
-    # ------------------------------------------------------------------
+    
     # REGRA 3 — Pontes inter-regionais estratégicas
-    # ------------------------------------------------------------------
+    
     pontes: list[tuple[str, str]] = [
         ("BSB", "MAO"),
         ("BSB", "BEL"),
@@ -300,15 +239,15 @@ def construir_adjacencias(csv_aeroportos: str, csv_saida: str) -> None:
             continue
         _registrar(a, b, "inter_regional", "ponte inter-regional estratégica", 2.5)
 
-    # ------------------------------------------------------------------
+    
     # Escrita do CSV de saída
-    # ------------------------------------------------------------------
+    
     df_saida = pd.DataFrame(conexoes, columns=["origem", "destino", "tipo_conexao", "justificativa", "peso"])
     df_saida.to_csv(csv_saida, index=False)
 
-    # ------------------------------------------------------------------
+    
     # Verificação de conectividade
-    # ------------------------------------------------------------------
+    
     grafo = carregar_grafo(csv_aeroportos, csv_saida)
     if not grafo.eh_conectado():
         raise RuntimeError(

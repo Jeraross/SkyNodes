@@ -1,29 +1,20 @@
-"""
-Testes unitários para o algoritmo Bellman-Ford.
 
-Testa suporte a pesos negativos, detecção de ciclo negativo
-e equivalência com Dijkstra para grafos sem pesos negativos.
-"""
+# Testes unitários para o algoritmo Bellman-Ford.
+
+
 
 import pytest
 from src.graphs.graph import Grafo, Aresta
 from src.graphs.algorithms import bellman_ford, dijkstra, reconstruir_caminho
 
 
-# ---------------------------------------------------------------------------
+
 # Helpers
-# ---------------------------------------------------------------------------
+
 
 
 def _grafo_ponderado_positivo() -> Grafo:
-    """
-    Grafo de 4 nós com pesos positivos (mesma topologia dos testes Dijkstra):
-      A --1-- B
-      A --1-- D
-      D --1-- C
-      B --2-- C
-    Distância mínima A→C = 2 (via A-D-C).
-    """
+    
     g = Grafo()
     for iata in ["A", "B", "C", "D"]:
         g.adicionar_no(iata, f"Cidade_{iata}", "Regiao")
@@ -35,14 +26,7 @@ def _grafo_ponderado_positivo() -> Grafo:
 
 
 def _grafo_peso_negativo_sem_ciclo() -> Grafo:
-    """
-    Grafo dirigido simulado via adjacência manual (3 nós):
-      A→B peso=3, A→C peso=1, C→B peso=-2
-    Distância mínima A→B = min(3, 1+(-2)) = -1 (via A-C-B).
-
-    Como Grafo é não-direcionado, modelamos apenas a direção relevante
-    inserindo arestas manualmente nas listas de adjacência.
-    """
+    
     g = Grafo()
     for iata in ["A", "B", "C"]:
         g._nos[iata] = {"cidade": f"Cidade_{iata}", "regiao": "R"}
@@ -57,11 +41,7 @@ def _grafo_peso_negativo_sem_ciclo() -> Grafo:
 
 
 def _grafo_ciclo_negativo() -> Grafo:
-    """
-    Grafo com ciclo negativo (3 nós, directed via adjacência manual):
-      A→B=1, B→C=-3, C→A=1
-    Soma do ciclo: 1 + (-3) + 1 = -1 (negativo).
-    """
+    
     g = Grafo()
     for iata in ["A", "B", "C"]:
         g._nos[iata] = {"cidade": f"Cidade_{iata}", "regiao": "R"}
@@ -81,16 +61,13 @@ def _grafo_com_inalcancavel() -> Grafo:
     return g
 
 
-# ---------------------------------------------------------------------------
+
 # Testes
-# ---------------------------------------------------------------------------
+
 
 
 def test_bf_resultado_igual_dijkstra_pesos_positivos():
-    """
-    Com pesos positivos, Bellman-Ford deve produzir as mesmas
-    distâncias que Dijkstra para todos os nós.
-    """
+    
     g = _grafo_ponderado_positivo()
     res_bf = bellman_ford(g, "A")
     res_dij = dijkstra(g, "A")
@@ -103,11 +80,7 @@ def test_bf_resultado_igual_dijkstra_pesos_positivos():
 
 
 def test_bf_peso_negativo_sem_ciclo_distancia_correta():
-    """
-    Grafo: A→B=3, A→C=1, C→B=-2
-    Distância mínima A→B = 1 + (-2) = -1 (caminho A-C-B).
-    ciclo_negativo deve ser False.
-    """
+    
     g = _grafo_peso_negativo_sem_ciclo()
     resultado = bellman_ford(g, "A", "B")
 
@@ -117,21 +90,14 @@ def test_bf_peso_negativo_sem_ciclo_distancia_correta():
 
 
 def test_bf_detecta_ciclo_negativo():
-    """
-    Grafo com ciclo negativo (A→B=1, B→C=-3, C→A=1, soma=-1).
-    ciclo_negativo deve ser True.
-    """
+    
     g = _grafo_ciclo_negativo()
     resultado = bellman_ford(g, "A")
     assert resultado["ciclo_negativo"] is True
 
 
 def test_bf_reconstruir_caminho_com_peso_negativo():
-    """
-    reconstruir_caminho deve funcionar corretamente com o dicionário
-    de pais produzido por Bellman-Ford em grafo com peso negativo.
-    Caminho esperado: A → C → B.
-    """
+    
     g = _grafo_peso_negativo_sem_ciclo()
     resultado = bellman_ford(g, "A", "B")
     # A função reconstruir_caminho é usada internamente; validamos o campo "caminho"

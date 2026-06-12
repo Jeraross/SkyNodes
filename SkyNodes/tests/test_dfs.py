@@ -1,24 +1,15 @@
-"""
-Testes unitários para o algoritmo DFS (Busca em Profundidade).
 
-Grafo com ciclo (6 nós):
-  A - B - C
-  |       |
-  D - E - F
-Arestas: A-B, B-C, A-D, C-F, D-E, E-F  → forma ciclo A-B-C-F-E-D-A
+# Testes unitários para o algoritmo DFS (Busca em Profundidade).
 
-Grafo sem ciclo (linha):
-  A - B - C - D  (4 nós em sequência)
-"""
 
 import pytest
 from src.graphs.graph import Grafo
 from src.graphs.algorithms import dfs
 
 
-# ---------------------------------------------------------------------------
+
 # Helpers
-# ---------------------------------------------------------------------------
+
 
 
 def _grafo_com_ciclo() -> Grafo:
@@ -41,9 +32,9 @@ def _grafo_linha() -> Grafo:
     return g
 
 
-# ---------------------------------------------------------------------------
+
 # Testes
-# ---------------------------------------------------------------------------
+
 
 
 def test_dfs_visita_todos_nos_grafo_com_ciclo():
@@ -76,10 +67,7 @@ def test_dfs_arestas_retorno_vazias_sem_ciclo():
 
 
 def test_dfs_descoberta_menor_que_termino():
-    """
-    Para todo nó visitado: descoberta[nó] < termino[nó].
-    Propriedade fundamental dos tempos de DFS.
-    """
+    
     g = _grafo_com_ciclo()
     resultado = dfs(g, "A")
     for no in resultado["visitados"]:

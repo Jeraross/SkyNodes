@@ -1,9 +1,7 @@
-"""
-Módulo principal da Parte 1 do projeto MixGraph.
 
-Orquestra o carregamento do grafo, o cálculo de métricas e a geração
-de todos os arquivos de saída em out/.
-"""
+# Orquestrador de solução leitura, processamento e saída do grafo
+
+
 
 import csv
 import json
@@ -15,35 +13,19 @@ from src.graphs.io import carregar_grafo, garantir_diretorio, garantir_adjacenci
 
 
 def _densidade(ordem: int, tamanho: int) -> float:
-    """
-    Calcula a densidade de um grafo simples não-direcionado.
-    Fórmula: 2|E| / (|V| * (|V| - 1))
-    Retorna 0.0 se |V| < 2.
-    """
+    
     if ordem < 2:
         return 0.0
     return (2 * tamanho) / (ordem * (ordem - 1))
 
 
-# ---------------------------------------------------------------------------
-# SEÇÃO 3 — Métricas globais
-# ---------------------------------------------------------------------------
+
+# SEÇÃO 1 — Métricas globais
+
 
 
 def calcular_metricas_globais(grafo: Grafo, diretorio_saida: str) -> dict:
-    """
-    Calcula e salva out/global.json com as métricas do grafo completo:
-      - ordem     : número de nós |V|
-      - tamanho   : número de arestas únicas |E|
-      - densidade : 2|E| / (|V| * (|V|-1)), ou 0 se |V| < 2
-      - eh_conectado : True se o grafo é conectado
-
-    Parâmetros:
-      grafo           : instância de Grafo já carregada
-      diretorio_saida : caminho do diretório de saída (ex: "out/")
-
-    Retorna o dicionário calculado.
-    """
+    
     garantir_diretorio(diretorio_saida)
 
     ordem = grafo.ordem()
@@ -63,29 +45,13 @@ def calcular_metricas_globais(grafo: Grafo, diretorio_saida: str) -> dict:
     return metricas
 
 
-# ---------------------------------------------------------------------------
-# SEÇÃO 3 — Métricas por região
-# ---------------------------------------------------------------------------
+
+# SEÇÃO 2 — Métricas por região
+
 
 
 def calcular_metricas_regioes(grafo: Grafo, diretorio_saida: str) -> list[dict]:
-    """
-    Para cada região (Norte, Nordeste, Sudeste, Sul, Centro-Oeste) calcula
-    as métricas do subgrafo induzido:
-      - Nós  : apenas os aeroportos desta região
-      - Arestas: apenas as arestas cujos DOIS extremos pertencem à região
-
-    Métricas calculadas: ordem, tamanho, densidade.
-
-    Salva out/regioes.json como lista de dicionários:
-      [{"regiao": ..., "ordem": ..., "tamanho": ..., "densidade": ...}, ...]
-
-    Parâmetros:
-      grafo           : instância de Grafo já carregada
-      diretorio_saida : caminho do diretório de saída
-
-    Retorna a lista de dicionários.
-    """
+    
     garantir_diretorio(diretorio_saida)
 
     # Mapeia cada IATA para sua região a partir dos metadados do grafo
@@ -120,30 +86,13 @@ def calcular_metricas_regioes(grafo: Grafo, diretorio_saida: str) -> list[dict]:
     return resultado
 
 
-# ---------------------------------------------------------------------------
+
 # SEÇÃO 3 — Ego-redes
-# ---------------------------------------------------------------------------
+
 
 
 def calcular_ego_redes(grafo: Grafo, diretorio_saida: str) -> list[dict]:
-    """
-    Calcula a ego-rede de cada nó v:
-      ego_nos     = {v} ∪ vizinhos(v)
-      ego_arestas = arestas do grafo cujos DOIS extremos pertencem a ego_nos
-      ordem_ego   = |ego_nos|
-      tamanho_ego = |ego_arestas|
-      densidade_ego = 2*tamanho_ego / (ordem_ego*(ordem_ego-1))
-                    = 0 se ordem_ego < 2
-
-    Salva out/ego_aeroportos.csv com colunas:
-      aeroporto, grau, ordem_ego, tamanho_ego, densidade_ego
-
-    Parâmetros:
-      grafo           : instância de Grafo já carregada
-      diretorio_saida : caminho do diretório de saída
-
-    Retorna lista de dicts com os campos acima.
-    """
+    
     garantir_diretorio(diretorio_saida)
 
     # Lista de todas as arestas únicas para varredura eficiente
@@ -189,27 +138,15 @@ def calcular_ego_redes(grafo: Grafo, diretorio_saida: str) -> list[dict]:
     return ego_metricas
 
 
-# ---------------------------------------------------------------------------
+
 # SEÇÃO 4 — Graus e rankings
-# ---------------------------------------------------------------------------
+
 
 
 def calcular_graus_rankings(
     grafo: Grafo, ego_metricas: list[dict], diretorio_saida: str
 ) -> None:
-    """
-    Salva out/graus.csv com colunas: aeroporto, grau
-    Ordenado por grau decrescente (empates mantêm ordem alfabética).
-
-    Imprime no terminal:
-      - Aeroporto mais conectado (maior grau)
-      - Aeroporto com maior densidade_ego
-
-    Parâmetros:
-      grafo           : instância de Grafo já carregada
-      ego_metricas    : lista retornada por calcular_ego_redes()
-      diretorio_saida : caminho do diretório de saída
-    """
+    
     garantir_diretorio(diretorio_saida)
 
     # Monta lista (aeroporto, grau) e ordena por grau decrescente
@@ -245,28 +182,13 @@ def calcular_graus_rankings(
     )
 
 
-# ---------------------------------------------------------------------------
-# SEÇÃO 6 — Rotas com Dijkstra
-# ---------------------------------------------------------------------------
+
+# SEÇÃO 5 — Rotas com Dijkstra
+
 
 
 def calcular_rotas(grafo: Grafo, csv_rotas: str, diretorio_saida: str) -> None:
-    """
-    Lê data/rotas.csv (colunas obrigatórias: origem, destino).
-    Para cada par executa Dijkstra e registra custo e caminho.
-
-    Valida que os pares obrigatórios REC->POA e MAO->GRU estão presentes.
-    Lança ValueError se algum par obrigatório estiver ausente.
-
-    Salva out/distancias_rotas.csv com colunas:
-      origem, destino, custo, caminho
-    onde 'caminho' é uma string no formato "REC -> BSB -> GRU -> POA".
-
-    Parâmetros:
-      grafo           : instância de Grafo já carregada
-      csv_rotas       : caminho para data/rotas.csv
-      diretorio_saida : caminho do diretório de saída
-    """
+    
     garantir_diretorio(diretorio_saida)
 
     # Lê pares de rotas
@@ -308,9 +230,9 @@ def calcular_rotas(grafo: Grafo, csv_rotas: str, diretorio_saida: str) -> None:
         writer.writerows(linhas_saida)
 
 
-# ---------------------------------------------------------------------------
+
 # Função principal de orquestração
-# ---------------------------------------------------------------------------
+
 
 
 def executar_parte1(
@@ -319,23 +241,7 @@ def executar_parte1(
     csv_rotas: str,
     diretorio_saida: str,
 ) -> None:
-    """
-    Orquestra toda a Parte 1 em ordem:
-      1. Verifica se csv_adjacencias existe; se não, chama construir_adjacencias().
-      2. Carrega o grafo com carregar_grafo().
-      3. Calcula métricas globais  → out/global.json
-      4. Calcula métricas regionais → out/regioes.json
-      5. Calcula ego-redes         → out/ego_aeroportos.csv
-      6. Calcula graus e rankings  → out/graus.csv
-      7. Calcula rotas Dijkstra    → out/distancias_rotas.csv
-      8. Imprime resumo no terminal.
-
-    Parâmetros:
-      csv_aeroportos  : caminho para data/aeroportos_data.csv
-      csv_adjacencias : caminho para data/adjacencias_aeroportos.csv
-      csv_rotas       : caminho para data/rotas.csv
-      diretorio_saida : caminho do diretório de saída (ex: "out/")
-    """
+    
     # 1. Garante que o arquivo de adjacências existe
     garantir_adjacencias(csv_aeroportos, csv_adjacencias)
 
@@ -395,9 +301,9 @@ def executar_parte1(
     print("\nTodos os arquivos gerados em:", diretorio_saida)
 
 
-# ---------------------------------------------------------------------------
+
 # Ponto de entrada direto
-# ---------------------------------------------------------------------------
+
 
 if __name__ == "__main__":
     _BASE = Path(__file__).parent.parent

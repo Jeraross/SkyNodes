@@ -1,11 +1,7 @@
-"""
-Script auxiliar de geração e inspeção do grafo de aeroportos.
 
-Execução (a partir do diretório MixGraph/):
-    python -m src.build_data
-ou
-    python src/build_data.py
-"""
+# Script auxiliar de geração e inspeção do grafo de aeroportos.
+
+
 
 from pathlib import Path
 

@@ -1,10 +1,6 @@
-"""
-Módulo de visualização do grafo de aeroportos (Seção 7).
 
-Gera dois arquivos de saída:
-  - out/arvore_percurso.png  : mapa estático com matplotlib
-  - out/arvore_percurso.html : rede interativa com pyvis
-"""
+# Módulo de visualização do grafo de aeroportos - OBSOLETO(estamos usando react)
+
 
 import os
 from pathlib import Path
@@ -20,11 +16,11 @@ from src.graphs.algorithms import dijkstra, reconstruir_caminho
 from src.graphs.io import carregar_grafo
 
 
-# ---------------------------------------------------------------------------
+
 # Posições geográficas aproximadas de cada aeroporto no mapa do Brasil
 # Eixo X = longitude relativa (0 = oeste, 1 = leste)
 # Eixo Y = latitude relativa  (0 = sul,   1 = norte)
-# ---------------------------------------------------------------------------
+
 _POSICOES: dict[str, tuple[float, float]] = {
     # Norte
     "MAO": (0.18, 0.82),
@@ -66,15 +62,7 @@ _COR_ARESTA_PADRAO = "#bbbbbb"
 def _coletar_nos_e_arestas(caminhos: list[dict]) -> tuple[
     set[str], set[str], set[frozenset], set[frozenset]
 ]:
-    """
-    Separa nós e arestas pertencentes ao caminho 1, caminho 2 ou a ambos.
-
-    Retorna:
-      nos_c1       : conjunto de nós exclusivos do caminho 1
-      nos_c2       : conjunto de nós exclusivos do caminho 2
-      arestas_c1   : frozensets das arestas do caminho 1
-      arestas_c2   : frozensets das arestas do caminho 2
-    """
+   
     nos_c1: set[str] = set(caminhos[0]["nos"])
     nos_c2: set[str] = set(caminhos[1]["nos"])
 
@@ -88,9 +76,9 @@ def _coletar_nos_e_arestas(caminhos: list[dict]) -> tuple[
     return nos_c1, nos_c2, arestas_c1, arestas_c2
 
 
-# ---------------------------------------------------------------------------
+
 # Visualização estática — matplotlib
-# ---------------------------------------------------------------------------
+
 
 
 def _plotar_png(
@@ -98,13 +86,7 @@ def _plotar_png(
     caminhos: list[dict],
     diretorio_saida: str,
 ) -> None:
-    """
-    Gera out/arvore_percurso.png com matplotlib.
-
-    Nós e arestas são coloridos de acordo com sua participação nos
-    caminhos REC->POA (azul) e MAO->GRU (verde). Nós compartilhados
-    recebem cor roxa.
-    """
+   
     nos_c1, nos_c2, arestas_c1, arestas_c2 = _coletar_nos_e_arestas(caminhos)
     nos_ambos = nos_c1 & nos_c2
 
@@ -114,7 +96,7 @@ def _plotar_png(
     ax.set_ylim(-0.05, 1.05)
     ax.axis("off")
 
-    # --- Desenha arestas ---
+    #  Desenha arestas 
     for origem, destino, *_ in grafo.arestas():
         par = frozenset([origem, destino])
         x0, y0 = _POSICOES[origem]
@@ -141,7 +123,7 @@ def _plotar_png(
         ax.plot([x0, x1], [y0, y1], color=cor, linewidth=lw,
                 alpha=alpha, zorder=1, solid_capstyle="round")
 
-    # --- Desenha nós ---
+    #  Desenha nós 
     for iata, (x, y) in _POSICOES.items():
         if iata in nos_ambos:
             cor_no = _COR_AMBOS
@@ -166,7 +148,7 @@ def _plotar_png(
                 fontsize=7.5, fontweight="bold", zorder=4,
                 color="#222222")
 
-    # --- Legenda ---
+    # Legenda 
     patch_c1 = mpatches.Patch(
         color=_COR_CAMINHO_1,
         label=f"{caminhos[0]['label']}  (custo: {caminhos[0]['custo']:.1f})",
@@ -201,15 +183,12 @@ def _plotar_png(
     print(f"PNG salvo em: {caminho_png}")
 
 
-# ---------------------------------------------------------------------------
+
 # Visualização interativa HTML — gerada exclusivamente por gerar_grafo_interativo
 # (a função _plotar_html foi removida; o único HTML gerado é grafo_interativo.html)
-# ---------------------------------------------------------------------------
 
 
-# ---------------------------------------------------------------------------
 # API pública
-# ---------------------------------------------------------------------------
 
 
 def plotar_arvore_percurso(
@@ -217,38 +196,18 @@ def plotar_arvore_percurso(
     caminhos: list[dict],
     diretorio_saida: str,
 ) -> None:
-    """
-    Recebe lista de caminhos, cada um com:
-      {
-        'label'  : str,              ex: "REC -> POA"
-        'nos'    : list[str],        ex: ["REC", "GRU", "POA"]
-        'arestas': list[tuple[str, str]],
-        'custo'  : float
-      }
-
-    Gera um arquivo de saída:
-      - out/arvore_percurso.png  : mapa estático (matplotlib)
-
-    A visualização interativa em HTML é gerada exclusivamente por
-    gerar_grafo_interativo() em out/grafo_interativo.html.
-
-    Parâmetros:
-      grafo           : instância de Grafo já carregada
-      caminhos        : lista com exatamente 2 dicionários de caminho
-      diretorio_saida : caminho para o diretório de saída (ex: "out/")
-    """
+    
     os.makedirs(diretorio_saida, exist_ok=True)
 
     _plotar_png(grafo, caminhos, diretorio_saida)
 
 
-# ---------------------------------------------------------------------------
-# Bloco de execução direto
-# ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
+# Bloco de execução direto
+
+
 # SEÇÃO 9 — Grafo interativo completo
-# ---------------------------------------------------------------------------
+
 
 # Cores dos nós por região
 _COR_REGIAO: dict[str, str] = {
@@ -272,10 +231,7 @@ _TAMANHO_MAX = 45
 
 
 def _escalar_tamanho(grau: int, grau_min: int, grau_max: int) -> int:
-    """
-    Escala linear do grau para o intervalo [_TAMANHO_MIN, _TAMANHO_MAX].
-    Retorna _TAMANHO_MIN se todos os graus forem iguais.
-    """
+    
     if grau_max == grau_min:
         return (_TAMANHO_MIN + _TAMANHO_MAX) // 2
     fator = (grau - grau_min) / (grau_max - grau_min)
@@ -283,10 +239,7 @@ def _escalar_tamanho(grau: int, grau_min: int, grau_max: int) -> int:
 
 
 def _escalar_espessura(peso: float, peso_min: float, peso_max: float) -> float:
-    """
-    Espessura da aresta inversamente proporcional ao peso:
-    peso menor → aresta mais espessa (range 1.0 a 6.0).
-    """
+    
     if peso_max == peso_min:
         return 3.0
     fator = 1.0 - (peso - peso_min) / (peso_max - peso_min)
@@ -294,11 +247,7 @@ def _escalar_espessura(peso: float, peso_min: float, peso_max: float) -> float:
 
 
 def _injetar_legenda(caminho_html: str, caminhos_destaque: list[dict]) -> None:
-    """
-    Injeta uma caixa de legenda HTML diretamente no arquivo gerado pelo pyvis,
-    logo após a tag <body>. Explica as cores dos dois caminhos obrigatórios
-    e as cores das regiões/tipos de conexão.
-    """
+   
     label_c1 = caminhos_destaque[0]["label"]
     label_c2 = caminhos_destaque[1]["label"]
 
@@ -346,29 +295,13 @@ def gerar_grafo_interativo(
     caminhos_destaque: list[dict],
     diretorio_saida: str,
 ) -> None:
-    """
-    Gera out/grafo_interativo.html com pyvis.Network.
-
-    Estratégia:
-      1. Monta o grafo base com pyvis (nós, arestas, physics)
-      2. Salva em arquivo temporário com net.save_graph()
-      3. Lê o HTML gerado como string
-      4. Injeta CSS + JS customizado antes de </head> e </body>
-      5. Salva resultado final em out/grafo_interativo.html
-
-    Requisitos obrigatórios:
-      - Tooltip por nó: IATA, Cidade, Região, Grau, Densidade Ego
-      - Busca de aeroporto por IATA ou cidade
-      - Caminhos obrigatórios REC→POA e MAO→GRU destacados
-      - Cor dos nós por região, tamanho proporcional ao grau
-      - Interface visual de alto nível (painel lateral, header, controles)
-    """
+    
     import json
     import tempfile
 
     os.makedirs(diretorio_saida, exist_ok=True)
 
-    # ── Paleta de cores por região ──────────────────────────────────────────
+    # Paleta de cores por região 
     COR_REGIAO = {
         "Norte":        "#1B9E77",
         "Nordeste":     "#E6AB02",
@@ -391,14 +324,14 @@ def gerar_grafo_interativo(
         r, g, b = int(hex_cor[0:2], 16), int(hex_cor[2:4], 16), int(hex_cor[4:6], 16)
         return "#{:02x}{:02x}{:02x}".format(int(r * 0.7), int(g * 0.7), int(b * 0.7))
 
-    # ── Cores das arestas por tipo de conexão ───────────────────────────────
+    # ── Cores das arestas por tipo de conexão 
     COR_TIPO = {
         "regional":       "#1f6feb",
         "hub":            "#d29922",
         "inter_regional": "#238636",
     }
 
-    # ── Índices auxiliares ──────────────────────────────────────────────────
+    # Índices auxiliares 
     ego_por_iata: dict[str, float] = {
         m["aeroporto"]: m["densidade_ego"] for m in ego_metricas
     }
@@ -417,7 +350,7 @@ def gerar_grafo_interativo(
     custo_rec_poa = caminhos_destaque[0]["custo"]
     custo_mao_gru = caminhos_destaque[1]["custo"]
 
-    # ── Métricas globais para o header ──────────────────────────────────────
+    # Métricas globais para o header 
     n_nos = len(graus)
     pares_unicos: set[frozenset] = set()
     for origem, destino, *_ in todas_arestas:
@@ -426,7 +359,7 @@ def gerar_grafo_interativo(
     densidade_global = (2 * n_arestas) / (n_nos * (n_nos - 1)) if n_nos > 1 else 0.0
     maior_grau_iata = max(graus, key=graus.get) if graus else "—"
 
-    # ── Instância pyvis ─────────────────────────────────────────────────────
+    # Instância pyvis 
     net = Network(
         height="100vh",
         width="100%",
@@ -488,7 +421,7 @@ def gerar_grafo_interativo(
 }
 ''')
 
-    # ── Adicionar nós (obrigatório antes das arestas no pyvis) ─────────────
+    # Adicionar nós (obrigatório antes das arestas no pyvis) 
     node_data_dict: dict[str, dict] = {}
 
     for iata in grafo.nos():
@@ -513,7 +446,7 @@ def gerar_grafo_interativo(
             "hover":     {"background": cor_hl, "border": "#ffffff"},
         }
 
-        # Sem title nativo do vis.js — tooltip customizado é gerenciado pelo JS
+        # Sem title nativo do vis.js tooltip customizado é gerenciado pelo JS
         net.add_node(
             iata,
             label=iata,
@@ -536,7 +469,7 @@ def gerar_grafo_interativo(
             "cor": cor_base,
         }
 
-    # ── Adicionar arestas e construir índice para tooltip JS ────────────────
+    # Adicionar arestas e construir índice para tooltip JS
     # edge_data_dict: chave "A|B" (ambas as direções) → metadados da aresta
     edge_data_dict: dict[str, dict] = {}
     pares_inseridos: set[frozenset] = set()
@@ -587,7 +520,7 @@ def gerar_grafo_interativo(
         edge_data_dict[f"{origem}|{destino}"] = meta
         edge_data_dict[f"{destino}|{origem}"] = meta
 
-    # ── Salvar HTML base em arquivo temporário ───────────────────────────────
+    # Salvar HTML base em arquivo temporário 
     tmp_fd, tmp_path = tempfile.mkstemp(suffix=".html")
     os.close(tmp_fd)
 
@@ -595,7 +528,7 @@ def gerar_grafo_interativo(
     html = open(tmp_path, encoding="utf-8").read()
     os.unlink(tmp_path)  # remove o temporário
 
-    # ── Tornar o HTML auto-contido: embutir vis.js localmente ────────────────
+    # Tornar o HTML auto-contido: embutir vis.js localmente 
     # Localizar vis-network.min.js na instalação do pyvis
     import importlib.util
     pyvis_spec = importlib.util.find_spec("pyvis")
@@ -637,7 +570,7 @@ def gerar_grafo_interativo(
     html = re.sub(r'<link[^>]+bootstrap[^>]*/?\s*>', '', html)
     html = re.sub(r'<script[^>]+bootstrap[^>]*></script>', '', html)
 
-    # ── CSS customizado ──────────────────────────────────────────────────────
+    # ── CSS customizado ─
     CUSTOM_CSS = """
 <style>
   /* Reset e base */
@@ -1076,7 +1009,7 @@ def gerar_grafo_interativo(
 </style>
 """
 
-    # ── HTML dos painéis ─────────────────────────────────────────────────────
+    # ── HTML dos painéis 
     CUSTOM_HTML = f"""
 <!-- Cabeçalho superior -->
 <div id="header-panel">
@@ -1872,9 +1805,9 @@ network.on('stabilized', function() {
     print(f"[OK] grafo_interativo.html gerado com sucesso ({tamanho_kb} KB)")
 
 
-# ---------------------------------------------------------------------------
+
 # SEÇÕES 8 e 10 — Visualizações analíticas (matplotlib)
-# ---------------------------------------------------------------------------
+
 
 import numpy as np
 import matplotlib.cm as cm
@@ -2347,9 +2280,9 @@ def viz_heatmap_distancias(grafo: Grafo, diretorio_saida: str) -> None:
     print(f"  Escolha explanatoria: permite comparar todos os 380 pares de uma vez.\n")
 
 
-# ---------------------------------------------------------------------------
+
 # Orquestradora das 6 visualizações analíticas
-# ---------------------------------------------------------------------------
+
 
 
 def gerar_todas_visualizacoes(
@@ -2394,9 +2327,9 @@ def gerar_todas_visualizacoes(
         print(f"  {status} {arq}")
 
 
-# ---------------------------------------------------------------------------
+
 # Ponto de entrada direto
-# ---------------------------------------------------------------------------
+
 
 if __name__ == "__main__":
     from src.solve import calcular_ego_redes, calcular_metricas_regioes

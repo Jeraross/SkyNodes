@@ -1,31 +1,20 @@
-"""
-Testes unitários para o algoritmo de Dijkstra.
 
-Grafo ponderado de 4 nós:
-  A --1-- B
-  |       |
-  1       2
-  |       |
-  D --1-- C
-Arestas: A-B(1), A-D(1), D-C(1), B-C(2)
-Caminho mínimo A→C: A-D-C (custo=2), alternativa A-B-C (custo=3)
-"""
+# Testes unitários para o algoritmo de Dijkstra.
+
+
 
 import pytest
 from src.graphs.graph import Grafo
 from src.graphs.algorithms import dijkstra
 
 
-# ---------------------------------------------------------------------------
+
 # Helpers
-# ---------------------------------------------------------------------------
+
 
 
 def _grafo_ponderado() -> Grafo:
-    """
-    Grafo de 4 nós com pesos variados.
-    Caminho mínimo A→C: A-D-C (custo 2).
-    """
+    
     g = Grafo()
     for iata in ["A", "B", "C", "D"]:
         g.adicionar_no(iata, f"Cidade_{iata}", "Regiao")
@@ -37,7 +26,7 @@ def _grafo_ponderado() -> Grafo:
 
 
 def _grafo_com_peso_negativo() -> Grafo:
-    """Grafo com uma aresta de peso negativo para testar a exceção."""
+  
     g = Grafo()
     for iata in ["A", "B"]:
         g.adicionar_no(iata, f"Cidade_{iata}", "Regiao")
@@ -52,10 +41,7 @@ def _grafo_com_peso_negativo() -> Grafo:
 
 
 def _grafo_com_no_inalcancavel() -> Grafo:
-    """
-    Dois componentes desconexos: A-B e C (isolado).
-    C é inalcançável a partir de A.
-    """
+   
     g = Grafo()
     for iata in ["A", "B", "C"]:
         g.adicionar_no(iata, f"Cidade_{iata}", "Regiao")
@@ -64,16 +50,13 @@ def _grafo_com_no_inalcancavel() -> Grafo:
     return g
 
 
-# ---------------------------------------------------------------------------
+
 # Testes
-# ---------------------------------------------------------------------------
+
 
 
 def test_dijkstra_caminho_minimo_correto():
-    """
-    Caminho mínimo A→C deve ser A-D-C com custo 2.
-    (Alternativa A-B-C tem custo 3.)
-    """
+    
     g = _grafo_ponderado()
     resultado = dijkstra(g, "A", "C")
     assert resultado["custo"] == pytest.approx(2.0)
@@ -104,10 +87,7 @@ def test_dijkstra_no_para_si_mesmo():
 
 
 def test_dijkstra_distancias_todos_nos():
-    """
-    Verifica as distâncias mínimas de A para todos os nós:
-      A→A = 0, A→B = 1, A→D = 1, A→C = 2
-    """
+    
     g = _grafo_ponderado()
     resultado = dijkstra(g, "A")
     dists = resultado["distancias"]

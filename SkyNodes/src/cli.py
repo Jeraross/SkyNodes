@@ -1,23 +1,11 @@
-"""
-Interface de linha de comando do projeto MixGraph.
 
-Uso:
-  python -m src.cli --dataset ./data/aeroportos_data.csv --alg BFS --source REC --out ./out/
-  python -m src.cli --dataset ./data/aeroportos_data.csv --alg DIJKSTRA --source REC --target POA --out ./out/
-  python -m src.cli --dataset ./data/aeroportos_data.csv --alg DFS --source GRU --out ./out/
-  python -m src.cli --dataset ./data/aeroportos_data.csv --alg BELLMAN_FORD --source MAO --target GRU --out ./out/
-  python -m src.cli --dataset ./data/aeroportos_data.csv --alg ALL --out ./out/
-"""
+# Interface de linha de comando do projeto MixGraph - OBSOLETO
+
+
 
 import argparse
 import sys
 from pathlib import Path
-
-
-# ---------------------------------------------------------------------------
-# Importações do projeto (feitas aqui para que erros de import sejam claros)
-# ---------------------------------------------------------------------------
-
 from src.graphs.io import carregar_grafo, garantir_adjacencias, salvar_json
 from src.graphs.algorithms import bfs, dfs, dijkstra, bellman_ford
 
@@ -33,17 +21,13 @@ def _validar_iata(grafo, iata: str, papel: str) -> None:
         sys.exit(1)
 
 
-# ---------------------------------------------------------------------------
+
 # Handlers de cada algoritmo
-# ---------------------------------------------------------------------------
+
 
 
 def _rodar_bfs(grafo, source: str, diretorio_saida: str) -> None:
-    """
-    Executa BFS a partir de 'source'.
-    Imprime ordem de visita e níveis.
-    Salva out/bfs_{source}.json.
-    """
+    
     resultado = bfs(grafo, source)
 
     print(f"\n[BFS] Origem: {source}")
@@ -66,11 +50,7 @@ def _rodar_bfs(grafo, source: str, diretorio_saida: str) -> None:
 
 
 def _rodar_dfs(grafo, source: str, diretorio_saida: str) -> None:
-    """
-    Executa DFS a partir de 'source'.
-    Imprime ordem de visita, tem_ciclo e arestas_retorno.
-    Salva out/dfs_{source}.json.
-    """
+   
     resultado = dfs(grafo, source)
 
     print(f"\n[DFS] Origem: {source}")
@@ -98,11 +78,7 @@ def _rodar_dfs(grafo, source: str, diretorio_saida: str) -> None:
 
 
 def _rodar_dijkstra(grafo, source: str, target: str, diretorio_saida: str) -> None:
-    """
-    Executa Dijkstra de 'source' até 'target'.
-    Imprime custo e caminho formatado.
-    Salva out/dijkstra_{source}_{target}.json.
-    """
+    
     try:
         resultado = dijkstra(grafo, source, target)
     except ValueError as e:
@@ -136,11 +112,7 @@ def _rodar_dijkstra(grafo, source: str, target: str, diretorio_saida: str) -> No
 
 
 def _rodar_bellman_ford(grafo, source: str, target: str, diretorio_saida: str) -> None:
-    """
-    Executa Bellman-Ford de 'source' até 'target'.
-    Imprime custo, caminho e ciclo_negativo.
-    Salva out/bf_{source}_{target}.json.
-    """
+   
     resultado = bellman_ford(grafo, source, target)
 
     custo = resultado["custo"]
@@ -173,10 +145,7 @@ def _rodar_bellman_ford(grafo, source: str, target: str, diretorio_saida: str) -
 
 def _rodar_all(csv_aeroportos: str, csv_adjacencias: str,
                csv_rotas: str, diretorio_saida: str) -> None:
-    """
-    Executa toda a Parte 1: métricas, rotas e visualizações.
-    Chama executar_parte1() e depois gerar_todas_visualizacoes().
-    """
+    
     # Importações lazy para não carregar matplotlib/pyvis em outros comandos
     from src.solve import (
         executar_parte1,
@@ -209,9 +178,9 @@ def _rodar_all(csv_aeroportos: str, csv_adjacencias: str,
     gerar_todas_visualizacoes(grafo, ego, metricas_reg, caminhos, diretorio_saida)
 
 
-# ---------------------------------------------------------------------------
+
 # Construção do parser
-# ---------------------------------------------------------------------------
+
 
 
 def _construir_parser() -> argparse.ArgumentParser:
@@ -257,16 +226,13 @@ def _construir_parser() -> argparse.ArgumentParser:
     return parser
 
 
-# ---------------------------------------------------------------------------
+
 # Ponto de entrada
-# ---------------------------------------------------------------------------
+
 
 
 def main() -> None:
-    """
-    Ponto de entrada da CLI. Faz o parsing dos argumentos, valida as entradas
-    e despacha para o handler correto.
-    """
+    
     parser = _construir_parser()
     args = parser.parse_args()
 
@@ -283,7 +249,7 @@ def main() -> None:
 
     alg = args.alg
 
-    # --- Validação de argumentos por algoritmo ---
+    #  Validação de argumentos por algoritmo 
 
     if alg in ("BFS", "DFS", "DIJKSTRA", "BELLMAN_FORD") and not args.source:
         print(f"Erro: --source e obrigatorio para --alg {alg}.", file=sys.stderr)
@@ -295,13 +261,13 @@ def main() -> None:
         parser.print_usage(sys.stderr)
         sys.exit(1)
 
-    # --- ALL não precisa de grafo carregado aqui ---
+    #  ALL não precisa de grafo carregado aqui 
     if alg == "ALL":
         garantir_adjacencias(csv_aeroportos, csv_adjacencias)
         _rodar_all(csv_aeroportos, csv_adjacencias, csv_rotas, diretorio_saida)
         return
 
-    # --- Para os demais algoritmos: carrega o grafo e valida IATAs ---
+    #  Para os demais algoritmos: carrega o grafo e valida IATAs 
     garantir_adjacencias(csv_aeroportos, csv_adjacencias)
     grafo = carregar_grafo(csv_aeroportos, csv_adjacencias)
 
@@ -310,7 +276,7 @@ def main() -> None:
     if args.target:
         _validar_iata(grafo, args.target, "destino (--target)")
 
-    # --- Despacha para o handler do algoritmo ---
+    #  Despacha para o handler do algoritmo 
     if alg == "BFS":
         _rodar_bfs(grafo, args.source, diretorio_saida)
 

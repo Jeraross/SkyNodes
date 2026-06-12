@@ -1,28 +1,17 @@
-"""
-Testes unitários para o algoritmo BFS (Busca em Largura).
 
-Grafo principal de teste (6 nós, não-direcionado):
-  A - B - C
-  |       |
-  D - E - F
-Arestas: A-B, B-C, A-D, C-F, D-E, E-F
-"""
 
 import pytest
 from src.graphs.graph import Grafo
 from src.graphs.algorithms import bfs
 
 
-# ---------------------------------------------------------------------------
+
 # Helpers — constroem os grafos reutilizados pelos testes
-# ---------------------------------------------------------------------------
+
 
 
 def _grafo_6nos() -> Grafo:
-    """
-    Retorna o grafo de 6 nós usado nos testes principais.
-    A-B-C / A-D-E-F-C (topologia com ciclo).
-    """
+    
     g = Grafo()
     for iata in ["A", "B", "C", "D", "E", "F"]:
         g.adicionar_no(iata, f"Cidade_{iata}", "Regiao")
@@ -32,11 +21,7 @@ def _grafo_6nos() -> Grafo:
 
 
 def _grafo_dois_componentes() -> Grafo:
-    """
-    Dois componentes desconexos:
-      Componente 1: A - B - C
-      Componente 2: X - Y
-    """
+   
     g = Grafo()
     for iata in ["A", "B", "C", "X", "Y"]:
         g.adicionar_no(iata, f"Cidade_{iata}", "Regiao")
@@ -46,9 +31,9 @@ def _grafo_dois_componentes() -> Grafo:
     return g
 
 
-# ---------------------------------------------------------------------------
+
 # Testes
-# ---------------------------------------------------------------------------
+
 
 
 def test_bfs_visita_todos_nos():
@@ -61,12 +46,7 @@ def test_bfs_visita_todos_nos():
 
 
 def test_bfs_niveis_corretos():
-    """
-    Niveis BFS a partir de A:
-      A=0, B=1, D=1, C=2, E=2, F=3
-    Verificação baseada na topologia:
-      A-B (B=1), A-D (D=1), B-C (C=2), D-E (E=2), C-F e E-F (F=3)
-    """
+   
     g = _grafo_6nos()
     resultado = bfs(g, "A")
     niveis = resultado["niveis"]
@@ -80,10 +60,7 @@ def test_bfs_niveis_corretos():
 
 
 def test_bfs_dois_componentes_so_alcanca_seu():
-    """
-    BFS a partir de A não alcança X ou Y (componente separado).
-    Visitados devem ser exatamente {A, B, C}.
-    """
+    
     g = _grafo_dois_componentes()
     resultado = bfs(g, "A")
     visitados = set(resultado["visitados"])
@@ -94,19 +71,14 @@ def test_bfs_dois_componentes_so_alcanca_seu():
 
 
 def test_bfs_origem_inexistente_lanca_keyerror():
-    """BFS com nó de origem inexistente deve lançar KeyError."""
+  
     g = _grafo_6nos()
     with pytest.raises(KeyError):
         bfs(g, "Z")
 
 
 def test_bfs_arestas_arvore_formam_arvore():
-    """
-    arestas_arvore devem formar uma árvore:
-      - |arestas| == |visitados| - 1
-      - Cada nó não-raiz aparece como destino em exatamente uma aresta
-      - A raiz não é destino de nenhuma aresta
-    """
+   
     g = _grafo_6nos()
     resultado = bfs(g, "A")
     arestas = resultado["arestas_arvore"]
