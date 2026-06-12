@@ -11,6 +11,8 @@ import { airports, airportMap } from '../../data/airports';
 import { routes } from '../../data/routes';
 import type { Region } from '../../data/airports';
 import type { RouteType } from '../../data/routes';
+import type { PlanePosition } from '../../types';
+import planeImg from '../../assets/plane.png';
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json';
 
@@ -56,9 +58,10 @@ interface Tooltip {
 
 interface Props {
   highlightedRouteIds: string[];
+  planePosition?: PlanePosition;
 }
 
-export default function MapView({ highlightedRouteIds }: Props) {
+export default function MapView({ highlightedRouteIds, planePosition }: Props) {
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
 
   return (
@@ -106,7 +109,7 @@ export default function MapView({ highlightedRouteIds }: Props) {
                   from={[src.lng, src.lat]}
                   to={[dst.lng, dst.lat]}
                   stroke={ROUTE_STROKE[r.type]}
-                  strokeWidth={0.6}
+                  strokeWidth={0.15 + (r.weight / 3.5) * 0.6}
                   strokeLinecap="round"
                 />
               );
@@ -163,6 +166,21 @@ export default function MapView({ highlightedRouteIds }: Props) {
               </text>
             </Marker>
           ))}
+          {/* Plane marker */}
+          {planePosition?.visible && (
+            <Marker coordinates={[planePosition.lng, planePosition.lat]}>
+              <g transform={`rotate(${planePosition.heading}, 0, 0)`}>
+                <image
+                  href={planeImg}
+                  x={-14}
+                  y={-14}
+                  width={28}
+                  height={28}
+                  style={{ filter: 'drop-shadow(0 0 4px rgba(250,204,21,0.9))' }}
+                />
+              </g>
+            </Marker>
+          )}
         </ZoomableGroup>
       </ComposableMap>
 

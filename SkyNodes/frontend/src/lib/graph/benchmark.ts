@@ -34,6 +34,14 @@ const ALGORITHM_LABELS: Record<string, string> = {
 const ALGORITHMS = ['bfs', 'dfs', 'dijkstra', 'bellman-ford'] as const;
 type AlgorithmKey = typeof ALGORITHMS[number];
 
+// Runs to average out timer resolution — BF uses fewer since it's heavier
+const TIMING_RUNS: Record<AlgorithmKey, number> = {
+  bfs:           2000,
+  dfs:           2000,
+  dijkstra:      1000,
+  'bellman-ford': 200,
+};
+
 function runOne(
   graph: Graph,
   airports: Airport[],
@@ -42,7 +50,7 @@ function runOne(
   to: string,
   algorithm: AlgorithmKey,
 ): AlgorithmResult {
-  const t0 = performance.now();
+  // Single run to capture the actual result (path, cost)
   let result: ReturnType<typeof bfs> = null;
   switch (algorithm) {
     case 'bfs':          result = bfs(graph, from, to); break;
@@ -50,7 +58,20 @@ function runOne(
     case 'dijkstra':     result = dijkstra(graph, from, to); break;
     case 'bellman-ford': result = bellmanFord(airports, routes, from, to); break;
   }
-  const timeMs = performance.now() - t0;
+
+  // Timed loop for accurate measurement
+  const runs = TIMING_RUNS[algorithm];
+  const t0 = performance.now();
+  for (let i = 0; i < runs; i++) {
+    switch (algorithm) {
+      case 'bfs':          bfs(graph, from, to); break;
+      case 'dfs':          dfs(graph, from, to); break;
+      case 'dijkstra':     dijkstra(graph, from, to); break;
+      case 'bellman-ford': bellmanFord(airports, routes, from, to); break;
+    }
+  }
+  const timeMs = (performance.now() - t0) / runs;
+
   return {
     algorithm: ALGORITHM_LABELS[algorithm],
     timeMs,
@@ -71,6 +92,14 @@ export function runAllAlgorithms(
   return ALGORITHMS.map(alg => runOne(graph, airports, routes, from, to, alg));
 }
 
+// Lighter runs for the general benchmark (many pairs × 4 algorithms)
+const GENERAL_RUNS: Record<AlgorithmKey, number> = {
+  bfs:           200,
+  dfs:           200,
+  dijkstra:      100,
+  'bellman-ford': 20,
+};
+
 export function runGeneralBenchmark(
   graph: Graph,
   airports: Airport[],
@@ -86,13 +115,33 @@ export function runGeneralBenchmark(
     for (const b of airports) {
       if (a.id === b.id) continue;
       for (const alg of ALGORITHMS) {
-        const r = runOne(graph, airports, routes, a.id, b.id, alg);
+        // Single run for result
+        let result: ReturnType<typeof bfs> = null;
+        switch (alg) {
+          case 'bfs':          result = bfs(graph, a.id, b.id); break;
+          case 'dfs':          result = dfs(graph, a.id, b.id); break;
+          case 'dijkstra':     result = dijkstra(graph, a.id, b.id); break;
+          case 'bellman-ford': result = bellmanFord(airports, routes, a.id, b.id); break;
+        }
+        // Timed loop
+        const runs = GENERAL_RUNS[alg];
+        const t0 = performance.now();
+        for (let i = 0; i < runs; i++) {
+          switch (alg) {
+            case 'bfs':          bfs(graph, a.id, b.id); break;
+            case 'dfs':          dfs(graph, a.id, b.id); break;
+            case 'dijkstra':     dijkstra(graph, a.id, b.id); break;
+            case 'bellman-ford': bellmanFord(airports, routes, a.id, b.id); break;
+          }
+        }
+        const timeMs = (performance.now() - t0) / runs;
+
         acc[alg].total += 1;
-        acc[alg].timeMs += r.timeMs;
-        if (r.found) {
+        acc[alg].timeMs += timeMs;
+        if (result !== null) {
           acc[alg].successes += 1;
-          acc[alg].cost += r.cost!;
-          acc[alg].hops += r.hops!;
+          acc[alg].cost += result.cost ?? 0;
+          acc[alg].hops += result.path.length - 1;
         }
       }
     }

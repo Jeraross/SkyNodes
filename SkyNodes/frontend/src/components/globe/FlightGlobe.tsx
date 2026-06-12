@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { GlobeMode, PlanePosition } from '../../types';
 import aliciaAudio from '../../assets/alicia-edited.mp3';
-import { airports } from '../../data/airports';
+import { airports, airportMap } from '../../data/airports';
 import { routeArcs } from '../../data/routes';
+import { REGION_COLOR } from '../../data/colors';
 import { createAirplaneObject } from './AirplaneObject';
 import { createEiffelTowerObject, loadEiffelTowerModel, onEiffelModelReady } from './EiffelTowerObject';
 
@@ -27,6 +28,7 @@ let aliciaPlayer: HTMLAudioElement | null = null;
 interface Props {
   mode: GlobeMode;
   highlightedRouteIds: string[];
+  highlightedPath: string[];
   currentRouteId: string;
   simulatedPlanePosition: PlanePosition;
   onEnterBrazil: () => void;
@@ -34,7 +36,7 @@ interface Props {
 }
 
 export default function FlightGlobe({
-  mode, highlightedRouteIds, currentRouteId, simulatedPlanePosition, onEnterBrazil, eiffelUnlocked,
+  mode, highlightedRouteIds, highlightedPath, currentRouteId, simulatedPlanePosition, onEnterBrazil, eiffelUnlocked,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<GlobeMethods | null>(null);
@@ -82,16 +84,25 @@ export default function FlightGlobe({
     }
   };
 
-  const arcStroke      = (arc: { id: string }) => arc.id === currentRouteId ? 2.2 : highlightedRouteIds.includes(arc.id) ? 1.2 : 0.4;
+  const arcStroke = (arc: { id: string; weight?: number }) => {
+    if (arc.id === currentRouteId) return 2.2;
+    if (highlightedRouteIds.includes(arc.id)) return 1.4;
+    const w = (arc as { weight?: number }).weight ?? 1.5;
+    return 0.2 + (w / 3.5) * 0.5;
+  };
   const arcDashLength  = (arc: { id: string }) => arc.id === currentRouteId ? 0.6 : highlightedRouteIds.includes(arc.id) ? 0.55 : 1;
   const arcDashGap     = (arc: { id: string }) => arc.id === currentRouteId ? 0.12 : highlightedRouteIds.includes(arc.id) ? 0.1 : 0;
   const arcAnimateTime = (arc: { id: string }) => arc.id === currentRouteId ? 2000 : highlightedRouteIds.includes(arc.id) ? 7000 : 0;
 
-  const pointColor = (point: { id: string }) =>
-    highlightedRouteIds.some(id => {
+  const pointColor = (point: { id: string }) => {
+    const isHighlighted = highlightedRouteIds.some(id => {
       const arc = routeArcs.find(a => a.id === id);
       return arc && (arc.from === point.id || arc.to === point.id);
-    }) ? 'rgba(250, 204, 21, 1)' : 'rgba(34, 211, 238, 0.9)';
+    });
+    if (isHighlighted) return 'rgba(250, 204, 21, 1)';
+    const airport = airportMap.get(point.id);
+    return airport ? REGION_COLOR[airport.region] : 'rgba(34, 211, 238, 0.9)';
+  };
 
   // Pre-load the GLTF model as soon as the easter egg is unlocked
   useEffect(() => {
@@ -102,6 +113,35 @@ export default function FlightGlobe({
   }, [eiffelUnlocked]);
 
   const showData = mode !== 'orbit';
+
+  // Set of directed edges derived from the algorithm path: "FROM-TO"
+  const pathDirections = useMemo(() => {
+    const s = new Set<string>();
+    for (let i = 0; i < highlightedPath.length - 1; i++) {
+      s.add(`${highlightedPath[i]}-${highlightedPath[i + 1]}`);
+    }
+    return s;
+  }, [highlightedPath]);
+
+  // Arcs with corrected direction: highlighted arcs that were traversed in reverse get their start/end swapped
+  const directedArcs = useMemo(() => {
+    if (!showData) return [];
+    return routeArcs.map(arc => {
+      const isRelevant = highlightedRouteIds.includes(arc.id) || arc.id === currentRouteId;
+      if (!isRelevant || pathDirections.size === 0) return arc;
+      const reversed = `${arc.to}-${arc.from}`;
+      if (pathDirections.has(reversed)) {
+        return {
+          ...arc,
+          startLat: arc.endLat,
+          startLng: arc.endLng,
+          endLat: arc.startLat,
+          endLng: arc.startLng,
+        };
+      }
+      return arc;
+    });
+  }, [showData, routeArcs, highlightedRouteIds, currentRouteId, pathDirections]);
 
   // Combine plane + Eiffel Tower into a single custom layer
   const planeItems = simulatedPlanePosition.visible
@@ -144,7 +184,7 @@ export default function FlightGlobe({
           </div>`
         }
 
-        arcsData={showData ? routeArcs : []}
+        arcsData={directedArcs}
         arcStartLat="startLat"
         arcStartLng="startLng"
         arcEndLat="endLat"
