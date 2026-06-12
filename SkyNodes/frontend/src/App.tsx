@@ -34,6 +34,7 @@ export default function App() {
   const [algorithmsOpen, setAlgorithmsOpen] = useState(false);
   const [benchmarkOpen, setBenchmarkOpen] = useState(false);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState<string[]>([]);
+  const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
   const [eiffelUnlocked, setEiffelUnlocked] = useState(false);
 
   const { simulation, planePosition, setReady, start, pause, resume, restart, clear, setSpeed } =
@@ -49,6 +50,7 @@ export default function App() {
 
   const handleSetReady = (path: string[], routeIds: string[], cost?: number) => {
     setHighlightedRouteIds(routeIds);
+    setHighlightedPath(path);
     setMode('analysis');
     setReady(path, routeIds, cost);
   };
@@ -80,6 +82,7 @@ export default function App() {
             <FlightGlobe
               mode={mode}
               highlightedRouteIds={highlightedRouteIds}
+              highlightedPath={highlightedPath}
               currentRouteId={currentRouteId}
               simulatedPlanePosition={planePosition}
               onEnterBrazil={handleEnterBrazil}
@@ -95,11 +98,11 @@ export default function App() {
             egoByAirport={metrics.egoByAirport}
           />
         )}
-        {viewMode === 'map' && <MapView highlightedRouteIds={highlightedRouteIds} />}
+        {viewMode === 'map' && <MapView highlightedRouteIds={highlightedRouteIds} planePosition={planePosition} />}
 
         {viewMode === 'globe' && mode === 'orbit' && <GlobeHeroOverlay onEnterBrazil={handleEnterBrazil} />}
         {!(viewMode === 'globe' && mode === 'orbit') && <TopControlNav viewMode={viewMode} onViewModeChange={setViewMode} />}
-        {!(viewMode === 'globe' && mode === 'orbit') && (
+        {viewMode === 'globe' && (
           <button
             type="button"
             onClick={() => navigate('/game')}
@@ -129,7 +132,7 @@ export default function App() {
           />
         )}
         <AlgorithmsSidebar
-          open={algorithmsOpen && simulation.status === 'idle'}
+          open={algorithmsOpen && (viewMode !== 'globe' || simulation.status === 'idle')}
           simulation={simulation}
           onHighlightRoutes={handleHighlightRoutes}
           onSetReady={handleSetReady}

@@ -132,7 +132,7 @@ const stepVariants: Variants = {
 };
 
 export function Step({ children }: { children: ReactNode }) {
-  return <div className="py-6">{children}</div>;
+  return <div className="px-10 py-6">{children}</div>;
 }
 
 function StepIndicator({ step, currentStep, onClickStep, disableStepIndicators }: {

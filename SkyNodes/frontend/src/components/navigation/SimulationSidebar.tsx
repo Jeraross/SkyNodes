@@ -37,9 +37,9 @@ export default function SimulationSidebar({
 
   const { status, airportPath, currentSegmentIndex, progress, speedMultiplier, totalCost, routeIds } = simulation;
   const totalSegments = Math.max(airportPath.length - 1, 1);
-  const overallPct = Math.round(
+  const overallPct = status === 'finished' ? 100 : Math.min(99, Math.round(
     ((currentSegmentIndex + Math.min(progress, 1)) / totalSegments) * 100
-  );
+  ));
   const fromId = airportPath[currentSegmentIndex] ?? '—';
   const toId = airportPath[Math.min(currentSegmentIndex + 1, airportPath.length - 1)] ?? '—';
 
